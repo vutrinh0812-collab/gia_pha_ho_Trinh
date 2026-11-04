@@ -242,3 +242,12 @@ a.linkCard:hover {
     flex-wrap: wrap;
   }
 }
+button.linkCard {
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+button.linkCard:hover {
+  background: var(--surface-2);
+}

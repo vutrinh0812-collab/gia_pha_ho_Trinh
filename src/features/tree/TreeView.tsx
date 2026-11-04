@@ -15,6 +15,8 @@ import {
   PlusIcon,
 } from '@/app/ui/icons';
 import { useClanStore } from '@/store/clanStore';
+import { useAdminStore } from '@/store/adminStore';
+import { useAdminUi } from '@/store/adminUiStore';
 import { usePrefsStore } from '@/store/prefsStore';
 import { collapseAllIds, computeTreeLayout, type TreeFilters } from './layout';
 import { TreeCanvas, type TreeCanvasApi } from './TreeCanvas';
@@ -55,6 +57,8 @@ export default function TreeView() {
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
+  const isAdmin = useAdminStore((s) => s.status === 'admin');
+  const openAdmin = useAdminUi((s) => s.open);
   const treeThemeId = usePrefsStore((s) => s.treeTheme);
   const setTreeTheme = usePrefsStore((s) => s.setTreeTheme);
   const treeTheme = useTreeTheme(treeThemeId);
@@ -267,6 +271,11 @@ export default function TreeView() {
           </button>
         </div>
         <AdminStatus variant="chip" />
+        {isAdmin && (
+          <button type="button" className={styles.chipButton} onClick={() => openAdmin('generations', '')}>
+            <PlusIcon width={18} height={18} /> Thêm đời trên / dưới
+          </button>
+        )}
         {lineagePerson && (
           <div className={styles.chip} role="status">
             Dòng dõi: <strong>{lineagePerson.fullName}</strong>

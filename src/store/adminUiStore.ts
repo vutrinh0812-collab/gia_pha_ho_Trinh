@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type AdminActionKind = 'menu' | 'edit' | 'addChild' | 'addSpouse' | 'addFather' | 'reorder' | 'delete';
+export type AdminActionKind = 'menu' | 'edit' | 'addChild' | 'addSpouse' | 'addFather' | 'reorder' | 'delete' | 'generations';
 
 export interface AdminAction {
   kind: AdminActionKind;

@@ -592,3 +592,20 @@ main > .view {
 .rail[data-tight='true'] .railEmpty {
   display: none;
 }
+.chipButton {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  pointer-events: auto;
+  cursor: pointer;
+}

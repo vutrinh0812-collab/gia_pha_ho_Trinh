@@ -272,3 +272,15 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+.genSection {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.genTitle {
+  margin: 0;
+  font-size: 1.0625rem;
+}

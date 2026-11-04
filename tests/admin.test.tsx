@@ -149,4 +149,33 @@ describe('admin editing (demo backend)', () => {
     expect(await screen.findByText('Đã lưu cài đặt.')).toBeInTheDocument();
     await waitFor(() => expect(useClanStore.getState().model?.settings.title).toBe('Gia Phả Họ Trịnh Làng An Hòa'));
   });
+
+  it('adds a generation below from the tree ("Thêm đời")', async () => {
+    await signIn();
+    renderAt('/so-do');
+    fireEvent.click(await screen.findByRole('button', { name: /Thêm đời trên \/ dưới/ }, { timeout: 5000 }));
+    const sheet = await screen.findByRole('dialog', { name: 'Thêm đời' }, { timeout: 5000 });
+    const model = useClanStore.getState().model!;
+    const deepest = model.persons.find((p) => p.isBloodline && model.generationOf(p.id) === model.gens.maxGeneration)!;
+    fireEvent.change(within(sheet).getByLabelText('Thêm con cho'), { target: { value: deepest.id } });
+    fireEvent.click(within(sheet).getByRole('button', { name: `Thêm con (Đời ${model.gens.maxGeneration + 1})` }));
+    const form = await screen.findByRole('dialog', { name: `Thêm con của ${deepest.fullName}` });
+    fireEvent.change(within(form).getByLabelText('Họ và tên'), { target: { value: 'Trịnh Đời Mới' } });
+    fireEvent.click(within(form).getByRole('button', { name: /Lưu|Thêm/ }));
+    await waitFor(() => expect(useClanStore.getState().model!.gens.maxGeneration).toBe(model.gens.maxGeneration + 1));
+  });
+
+  it('adds a generation above from the admin page', async () => {
+    await signIn();
+    renderAt('/admin');
+    const before = useClanStore.getState().model!;
+    fireEvent.click(await screen.findByRole('button', { name: /Thêm đời trên \/ dưới/ }));
+    const sheet = await screen.findByRole('dialog', { name: 'Thêm đời' }, { timeout: 5000 });
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Thêm tổ tiên ở đời trên' }));
+    const form = await screen.findByRole('dialog', { name: /Thêm cha của/ });
+    fireEvent.change(within(form).getByLabelText('Họ và tên'), { target: { value: 'Trịnh Tổ Mới' } });
+    fireEvent.click(within(form).getByRole('button', { name: /Lưu|Thêm/ }));
+    await waitFor(() => expect(useClanStore.getState().model!.get(useClanStore.getState().model!.rootId)!.fullName).toBe('Trịnh Tổ Mới'));
+    expect(useClanStore.getState().model!.generationOf(before.rootId)).toBe(2);
+  });
 });

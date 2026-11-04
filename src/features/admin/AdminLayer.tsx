@@ -7,6 +7,7 @@ import { lifeSpan } from '@/lib/format';
 import { useAdminStore } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
 import { useClanStore } from '@/store/clanStore';
+import { GenerationsSheet } from './GenerationsSheet';
 import { PersonForm } from './PersonForm';
 import styles from './AdminForms.module.css';
 
@@ -16,6 +17,7 @@ export default function AdminLayer() {
   const close = useAdminUi((s) => s.close);
   const model = useClanStore((s) => s.model);
   if (!action || !model) return null;
+  if (action.kind === 'generations') return <GenerationsSheet model={model} />;
   const person = model.get(action.personId);
   if (!person) return null;
   switch (action.kind) {

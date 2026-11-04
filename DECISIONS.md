@@ -368,3 +368,10 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - Chữ khó đọc và chỗ bị làm mờ trong sổ nằm ở phần Ghi chú của từng người, kèm số trang sổ cho người đứng đầu.
 - Chỗ sổ ghi mơ hồ về cha mẹ được đặt theo đúng sổ và có ghi chú nêu khả năng khác; chờ người nhà xác nhận.
 - Chưa có ngày sinh, ngày mất, câu đối, lạc khoản: để trống để admin nhập.
+
+### D50. Nút "Thêm đời trên / dưới"
+- Các thao tác thêm đời trước đây nằm sâu trong menu của từng người. Giờ admin có nút **Thêm đời trên / dưới** ngay trên Sơ đồ và ở trang Quản trị.
+- Bảng "Thêm đời" có hai phần:
+  - **Phía trên:** thêm một tổ tiên làm cha chung của mọi gia đình ở Đời 1 (D48).
+  - **Phía dưới:** chọn cha hoặc mẹ (danh sách nhóm theo đời, mặc định đời sâu nhất) rồi mở form Thêm con. Con của người ở đời cuối mở ra đời mới.
+- Sửa thông tin từng người vẫn như cũ: chạm vào người đó → Sửa thông tin / Thao tác khác.

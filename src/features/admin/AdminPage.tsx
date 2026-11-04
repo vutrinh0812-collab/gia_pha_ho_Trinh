@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { env } from '@/lib/env';
 import { useAdminStore } from '@/store/adminStore';
+import { useAdminUi } from '@/store/adminUiStore';
 import { useClanStore } from '@/store/clanStore';
 import styles from './AdminPages.module.css';
 
@@ -66,6 +67,7 @@ function SignIn() {
 function AdminHome() {
   const signOut = useAdminStore((s) => s.signOut);
   const model = useClanStore((s) => s.model);
+  const openAdmin = useAdminUi((s) => s.open);
   return (
     <div className={styles.page}>
       <h1>Quản trị</h1>
@@ -73,6 +75,12 @@ function AdminHome() {
         Đang ở chế độ Admin cho <strong>{model?.settings.title}</strong>.
       </p>
       <ul className={styles.links}>
+        <li>
+          <button type="button" className={styles.linkCard} onClick={() => openAdmin('generations', '')}>
+            <span className={styles.linkTitle}>Thêm đời trên / dưới</span>
+            <span className={styles.linkText}>Thêm tổ tiên ở đời trên cùng, hoặc thêm con để mở đời mới</span>
+          </button>
+        </li>
         <li>
           <Link to="/admin/cai-dat" className={styles.linkCard}>
             <span className={styles.linkTitle}>Cài đặt dòng họ</span>
@@ -95,7 +103,8 @@ function AdminHome() {
       <h2 className={styles.h2}>Cách sửa thông tin một người</h2>
       <ul className={styles.howto}>
         <li>Nhấn giữ vào tên người đó (trên điện thoại), hoặc mở “Xem chi tiết” rồi bấm “Sửa” hay “Thao tác”.</li>
-        <li>“Thao tác” có: thêm con, thêm vợ hoặc chồng, thêm cha cho thủy tổ, đổi thứ tự anh chị em, xóa.</li>
+        <li>“Thao tác” có: thêm con, thêm vợ hoặc chồng, thêm cha cho người ở Đời 1, đổi thứ tự anh chị em, xóa.</li>
+        <li>Thêm cả một đời: dùng “Thêm đời trên / dưới” ở trên, hoặc nút cùng tên trên màn Sơ đồ.</li>
         <li>Người còn con không xóa được; hãy xóa hoặc chuyển các con trước.</li>
       </ul>
       <button type="button" className={styles.secondary} onClick={() => void signOut()}>
