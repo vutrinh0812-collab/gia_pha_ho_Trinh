@@ -113,6 +113,14 @@ export const FilterIcon = (p: IconProps) => (
     <path d="M4 5h16l-6 7.5V19l-4-2v-4.5z" />
   </Icon>
 );
+export const PaletteIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.2 0 1.8-.8 1.8-1.7 0-1.3-1.1-1.6-1.1-2.8 0-1 .8-1.7 1.8-1.7h2.2c2 0 3.8-1.6 3.8-4C20.5 6.6 16.7 3.5 12 3.5z" />
+    <circle cx="7.6" cy="11" r="1.1" />
+    <circle cx="10.4" cy="7.4" r="1.1" />
+    <circle cx="15" cy="7.6" r="1.1" />
+  </Icon>
+);
 export const CollapseIcon = (p: IconProps) => (
   <Icon {...p}>
     <path d="M7 4l5 5 5-5M7 20l5-5 5 5" />

@@ -5,6 +5,7 @@ import { AppRoutes } from '@/app/App';
 import { buildClanModel } from '@/lib/clanModel';
 import { loadDemoSnapshot } from '@/lib/data/demoSource';
 import { useClanStore } from '@/store/clanStore';
+import { usePrefsStore } from '@/store/prefsStore';
 
 const model = buildClanModel(loadDemoSnapshot())!;
 const root = model.get(model.rootId)!;
@@ -70,5 +71,25 @@ describe('Sơ đồ view', () => {
     expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
     // Still on the tree, not the family view.
     expect(screen.getByRole('heading', { name: /Sơ đồ/ })).toBeInTheDocument();
+  });
+
+  it('switches the tree to a print theme and back, and remembers it', async () => {
+    usePrefsStore.getState().setTreeTheme('son-son');
+    const svg = await renderTree();
+    const canvas = svg.parentElement!;
+    expect(canvas.style.getPropertyValue('--bg')).toBe('');
+    fireEvent.click(screen.getByRole('button', { name: /^Giao diện/ }));
+    const sheet = await screen.findByRole('radiogroup', { name: 'Giao diện' }, { timeout: 5000 });
+    const options = within(sheet).getAllByRole('radio');
+    expect(options.map((o) => o.textContent)).toEqual(
+      expect.arrayContaining([expect.stringMatching(/^Sơn son/), expect.stringMatching(/^Men lam/), expect.stringMatching(/^Sơn mài vàng/)]),
+    );
+    expect(options).toHaveLength(5);
+    fireEvent.click(within(sheet).getByRole('radio', { name: /^Sơn mài vàng/ }));
+    await vi.waitFor(() => expect(canvas.style.getPropertyValue('--bg')).not.toBe(''));
+    expect(usePrefsStore.getState().treeTheme).toBe('son-mai-vang');
+    expect(screen.getByRole('button', { name: 'Giao diện: Sơn mài vàng' })).toBeInTheDocument();
+    act(() => usePrefsStore.getState().setTreeTheme('son-son'));
+    await vi.waitFor(() => expect(canvas.style.getPropertyValue('--bg')).toBe(''));
   });
 });

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useClanStore } from '@/store/clanStore';
+import { usePrefsStore } from '@/store/prefsStore';
 import { PRINT_THEMES } from '@/themes/registry';
 import type { Theme } from '@/themes/types';
 import { BranchPicker } from './BranchPicker';
@@ -18,6 +19,8 @@ export default function ThemesPage() {
   const focusId = params.has('goc') ? params.get('goc') || null : defaultFocus;
   const layout = usePrintLayout(model, focusId, true);
   const [enlarged, setEnlarged] = useState<Theme | null>(null);
+  const treeTheme = usePrefsStore((s) => s.treeTheme);
+  const setTreeTheme = usePrefsStore((s) => s.setTreeTheme);
 
   return (
     <div className={styles.page}>
@@ -34,6 +37,19 @@ export default function ThemesPage() {
             </button>
             <h2 className={styles.themeName}>{theme.name}</h2>
             <p className={styles.themeText}>{theme.description}</p>
+            <div className={styles.cardActions}>
+              <Link className={styles.cardAction} to={`/print?giaodien=${theme.id}${focusId ? `&goc=${encodeURIComponent(focusId)}` : ''}`}>
+                In với giao diện này
+              </Link>
+              <button
+                type="button"
+                className={styles.cardAction}
+                aria-pressed={treeTheme === theme.id}
+                onClick={() => setTreeTheme(treeTheme === theme.id ? 'son-son' : theme.id)}
+              >
+                {treeTheme === theme.id ? '✓ Đang dùng cho sơ đồ' : 'Dùng cho sơ đồ'}
+              </button>
+            </div>
           </li>
         ))}
       </ul>

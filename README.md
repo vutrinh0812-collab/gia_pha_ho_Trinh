@@ -9,7 +9,7 @@ Web app lưu giữ và cập nhật gia phả của một dòng họ, hiển th�
 
 **Công nghệ:** React 18 + Vite + TypeScript · Zustand · Firebase (Firestore, Auth, Storage, Hosting) · Vitest.
 
-**Trạng thái:** ✅ Giai đoạn 1 (khởi tạo) · ✅ Giai đoạn 2 (dữ liệu & bảo mật) · ✅ Giai đoạn 3a (giao diện điện thoại: Gia đình, Danh sách, tìm kiếm) · ✅ Giai đoạn 3b (Sơ đồ: phóng to nhiều mức, thu gọn nhánh, lọc, dòng dõi) · ✅ Giai đoạn 3c (bố cục máy tính, phím tắt) · ✅ Giai đoạn 3d (cài lên điện thoại, xem khi mất mạng, chia sẻ link) · ✅ Giao diện Sơn son · ✅ Giai đoạn 4 (chế độ Admin: sửa, thêm, xóa, lịch sử, hoàn tác) · 🟡 Giai đoạn 5 (theme in, in theo chi — đang chờ chọn 2 theme). Các giai đoạn tiếp theo: xem SPEC.md §12.
+**Trạng thái:** ✅ Giai đoạn 1 (khởi tạo) · ✅ Giai đoạn 2 (dữ liệu & bảo mật) · ✅ Giai đoạn 3a (giao diện điện thoại: Gia đình, Danh sách, tìm kiếm) · ✅ Giai đoạn 3b (Sơ đồ: phóng to nhiều mức, thu gọn nhánh, lọc, dòng dõi) · ✅ Giai đoạn 3c (bố cục máy tính, phím tắt) · ✅ Giai đoạn 3d (cài lên điện thoại, xem khi mất mạng, chia sẻ link) · ✅ Giao diện Sơn son · ✅ Giai đoạn 4 (chế độ Admin: sửa, thêm, xóa, lịch sử, hoàn tác) · ✅ Giai đoạn 5 (4 theme in, đổi giao diện trên sơ đồ, in theo chi). Các giai đoạn tiếp theo: xem SPEC.md §12.
 
 ---
 
@@ -310,4 +310,6 @@ Trong bản xem thử (không có Firebase), mã admin là `ma-admin-demo`. Mọ
   - toàn bộ con cháu của người đó;
   - anh chị em và các nhánh khác vẫn hiện, nhưng con cháu của họ được thu gọn, ghi "+N con cháu".
 - Cách nhanh hơn: mở chi tiết một người có con, rồi bấm **In gia phả theo chi của …**.
+- **Đổi giao diện sơ đồ:** trong màn Sơ đồ, bấm nút **Giao diện** (biểu tượng bảng màu). Chọn Sơn son, Truyền thống đỏ, Sơn mài vàng, Giấy dó mực tàu hoặc Men lam. Máy sẽ nhớ lựa chọn này, và trang In cũng dùng sẵn giao diện đó.
+- Admin chọn giao diện in mặc định cho cả dòng họ ở **Quản trị → Cài đặt dòng họ**.
 - Xuất file PDF/SVG/PNG để mang đi in: giai đoạn 6.

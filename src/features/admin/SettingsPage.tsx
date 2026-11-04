@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AdminError, editSettings, settingsContent } from '@/lib/admin/changes';
 import type { ClanSettings } from '@/lib/types';
+import { PRINT_THEMES } from '@/themes/registry';
 import { useAdminStore } from '@/store/adminStore';
 import { useClanStore } from '@/store/clanStore';
 import { AdminGuard } from './AdminGuard';
 import styles from './AdminPages.module.css';
 
-const THEMES: Array<[string, string]> = [['minimal', 'Sơn son (màn hình)']];
 
 function SettingsForm() {
   const model = useClanStore((s) => s.model)!;
@@ -59,11 +59,12 @@ function SettingsForm() {
         {text('coupletRight', 'Câu đối bên phải')}
         {text('colophon', 'Lạc khoản', 'Dòng ghi ở góc dưới bản in')}
         <div className={styles.field}>
-          <label htmlFor="s-theme">Giao diện mặc định</label>
+          <label htmlFor="s-theme">Giao diện in mặc định</label>
           <select id="s-theme" value={draft.defaultThemeId} onChange={(e) => set('defaultThemeId', e.target.value)}>
-            {THEMES.map(([id, label]) => (
-              <option key={id} value={id}>
-                {label}
+            {!PRINT_THEMES.some((t) => t.id === draft.defaultThemeId) && <option value={draft.defaultThemeId}>Truyền thống đỏ (mặc định)</option>}
+            {PRINT_THEMES.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
               </option>
             ))}
           </select>

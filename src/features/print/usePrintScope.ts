@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
 import type { Theme } from '@/themes/types';
 import { computeTreeLayout, type TreeLayout } from '../tree/layout';
@@ -47,16 +47,4 @@ export function branchLine(model: ClanModel, focusId: string | null): string | n
   return `Chi ${p.gender === 'male' ? 'ông' : 'bà'} ${p.fullName}${gen ? ` (đời ${gen})` : ''}: đầy đủ con cháu; các nhánh khác thu gọn`;
 }
 
-/** Loads each theme's web fonts once (Vietnamese subsets). */
-export function useThemeFonts(themes: Theme[]): void {
-  useEffect(() => {
-    for (const t of themes) {
-      if (!t.fontsCss || document.querySelector(`link[data-theme-font="${t.id}"]`)) continue;
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = t.fontsCss;
-      link.dataset.themeFont = t.id;
-      document.head.appendChild(link);
-    }
-  }, [themes]);
-}
+export { useThemeFonts } from '@/themes/fonts';

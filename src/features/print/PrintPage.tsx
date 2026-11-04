@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useClanStore } from '@/store/clanStore';
+import { usePrefsStore } from '@/store/prefsStore';
 import { getTheme, PRINT_THEMES } from '@/themes/registry';
 import { BranchPicker } from './BranchPicker';
 import { DEFAULT_POSTER_OPTIONS, PosterSvg, type PosterOptions } from './PosterSvg';
@@ -16,12 +17,19 @@ const TOGGLES: Array<[keyof PosterOptions, string]> = [
   ['showGenerations', 'Cột đánh dấu đời'],
 ];
 
+function defaultPrintTheme(...ids: string[]): string {
+  const ok = (id: string) => PRINT_THEMES.some((t) => t.id === id);
+  return ids.find(ok) ?? (ok('truyen-thong-do') ? 'truyen-thong-do' : (PRINT_THEMES[0]?.id ?? ''));
+}
+
 /** /print — the A1 layout (SPEC §8). Export to PDF/SVG/PNG arrives in phase 6. */
 export default function PrintPage() {
   const model = useClanStore((s) => s.model)!;
   const [params, setParams] = useSearchParams();
   const focusId = params.get('goc') || null;
-  const [themeId, setThemeId] = useState(() => PRINT_THEMES[0]?.id ?? '');
+  const treeTheme = usePrefsStore((s) => s.treeTheme);
+  // The theme on the tree, else the clan's default print theme (SPEC §8: truyen-thong-do).
+  const [themeId, setThemeId] = useState(() => defaultPrintTheme(params.get('giaodien') ?? '', treeTheme, model.settings.defaultThemeId));
   const [opts, setOpts] = useState<PosterOptions>(DEFAULT_POSTER_OPTIONS);
   const theme = getTheme(themeId) ?? PRINT_THEMES[0]!;
   useThemeFonts(useMemo(() => [theme], [theme]));

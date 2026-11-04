@@ -309,7 +309,7 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 | Men lam | nền trắng ngà, lam cobalt, viền dây leo, hồ sen | Prata, Literata |
 
 - Mọi font đều hỗ trợ đủ dấu tiếng Việt và có giấy phép OFL.
-- Sau khi người dùng chọn, 2 theme không được chọn vẫn giữ trong code nhưng ẩn khỏi danh sách.
+- **Người dùng chọn giữ cả 4 theme.** Cả 4 đều có trong trang In, trang Giao diện in và nút đổi giao diện trên sơ đồ.
 
 ### D44. In theo chi (rẽ nhánh)
 - **Yêu cầu:** in chi của ông A (ví dụ ở đời 3) thì bản in gồm:
@@ -328,3 +328,19 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - Thứ tự từ trên xuống: tiêu đề (băng rôn), phụ đề, dòng thủy tổ, dòng chi; câu đối dọc hai bên; dải màu xen kẽ theo đời; lạc khoản ở góc dưới.
 - **Cây rộng mà ít đời:** khi chiều ngang giới hạn tỷ lệ, poster kéo giãn khoảng cách giữa các đời (ô người giữ nguyên kích thước) cho kín chiều cao giấy, không để trống nửa trang.
 - Tự co chữ, đặt ô dọc và xuất PDF/SVG/PNG thuộc giai đoạn 6.
+
+### D46. Đổi giao diện ngay trên sơ đồ
+- Nút **Giao diện** trên thanh công cụ của Sơ đồ (SPEC 5.1 "Chọn theme"). Có 5 lựa chọn: Sơn son (mặc định) và 4 theme in.
+- **Chỉ đổi màu và kiểu chữ:**
+  - đổi màu nền, ô, đường nối, dải đời, màu tên nam/nữ/dâu-rể, và font tên;
+  - không vẽ khung, hoa văn hay câu đối trên màn hình, vì SPEC 5 ưu tiên đọc rõ, không mô phỏng khung tranh;
+  - thanh công cụ và thanh điều hướng giữ giao diện Sơn son, để nút bấm luôn dễ thấy.
+- Lựa chọn được nhớ trên từng máy (localStorage).
+- **Hiệu năng:** danh sách theme và hoa văn chỉ tải khi mở bảng chọn hoặc khi đang dùng một theme in. Người dùng Sơn son không tải thêm gì.
+- **Theme in mặc định:** trang In chọn theme theo thứ tự:
+  1. tham số `?giaodien=`;
+  2. theme đang dùng trên sơ đồ;
+  3. "Giao diện in mặc định" trong Cài đặt dòng họ;
+  4. Truyền thống đỏ.
+- Trang Giao diện in có thêm 2 nút cho mỗi theme: "In với giao diện này" và "Dùng cho sơ đồ".
+- **Sửa lỗi cũ:** trên máy tính, sơ đồ bị bó trong cột giữa rộng 46rem, vì quy tắc căn giữa nội dung trang cũng áp vào sơ đồ. Giờ sơ đồ chiếm hết chiều ngang. Lỗi lộ ra khi đổi nền theme.

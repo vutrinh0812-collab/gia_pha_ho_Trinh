@@ -8,16 +8,19 @@ interface Prefs {
   largeText: boolean;
   /** null = follow the clan setting `showMaternalDescendants`. */
   showMaternal: boolean | null;
+  /** Theme of the tree view: the screen theme or one of the print themes. */
+  treeTheme: string;
 }
 
 interface PrefsState extends Prefs {
   setTheme(theme: ThemeMode): void;
   setLargeText(on: boolean): void;
   setShowMaternal(on: boolean | null): void;
+  setTreeTheme(id: string): void;
 }
 
 const KEY = 'giapha.prefs.v1';
-const DEFAULTS: Prefs = { theme: 'system', largeText: false, showMaternal: null };
+const DEFAULTS: Prefs = { theme: 'system', largeText: false, showMaternal: null, treeTheme: 'son-son' };
 
 function read(): Prefs {
   try {
@@ -28,6 +31,7 @@ function read(): Prefs {
       theme: p.theme === 'light' || p.theme === 'dark' ? p.theme : 'system',
       largeText: p.largeText === true,
       showMaternal: typeof p.showMaternal === 'boolean' ? p.showMaternal : null,
+      treeTheme: typeof p.treeTheme === 'string' && /^[a-z0-9-]{1,40}$/.test(p.treeTheme) ? p.treeTheme : DEFAULTS.treeTheme,
     };
   } catch {
     return DEFAULTS;
@@ -63,8 +67,8 @@ export const usePrefsStore = create<PrefsState>((set, get) => {
   apply(initial);
   const update = (patch: Partial<Prefs>) => {
     set(patch);
-    const { theme, largeText, showMaternal } = get();
-    const prefs = { theme, largeText, showMaternal };
+    const { theme, largeText, showMaternal, treeTheme } = get();
+    const prefs = { theme, largeText, showMaternal, treeTheme };
     write(prefs);
     apply(prefs);
   };
@@ -73,5 +77,6 @@ export const usePrefsStore = create<PrefsState>((set, get) => {
     setTheme: (theme) => update({ theme }),
     setLargeText: (largeText) => update({ largeText }),
     setShowMaternal: (showMaternal) => update({ showMaternal }),
+    setTreeTheme: (treeTheme) => update({ treeTheme }),
   };
 });

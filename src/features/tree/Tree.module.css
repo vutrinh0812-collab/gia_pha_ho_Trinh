@@ -5,9 +5,16 @@
   overflow: hidden;
   background: var(--bg);
 }
+/* The desktop shell centres page content in a 46rem column (.main > *); the tree is not a page. */
+main > .view {
+  max-width: none;
+  margin: 0;
+}
 .canvas {
   position: absolute;
   inset: 0;
+  background: var(--bg);
+  transition: background-color 200ms ease;
 }
 .svg {
   display: block;
@@ -83,6 +90,7 @@
   --node-fill: var(--surface);
   --node-line: var(--line-strong);
   --node-far: var(--male-soft);
+  --name: var(--male);
   cursor: pointer;
   outline: none;
 }
@@ -90,6 +98,7 @@
   --node-fill: var(--female-soft);
   --node-line: var(--accent-track);
   --node-far: var(--accent-track);
+  --name: var(--female);
 }
 .node[data-role='male'][data-deceased] {
   --node-fill: var(--deceased-fill);
@@ -140,12 +149,12 @@
 .name {
   font-size: 14px;
   font-weight: 600;
-  fill: var(--text);
+  fill: var(--name, var(--text));
 }
 .nameL1 {
   font-size: 17px;
   font-weight: 600;
-  fill: var(--text);
+  fill: var(--name, var(--text));
   text-anchor: middle;
 }
 .years {
@@ -164,7 +173,7 @@
 .farName {
   font-size: calc(13px * var(--ik, 1));
   font-weight: 700;
-  fill: var(--text);
+  fill: var(--name, var(--text));
   text-anchor: middle;
   dominant-baseline: middle;
   paint-order: stroke;
@@ -507,4 +516,68 @@
   50% {
     stroke-width: 9px;
   }
+}
+
+/* ---------- Theme picker ---------- */
+.themeNote {
+  margin: 0 0 12px;
+  color: var(--text-2);
+  font-size: 0.9375rem;
+}
+.themeList {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.themeOption {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.themeOption[aria-checked='true'] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.swatch {
+  display: grid;
+  flex: none;
+  grid-template-columns: repeat(3, 10px);
+  gap: 3px;
+  align-content: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border: 2px solid;
+  border-radius: var(--radius-sm);
+}
+.swatch span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.themeText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.themeName {
+  font-weight: 600;
+  font-size: 1.0625rem;
+}
+.themeDesc {
+  color: var(--text-2);
+  font-size: 0.875rem;
+  line-height: 1.4;
 }
