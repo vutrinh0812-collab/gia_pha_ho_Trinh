@@ -342,3 +342,27 @@ Dữ liệu từ sổ nằm trong `private-data/ho-trinh.json` (9 gia đình, 57
    ```
 
 **Mở rộng đời:** thêm con để mở đời xuống dưới (đời 4 đang trống). Muốn thêm tổ tiên ở trên, mở một người ở đời 1 và chọn **Thêm cha chung**; mọi người sẽ lùi một đời.
+
+## 13. Đưa lên Vercel
+
+Web chỉ là các file tĩnh; dữ liệu đọc thẳng từ Firebase, nên Vercel không giữ dữ liệu gia phả nào.
+
+1. Vào https://vercel.com → **Add New → Project** → chọn repo này. Vercel tự nhận Vite nhờ file `vercel.json`.
+2. Mở **Settings → Environment Variables**, thêm các biến sau (chọn cả Production và Preview):
+
+   | Biến | Giá trị |
+   |---|---|
+   | `VITE_FIREBASE_API_KEY` | `apiKey` của web app |
+   | `VITE_FIREBASE_AUTH_DOMAIN` | `authDomain` |
+   | `VITE_FIREBASE_PROJECT_ID` | `projectId` |
+   | `VITE_FIREBASE_STORAGE_BUCKET` | `storageBucket` |
+   | `VITE_FIREBASE_MESSAGING_SENDER_ID` | `messagingSenderId` |
+   | `VITE_FIREBASE_APP_ID` | `appId` |
+   | `VITE_CLAN_ID` | `ho-trinh` |
+   | `VITE_ADMIN_EMAIL` | email tài khoản admin |
+   | `VITE_SITE_URL` | địa chỉ web sau khi có (để chia sẻ link có ảnh xem trước) |
+
+3. Bấm **Deploy**. Sau khi có địa chỉ (ví dụ `https://ten-ban.vercel.app`), vào Firebase → **Authentication → Settings → Authorized domains → Add domain** và thêm tên miền đó. Thiếu bước này thì đăng nhập admin báo lỗi.
+4. Điền lại `VITE_SITE_URL` bằng địa chỉ thật rồi **Redeploy**.
+
+Dữ liệu thật **không** nằm trong repo: nó ở Firebase (nạp bằng `npm run import:ho-trinh`, mục 12).
