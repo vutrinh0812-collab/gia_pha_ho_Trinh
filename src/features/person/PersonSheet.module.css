@@ -1,140 +1,22 @@
-.header {
-  padding-top: 2px;
-}
-.name {
+.sheetTitle {
   margin: 0;
-  font-size: 1.375rem;
-  line-height: 1.25;
-  color: var(--text);
-  text-wrap: balance;
-}
-.sub {
-  margin: 2px 0 0;
   color: var(--text-2);
-  font-variant-numeric: tabular-nums;
-}
-.details {
-  margin: 8px 0 0;
-  display: grid;
-}
-.detailRow {
-  display: grid;
-  grid-template-columns: minmax(6.5rem, 34%) 1fr;
-  gap: 12px;
-  padding: 9px 0;
-  border-bottom: 1px solid var(--line);
-}
-.detailRow dt {
-  color: var(--text-2);
-}
-.detailRow dd {
-  margin: 0;
-  min-width: 0;
-  overflow-wrap: anywhere;
-  white-space: pre-line;
-}
-.relatives {
-  display: grid;
-  gap: 14px;
-  margin-top: 16px;
-}
-.relTitle {
-  margin: 0 0 6px;
-  font-size: 1rem;
-}
-.relList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 6px;
-}
-.rel {
-  width: 100%;
-  min-height: var(--tap);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 8px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  text-align: left;
-  cursor: pointer;
-}
-.rel:hover {
-  background: var(--surface-2);
-}
-.relName {
   font-weight: 500;
-  font-size: 1.0625rem;
 }
-.rel[data-role='spouse'] .relName {
-  color: var(--spouse);
-}
-.relMeta {
-  font-size: 0.875rem;
-  color: var(--text-2);
-}
-.action {
-  flex: 1;
-  min-width: 0;
-  padding: 0 6px;
+.lineage {
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 48px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: var(--surface-2);
-  font-weight: 600;
-  cursor: pointer;
-}
-.shareNote {
-  margin: 0 0 8px;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--accent-soft);
-  overflow-wrap: anywhere;
-  user-select: all;
-}
-
-.adminActions {
-  display: flex;
-  flex-wrap: wrap;
   gap: 8px;
-  margin: 4px 0 8px;
-}
-.adminPrimary,
-.adminSecondary {
-  flex: 1;
-  min-width: 9rem;
-  min-height: 48px;
-  padding: 0 14px;
+  padding: 0 16px;
   border-radius: var(--radius-sm);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-.adminPrimary {
-  border: 1px solid var(--accent);
-  background: var(--accent);
-  color: var(--on-accent);
-}
-.adminSecondary {
   border: 1px solid var(--line-strong);
   background: var(--surface);
   color: var(--text);
-}
-
-.printLink {
-  margin: 20px 0 0;
-}
-.printLink a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  color: var(--accent);
+  font: inherit;
   font-weight: 500;
+  cursor: pointer;
+}
+.lineage:hover {
+  background: var(--accent-soft);
 }

@@ -75,9 +75,9 @@ describe('admin sign-in', () => {
 describe('admin editing (demo backend)', () => {
   it('edits a person from the detail sheet', async () => {
     await signIn();
-    renderAt('/person/p0007');
+    renderAt('/?p=p0007&ct=p0007');
     const sheet = await screen.findByRole('dialog', { name: /Thông tin/ });
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Sửa thông tin' }));
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Sửa hồ sơ' }));
     const form = await screen.findByRole('dialog', { name: /Sửa thông tin/ });
     fireEvent.change(within(form).getByLabelText('Nghề nghiệp'), { target: { value: 'Thầy lang' } });
     fireEvent.click(within(form).getByRole('button', { name: 'Lưu' }));

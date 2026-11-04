@@ -145,3 +145,51 @@ export const CalendarIcon = (p: IconProps) => (
     <path d="M4 10h16M9 3v4M15 3v4" />
   </Icon>
 );
+export const EditIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" />
+    <path d="m13.5 6.5 4 4" />
+  </Icon>
+);
+export const CameraIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 8h3l2-2.5h6L17 8h3v11H4Z" />
+    <circle cx="12" cy="13" r="3.5" />
+  </Icon>
+);
+export const BirthIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 3c-1.5 2-1.5 3.5 0 4.5 1.5-1 1.5-2.5 0-4.5Z" />
+    <path d="M12 7.5V11M5 21v-7a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v7M3 21h18M5 16c2.3 1.3 4.7 1.3 7 0s4.7-1.3 7 0" />
+  </Icon>
+);
+export const PlaceIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 21s-6.5-5.8-6.5-11a6.5 6.5 0 0 1 13 0C18.5 15.2 12 21 12 21Z" />
+    <circle cx="12" cy="10" r="2.3" />
+  </Icon>
+);
+export const WorkIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="3" y="7.5" width="18" height="12" rx="2" />
+    <path d="M9 7.5V5.5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5.5v2M3 13h18" />
+  </Icon>
+);
+export const NoteIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M6 3h9l4 4v14H6Z" />
+    <path d="M15 3v4h4M9 12h7M9 16h5" />
+  </Icon>
+);
+export const MemorialIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M9 21V10h6v11M7 21h10" />
+    <path d="M12 10V7M12 7c-1.3-1-1.3-2.5 0-4 1.3 1.5 1.3 3 0 4Z" />
+  </Icon>
+);
+export const PersonIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
+  </Icon>
+);

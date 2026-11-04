@@ -1,0 +1,5 @@
+.page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 16px var(--gutter-r) 32px var(--gutter-l);
+}

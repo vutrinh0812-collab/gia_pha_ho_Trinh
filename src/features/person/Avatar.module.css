@@ -1,0 +1,36 @@
+.avatar {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  overflow: hidden;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  user-select: none;
+}
+.avatar[data-role='female'] {
+  background: var(--female-soft);
+}
+.avatar[data-role='male'] {
+  background: var(--male-soft);
+  color: var(--text);
+}
+.avatar[data-role='spouse'] {
+  background: var(--spouse-soft);
+  color: var(--spouse);
+}
+.avatar[data-deceased] img {
+  filter: grayscale(0.35);
+}
+.avatar[data-ring] {
+  border: 4px solid var(--surface);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 12%);
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

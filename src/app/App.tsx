@@ -16,6 +16,7 @@ const AdminSettingsPage = lazy(() => import('@/features/admin/SettingsPage'));
 const AdminHistoryPage = lazy(() => import('@/features/admin/HistoryPage'));
 // The full tree (d3) is only downloaded when the "Sơ đồ" tab is opened (SPEC 5A.3).
 const TreeView = lazy(() => import('@/features/tree/TreeView'));
+const ProfilePage = lazy(() => import('@/features/person/ProfilePage'));
 
 // Embedded previews (claude.ai artifact) cannot use path routing, so they keep routes in memory.
 const Router = env.router === 'memory' ? MemoryRouter : BrowserRouter;
@@ -31,10 +32,10 @@ export function App() {
 }
 
 /** Shared link /person/:id → "Gia đình" centred on that person with the detail sheet open. */
+/** Old shared links (/person/:id) open the profile page. */
 function PersonLink() {
   const { id = '' } = useParams();
-  const q = new URLSearchParams({ p: id, ct: id });
-  return <Navigate to={`/?${q}`} replace />;
+  return <Navigate to={`/nguoi/${encodeURIComponent(id)}`} replace />;
 }
 
 export function AppRoutes() {
@@ -52,6 +53,7 @@ export function AppRoutes() {
           }
         />
         <Route path="person/:id" element={<PersonLink />} />
+        <Route path="nguoi/:id" element={<ProfilePage />} />
         <Route path="anniversaries" element={<AnniversariesPage />} />
         <Route path="themes" element={<ThemesPage />} />
         <Route path="print" element={<PrintPage />} />

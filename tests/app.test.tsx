@@ -51,8 +51,11 @@ describe('Gia đình view', () => {
     renderAt('/');
     fireEvent.click(screen.getByRole('button', { name: /Xem chi tiết/ }));
     const dialog = screen.getByRole('dialog', { name: `Thông tin ${root.fullName}` });
-    expect(within(dialog).getByText('Ngày giỗ')).toBeInTheDocument();
-    expect(within(dialog).getByText('Tên húy')).toBeInTheDocument();
+    expect(within(dialog).getByRole('heading', { name: root.fullName })).toBeInTheDocument();
+    expect(within(dialog).getByText(/^Giỗ ngày/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/Húy/)).toBeInTheDocument();
+    expect(within(dialog).getByRole('region', { name: 'Gia đình' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('link', { name: /Trang cá nhân/ })).toHaveAttribute('href', `/nguoi/${root.id}`);
     fireEvent.click(within(dialog).getByRole('button', { name: 'Đóng' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
@@ -67,11 +70,20 @@ describe('Gia đình view', () => {
 });
 
 describe('shared person link', () => {
-  it('/person/:id centres the person and opens the sheet', () => {
+  it('/person/:id opens the profile page', async () => {
     const p = model.persons.find((x) => model.generationOf(x.id) === 4 && x.isBloodline)!;
     renderAt(`/person/${p.id}`);
-    expect(screen.getByRole('heading', { level: 1, name: p.fullName })).toBeInTheDocument();
-    expect(screen.getByRole('dialog', { name: `Thông tin ${p.fullName}` })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: p.fullName })).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: `Trang của ${p.fullName}` })).toBeInTheDocument();
+    expect(screen.getByText('Đời 4')).toBeInTheDocument();
+  });
+
+  it('opens a relative from the profile page', async () => {
+    renderAt(`/nguoi/${root.id}`);
+    await screen.findByRole('heading', { level: 1, name: root.fullName });
+    const child = model.family(root.id)!.partnerships[0]!.children[0]!;
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(child.fullName) }));
+    expect(await screen.findByRole('heading', { level: 1, name: child.fullName })).toBeInTheDocument();
   });
 });
 
