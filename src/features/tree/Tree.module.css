@@ -34,26 +34,24 @@
   top: 0;
   bottom: 0;
   left: 0;
-  width: calc(38px + var(--safe-left));
-  padding-left: var(--safe-left);
+  width: calc(var(--gutter-l) + 34px);
   pointer-events: none;
-  background: linear-gradient(to right, var(--bg) 60%, transparent);
+  background: linear-gradient(to right, var(--bg) 70%, transparent); /* taste-skill-ignore: a fade so labels stay legible over the moving tree */
   transition: opacity 150ms ease;
 }
 .railLabel {
   position: absolute;
   top: 0;
-  left: var(--safe-left);
-  width: 36px;
+  left: var(--gutter-l);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   line-height: 1.1;
   color: var(--text-2);
   will-change: transform;
 }
 .railLabel span {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
 .railLabel strong {
   font-size: 1.125rem;
@@ -78,38 +76,39 @@
   vector-effect: non-scaling-stroke;
 }
 
-/* ---------- Nodes ---------- */
+/* ---------- Nodes ----------
+   Design "Sơn son": no colour by gender. Men of the clan are white boxes, women of the clan
+   the pale son tint, the deceased a warm grey; spouses are named inside their partner's box. */
 .node {
-  --role: var(--male);
-  --role-soft: var(--male-soft);
+  --node-fill: var(--surface);
+  --node-line: var(--line-strong);
+  --node-far: var(--male-soft);
   cursor: pointer;
   outline: none;
 }
 .node[data-role='female'] {
-  --role: var(--female);
-  --role-soft: var(--female-soft);
+  --node-fill: var(--female-soft);
+  --node-line: var(--accent-track);
+  --node-far: var(--accent-track);
+}
+.node[data-role='male'][data-deceased] {
+  --node-fill: var(--deceased-fill);
 }
 .box {
-  fill: var(--surface);
-  stroke: var(--role);
+  fill: var(--node-fill);
+  stroke: var(--node-line);
   stroke-width: 1.2px;
   vector-effect: non-scaling-stroke;
 }
-.node[data-deceased] .box {
-  fill: var(--deceased-fill);
-}
 .svg[data-lod='0'] .box {
-  fill: var(--role-soft);
+  fill: var(--node-far);
   stroke-width: 1px;
 }
 .node[data-raised] .box {
-  filter: drop-shadow(0 2px 6px rgb(0 0 0 / 18%));
+  filter: drop-shadow(0 2px 6px rgb(0 0 0 / 14%));
 }
 .svg[data-moving] .node[data-raised] .box {
   filter: none;
-}
-.bar {
-  fill: var(--role);
 }
 .node[data-dim] {
   opacity: 0.28;
@@ -135,27 +134,27 @@
   font-family: var(--font-ui);
 }
 .caption {
-  font-size: 10.5px;
+  font-size: 12px;
   fill: var(--text-2);
 }
 .name {
   font-size: 14px;
-  font-weight: 700;
-  fill: var(--role);
+  font-weight: 600;
+  fill: var(--text);
 }
 .nameL1 {
   font-size: 17px;
-  font-weight: 700;
-  fill: var(--role);
+  font-weight: 600;
+  fill: var(--text);
   text-anchor: middle;
 }
 .years {
-  font-size: 11.5px;
+  font-size: 13px;
   fill: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
 .spouse {
-  font-size: 11.5px;
+  font-size: 13px;
   fill: var(--spouse);
 }
 .extra {
@@ -225,7 +224,7 @@
   top: 0;
   left: 0;
   right: 0;
-  padding: calc(8px + var(--safe-top)) var(--gutter-r) 0 calc(var(--gutter-l) + 26px);
+  padding: calc(8px + var(--safe-top)) var(--gutter-r) 0 calc(var(--gutter-l) + 30px);
   display: grid;
   gap: 6px;
   pointer-events: none;
@@ -247,7 +246,12 @@
   line-height: 1.2;
   display: flex;
   flex-direction: column;
-  text-shadow: 0 0 6px var(--bg), 0 0 2px var(--bg);
+  justify-self: start;
+  flex: 0 1 auto;
+  margin-right: auto;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
 }
 .titleSub {
   font-size: 0.8125rem;
@@ -368,8 +372,10 @@
   cursor: pointer;
 }
 .minimap {
+  --mm-male: var(--text-2);
+  --mm-female: var(--accent);
   position: absolute;
-  left: calc(var(--gutter-l) + 26px);
+  left: calc(var(--gutter-l) + 30px);
   bottom: 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);

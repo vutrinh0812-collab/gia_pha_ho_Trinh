@@ -28,7 +28,7 @@ describe('Gia đình view', () => {
   it('opens on the root ancestor with children and bottom navigation', () => {
     renderAt('/');
     expect(screen.getByRole('heading', { level: 1, name: root.fullName })).toBeInTheDocument();
-    expect(screen.getByText(/Thủy tổ — đời đầu tiên/)).toBeInTheDocument();
+    expect(screen.getByText(/Thủy tổ, đời đầu tiên/)).toBeInTheDocument();
     const nav = screen.getByRole('navigation', { name: 'Điều hướng chính' });
     for (const label of ['Gia đình', 'Sơ đồ', 'Danh sách', 'Tìm kiếm', 'Thêm']) {
       expect(within(nav).getByText(label)).toBeInTheDocument();
@@ -111,9 +111,15 @@ describe('Danh sách view', () => {
 });
 
 describe('other pages', () => {
-  it('renders placeholders inside the shell', () => {
+  it('lists the upcoming death anniversaries', () => {
     renderAt('/anniversaries');
-    expect(screen.getByRole('heading', { name: 'Lịch ngày giỗ' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Ngày giỗ' })).toBeInTheDocument();
+    expect(screen.getAllByText(/âm lịch/).length).toBeGreaterThan(0);
+  });
+
+  it('renders placeholders inside the shell', () => {
+    renderAt('/themes');
+    expect(screen.getByRole('heading', { name: 'Giao diện in (theme)' })).toBeInTheDocument();
   });
 
   it('lazy-loads the print page', async () => {

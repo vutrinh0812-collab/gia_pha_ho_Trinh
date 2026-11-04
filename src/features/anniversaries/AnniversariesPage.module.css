@@ -1,0 +1,73 @@
+.page {
+  padding-block: 16px 24px;
+}
+@media (min-width: 960px) {
+  .page {
+    padding-block: 32px 48px;
+  }
+}
+.head h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.25;
+}
+.head p {
+  margin: 6px 0 20px;
+  color: var(--text-2);
+  max-width: 60ch;
+}
+.empty {
+  color: var(--text-2);
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.item {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 14px;
+  row-gap: 2px;
+  align-items: baseline;
+  min-height: 64px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+}
+.item:hover {
+  background: var(--surface-2);
+}
+.when {
+  grid-row: span 3;
+  align-self: center;
+  width: 7.2em;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.when[data-soon] {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.name {
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+.meta,
+.date {
+  font-size: 0.875rem;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}

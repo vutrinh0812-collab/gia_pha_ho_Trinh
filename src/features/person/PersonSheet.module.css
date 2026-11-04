@@ -1,18 +1,11 @@
 .header {
-  --role: var(--male);
   padding-top: 2px;
-}
-.header[data-role='female'] {
-  --role: var(--female);
-}
-.header[data-role='spouse'] {
-  --role: var(--spouse);
 }
 .name {
   margin: 0;
   font-size: 1.375rem;
   line-height: 1.25;
-  color: var(--role);
+  color: var(--text);
   text-wrap: balance;
 }
 .sub {
@@ -57,7 +50,6 @@
   gap: 6px;
 }
 .rel {
-  --role: var(--male);
   width: 100%;
   min-height: var(--tap);
   display: flex;
@@ -65,21 +57,20 @@
   align-items: flex-start;
   padding: 8px 12px;
   border: 1px solid var(--line);
-  border-left: 4px solid var(--role);
   border-radius: var(--radius-sm);
   background: var(--surface);
   text-align: left;
   cursor: pointer;
 }
-.rel[data-role='female'] {
-  --role: var(--female);
-}
-.rel[data-role='spouse'] {
-  --role: var(--spouse);
+.rel:hover {
+  background: var(--surface-2);
 }
 .relName {
-  font-weight: 600;
-  color: var(--role);
+  font-weight: 500;
+  font-size: 1.0625rem;
+}
+.rel[data-role='spouse'] .relName {
+  color: var(--spouse);
 }
 .relMeta {
   font-size: 0.875rem;

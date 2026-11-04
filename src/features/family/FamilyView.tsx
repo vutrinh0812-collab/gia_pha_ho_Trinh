@@ -1,8 +1,9 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isInDialog, useHotkeys } from '@/app/useHotkeys';
 import { useOverlays } from '@/app/useOverlays';
-import { ChevronIcon, TreeIcon, UpIcon } from '@/app/ui/icons';
+import { TreeIcon, UpIcon } from '@/app/ui/icons';
+import { formatSolarShort, todaySolar, upcomingAnniversaries } from '@/lib/anniversaries';
 import type { ClanModel, Partnership, PersonRec } from '@/lib/clanModel';
 import { childrenGroupLabel, givenName, lifeSpan, spouseRole } from '@/lib/format';
 import { useClanStore } from '@/store/clanStore';
@@ -11,8 +12,9 @@ import { PersonCard, roleOf } from '../person/PersonCard';
 import styles from './FamilyView.module.css';
 
 /**
- * "Gia đình" — the default mobile view (SPEC 5A.1): one person in the middle,
- * parents above, spouses beside, children below in a horizontal row.
+ * "Gia đình" — the default view (SPEC 5A.1): one person in focus, then the
+ * clan's next death anniversaries, the parents, spouses, children (grouped by
+ * wife) and siblings, each as a readable list (design "Sơn son", D36).
  * Tap anyone to make them the centre; swipe up on the centre card to go up a generation.
  */
 export function FamilyView() {
@@ -63,76 +65,93 @@ export function FamilyView() {
     }
   });
 
+  const { father, mother, partnerships, siblings, person } = family;
+  const otherNames = person.otherNames
+    ? [
+        person.otherNames.huy && `Húy ${person.otherNames.huy}`,
+        person.otherNames.tu && `Tự ${person.otherNames.tu}`,
+        person.otherNames.hieu && `Hiệu ${person.otherNames.hieu}`,
+        person.otherNames.thuong && `Thường gọi ${person.otherNames.thuong}`,
+      ].filter(Boolean)
+    : [];
+  const severalSpouses = partnerships.length > 1;
+
   return (
     <div className={styles.view} ref={top}>
       <Lineage model={model} centerId={centerId} onPick={go} />
 
-      <section className={styles.parents} aria-label="Cha mẹ">
-        {family.father || family.mother ? (
+      <CenterCard
+        key={centerId}
+        model={model}
+        person={person}
+        generation={generation}
+        otherNames={otherNames as string[]}
+        onOpen={() => open('ct', centerId)}
+        onUp={goUp}
+      />
+
+      <UpcomingStrip model={model} onPick={(id) => open('ct', id)} />
+
+      <section className={styles.group} aria-labelledby="fam-parents">
+        <h2 id="fam-parents" className={styles.groupTitle}>
+          Cha mẹ
+        </h2>
+        {father || mother ? (
           <div className={styles.pair}>
-            {family.father && <PersonCard person={family.father} caption="Cha" onClick={() => go(family.father!)} />}
-            {family.mother && <PersonCard person={family.mother} caption="Mẹ" onClick={() => go(family.mother!)} />}
+            {father && <PersonCard person={father} caption="Cha" onClick={() => go(father)} />}
+            {mother && <PersonCard person={mother} caption="Mẹ" onClick={() => go(mother)} />}
           </div>
         ) : (
           <p className={styles.note}>
             {centerId === model.rootId
-              ? 'Thủy tổ — đời đầu tiên được ghi trong gia phả.'
-              : family.person.isBloodline
+              ? 'Thủy tổ, đời đầu tiên được ghi trong gia phả.'
+              : person.isBloodline
                 ? 'Chưa ghi cha mẹ.'
-                : 'Cha mẹ chưa được ghi (dâu/rể của dòng họ).'}
+                : 'Cha mẹ chưa được ghi (dâu, rể của dòng họ).'}
           </p>
         )}
       </section>
 
-      <div className={styles.connector} aria-hidden="true" />
-
-      <CenterCard
-        key={centerId}
-        model={model}
-        person={family.person}
-        generation={generation}
-        onOpen={() => open('ct', centerId)}
-        onSwipeUp={goUp}
-      />
-
-      {family.partnerships.length > 0 && (
-        <section className={styles.spouses} aria-label="Vợ chồng">
-          {family.partnerships.map(({ union, partner }) =>
-            partner ? (
-              <PersonCard
-                key={union.id}
-                person={partner}
-                caption={
-                  family.person.isBloodline
-                    ? spouseRole(partner.gender, union.order, family.partnerships.length)
-                    : partner.gender === 'male'
-                      ? 'Chồng'
-                      : 'Vợ'
-                }
-                onClick={() => go(partner)}
-              />
-            ) : (
-              <p key={union.id} className={styles.note}>
-                {spouseRole(family.person.gender === 'male' ? 'female' : 'male', union.order, family.partnerships.length)}: chưa rõ
-              </p>
-            ),
-          )}
+      {partnerships.length > 0 && (
+        <section className={styles.group} aria-labelledby="fam-spouses">
+          <h2 id="fam-spouses" className={styles.groupTitle}>
+            {person.gender === 'male' ? 'Vợ' : 'Chồng'}
+          </h2>
+          <div className={styles.pair}>
+            {partnerships.map(({ union, partner }) =>
+              partner ? (
+                <PersonCard
+                  key={union.id}
+                  person={partner}
+                  caption={
+                    severalSpouses && person.isBloodline
+                      ? spouseRole(partner.gender, union.order, partnerships.length)
+                      : undefined
+                  }
+                  onClick={() => go(partner)}
+                />
+              ) : (
+                <p key={union.id} className={styles.note}>
+                  {spouseRole(person.gender === 'male' ? 'female' : 'male', union.order, partnerships.length)}: chưa rõ
+                </p>
+              ),
+            )}
+          </div>
         </section>
       )}
 
-      <Children model={model} person={family.person} partnerships={family.partnerships} showMaternal={showMaternal} onPick={go} />
+      <Children model={model} person={person} partnerships={partnerships} showMaternal={showMaternal} onPick={go} />
 
-      {family.siblings.length > 0 && (
+      {siblings.length > 0 && (
         <section className={styles.group} aria-labelledby="siblings">
           <h2 id="siblings" className={styles.groupTitle}>
-            Anh chị em ({family.siblings.length})
+            Anh chị em <span className={styles.count}>{siblings.length}</span>
           </h2>
-          <div className={styles.row}>
-            {family.siblings.map((s) => (
+          <div className={styles.grid}>
+            {siblings.map((s) => (
               <PersonCard
                 key={s.id}
                 person={s}
-                size="child"
                 caption={s.birthOrder ? `Con thứ ${s.birthOrder}` : undefined}
                 onClick={() => go(s)}
               />
@@ -140,13 +159,33 @@ export function FamilyView() {
           </div>
         </section>
       )}
-
-      {goUp && (
-        <button type="button" className={styles.upButton} onClick={goUp}>
-          <UpIcon /> Lên đời trước{generation ? ` (Đời ${generation - 1})` : ''}
-        </button>
-      )}
     </div>
+  );
+}
+
+/** "Ngày giỗ sắp tới": the next three anniversaries in the clan (signature of the Sơn son design). */
+function UpcomingStrip({ model, onPick }: { model: ClanModel; onPick(id: string): void }) {
+  const items = useMemo(() => upcomingAnniversaries(model, todaySolar(), 60).slice(0, 3), [model]);
+  if (items.length === 0) return null;
+  return (
+    <section className={styles.group} aria-labelledby="fam-gio">
+      <h2 id="fam-gio" className={styles.groupTitle}>
+        Ngày giỗ sắp tới
+      </h2>
+      <ul className={styles.gio}>
+        {items.map((a) => (
+          <li key={a.person.id}>
+            <button type="button" className={styles.gioItem} onClick={() => onPick(a.person.id)}>
+              <span className={styles.gioWhen}>{a.inDays === 0 ? 'Hôm nay' : `Còn ${a.inDays} ngày`}</span>
+              <span className={styles.gioName}>{a.person.fullName}</span>
+              <span className={styles.gioDate}>
+                {formatSolarShort(a.date)} · {a.lunar.day}/{a.lunar.month} âm lịch
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -187,11 +226,13 @@ interface CenterProps {
   model: ClanModel;
   person: PersonRec;
   generation: number | undefined;
+  otherNames: string[];
   onOpen(): void;
-  onSwipeUp?: () => void;
+  onUp?: () => void;
 }
 
-function CenterCard({ model, person, generation, onOpen, onSwipeUp }: CenterProps) {
+/** The person in focus, on the pale son tint; swipe up on it to go up a generation. */
+function CenterCard({ model, person, generation, otherNames, onOpen, onUp }: CenterProps) {
   const start = useRef<{ x: number; y: number } | null>(null);
   const navigate = useNavigate();
   const years = lifeSpan(person);
@@ -202,20 +243,17 @@ function CenterCard({ model, person, generation, onOpen, onSwipeUp }: CenterProp
     !person.isBloodline ? (person.gender === 'female' ? 'Dâu' : 'Rể') : null,
     model.isMaternal(person.id) ? 'Bên ngoại' : null,
   ].filter(Boolean);
-  const otherNames = person.otherNames
-    ? [
-        person.otherNames.huy && `Húy ${person.otherNames.huy}`,
-        person.otherNames.tu && `Tự ${person.otherNames.tu}`,
-        person.otherNames.hieu && `Hiệu ${person.otherNames.hieu}`,
-        person.otherNames.thuong && `Thường gọi ${person.otherNames.thuong}`,
-      ].filter(Boolean)
-    : [];
+  const gio = person.deathAnniversaryLunar;
+  const yearsLine = [
+    years || (deceased ? null : 'Chưa rõ năm sinh'),
+    deceased ? 'đã mất' : null,
+    gio ? `giỗ ${gio.day}/${gio.month} âm lịch` : null,
+  ].filter(Boolean);
 
   return (
     <section
       className={styles.center}
-      data-role={roleOf(person)}
-      aria-label={`Đang xem: ${person.fullName}`}
+      aria-labelledby="fam-name"
       onTouchStart={(e) => {
         const t = e.touches[0];
         if (t) start.current = { x: t.clientX, y: t.clientY };
@@ -224,27 +262,28 @@ function CenterCard({ model, person, generation, onOpen, onSwipeUp }: CenterProp
         const t = e.changedTouches[0];
         const s = start.current;
         start.current = null;
-        if (!t || !s || !onSwipeUp) return;
-        const dy = t.clientY - s.y;
-        if (dy < -60 && Math.abs(t.clientX - s.x) < 50) onSwipeUp();
+        if (!t || !s || !onUp) return;
+        if (t.clientY - s.y < -60 && Math.abs(t.clientX - s.x) < 50) onUp();
       }}
     >
       <p className={styles.facts}>{facts.join(' · ')}</p>
-      <h1 className={styles.centerName}>{person.fullName}</h1>
+      <h1 id="fam-name" className={styles.centerName}>
+        {person.fullName}
+      </h1>
       {otherNames.length > 0 && <p className={styles.otherNames}>{otherNames.join(' · ')}</p>}
-      {(years || deceased) && (
-        <p className={styles.years}>
-          {years}
-          {deceased && <span className={styles.deceased}>{years ? ' · ' : ''}đã mất</span>}
-        </p>
-      )}
+      {yearsLine.length > 0 && <p className={styles.years}>{yearsLine.join(' · ')}</p>}
       <div className={styles.centerActions}>
-        <button type="button" className={styles.detailButton} onClick={onOpen}>
-          Xem chi tiết <ChevronIcon width={18} height={18} />
+        <button type="button" className={styles.primary} onClick={onOpen}>
+          Xem chi tiết
         </button>
+        {onUp && (
+          <button type="button" className={styles.secondary} onClick={onUp}>
+            <UpIcon width={18} height={18} /> Lên đời trước
+          </button>
+        )}
         <button
           type="button"
-          className={styles.treeButton}
+          className={styles.secondary}
           onClick={() => navigate(`/so-do?f=${encodeURIComponent(person.id)}`)}
         >
           <TreeIcon width={18} height={18} /> Trên sơ đồ
@@ -267,7 +306,10 @@ function Children({ model, person, partnerships, showMaternal, onPick }: Childre
   const groups = partnerships.filter((p) => p.children.length > 0);
   if (groups.length === 0) {
     return (
-      <section className={styles.group} aria-label="Các con">
+      <section className={styles.group} aria-labelledby="fam-kids">
+        <h2 id="fam-kids" className={styles.groupTitle}>
+          Các con
+        </h2>
         <p className={styles.note}>Chưa ghi nhận con.</p>
       </section>
     );
@@ -278,13 +320,14 @@ function Children({ model, person, partnerships, showMaternal, onPick }: Childre
       {groups.map(({ union, partner, children }) => {
         const hidden = !showMaternal && children.every((c) => model.isMaternal(c.id));
         const title = several
-          ? `${childrenGroupLabel(partner?.gender ?? (person.gender === 'male' ? 'female' : 'male'), union.order)}${partner ? ` · ${partner.fullName}` : ''}`
+          ? childrenGroupLabel(partner?.gender ?? (person.gender === 'male' ? 'female' : 'male'), union.order)
           : 'Các con';
         const headingId = `children-${union.id}`;
         return (
           <section key={union.id} className={styles.group} aria-labelledby={headingId}>
             <h2 id={headingId} className={styles.groupTitle}>
-              {title} ({children.length})
+              {title} <span className={styles.count}>{children.length}</span>
+              {several && partner && <span className={styles.groupSub}>{partner.fullName}</span>}
             </h2>
             {hidden ? (
               <p className={styles.note}>
@@ -294,14 +337,13 @@ function Children({ model, person, partnerships, showMaternal, onPick }: Childre
                 </button>
               </p>
             ) : (
-              <div className={styles.row}>
+              <div className={styles.grid}>
                 {children.map((c) => {
                   const kids = model.index.unionsOf(c.id).reduce((n, u) => n + model.index.childrenOf(u.id).length, 0);
                   return (
                     <PersonCard
                       key={c.id}
                       person={c}
-                      size="child"
                       caption={c.birthOrder ? `Con thứ ${c.birthOrder}` : undefined}
                       extra={kids > 0 ? `${kids} con` : undefined}
                       onClick={() => onPick(c)}

@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, MemoryRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { AnniversariesPage } from '@/features/anniversaries/AnniversariesPage';
 import { FamilyView } from '@/features/family/FamilyView';
 import { ListView } from '@/features/list/ListView';
 import { env } from '@/lib/env';
@@ -48,7 +49,7 @@ export function AppRoutes() {
           }
         />
         <Route path="person/:id" element={<PersonLink />} />
-        <Route path="anniversaries" element={<PlaceholderPage title="Lịch ngày giỗ" phase={7} />} />
+        <Route path="anniversaries" element={<AnniversariesPage />} />
         <Route path="themes" element={<PlaceholderPage title="Giao diện in (theme)" phase={5} />} />
         <Route path="print" element={<PrintPage />} />
         <Route path="admin" element={<AdminPage />} />

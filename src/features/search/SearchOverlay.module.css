@@ -63,7 +63,6 @@
   gap: 6px;
 }
 .item {
-  --role: var(--male);
   width: 100%;
   min-height: 52px;
   display: flex;
@@ -72,22 +71,20 @@
   gap: 1px;
   padding: 8px 12px;
   border: 1px solid var(--line);
-  border-left: 4px solid var(--role);
   border-radius: var(--radius-sm);
   background: var(--surface);
   text-align: left;
   cursor: pointer;
 }
-.item[data-role='female'] {
-  --role: var(--female);
-}
-.item[data-role='spouse'] {
-  --role: var(--spouse);
+.item:hover {
+  background: var(--surface-2);
 }
 .name {
-  font-weight: 600;
-  font-size: 1.0625rem;
-  color: var(--role);
+  font-weight: 500;
+  font-size: 1.125rem;
+}
+.item[data-role='spouse'] .name {
+  color: var(--spouse);
 }
 .meta {
   font-size: 0.875rem;

@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { PersonSheet } from '@/features/person/PersonSheet';
 import { SearchOverlay } from '@/features/search/SearchOverlay';
 import { useClanStore } from '@/store/clanStore';
 import { BottomNav } from './BottomNav';
+import { SideNav } from './SideNav';
+import { TopBar } from './TopBar';
 import { MoreSheet } from './MoreSheet';
 import { ShortcutHelp } from './ShortcutHelp';
 import { StatusBanner } from './StatusBanner';
@@ -18,6 +20,9 @@ export function AppShell() {
   const { params, open } = useOverlays();
   const navigate = useNavigate();
   const desktop = useIsDesktop();
+  const { pathname } = useLocation();
+  // The tree has its own floating header; every other phone screen shows the clan's name.
+  const showTopBar = !desktop && pathname !== '/so-do';
   useEffect(() => start(), [start]);
 
   // Global shortcuts (see ShortcutHelp).
@@ -47,6 +52,7 @@ export function AppShell() {
   const panelOpen = desktop && (Boolean(detail) || params.has('them') || params.has('phim'));
   return (
     <div className={styles.shell} data-panel={panelOpen || undefined}>
+      {desktop ? <SideNav /> : showTopBar && <TopBar />}
       <main className={styles.main}>
         {status === 'ready' && model ? (
           <Outlet />
@@ -70,7 +76,7 @@ export function AppShell() {
           </div>
         )}
       </main>
-      <BottomNav />
+      {!desktop && <BottomNav />}
       <StatusBanner />
       {model && detail && <PersonSheet id={detail} />}
       {model && params.has('tk') && <SearchOverlay />}

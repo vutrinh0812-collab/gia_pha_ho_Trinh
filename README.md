@@ -5,6 +5,8 @@ Web app lưu giữ và cập nhật gia phả của một dòng họ, hiển th�
 - Đặc tả đầy đủ: [`SPEC.md`](SPEC.md)
 - Nhật ký quyết định kỹ thuật: [`DECISIONS.md`](DECISIONS.md)
 
+**Giao diện:** mẫu "Sơn son" (đỏ son truyền thống, font Lexend dễ đọc), xem `DECISIONS.md` D36 và các mẫu đề xuất trong `design/proposals/`.
+
 **Công nghệ:** React 18 + Vite + TypeScript · Zustand · Firebase (Firestore, Auth, Storage, Hosting) · Vitest.
 
 **Trạng thái:** ✅ Giai đoạn 1 (khởi tạo) · ✅ Giai đoạn 2 (dữ liệu & bảo mật) · ✅ Giai đoạn 3a (giao diện điện thoại: Gia đình, Danh sách, tìm kiếm) · ✅ Giai đoạn 3b (Sơ đồ: phóng to nhiều mức, thu gọn nhánh, lọc, dòng dõi) · ✅ Giai đoạn 3c (bố cục máy tính, phím tắt) · ✅ Giai đoạn 3d (cài lên điện thoại, xem khi mất mạng, chia sẻ link). Các giai đoạn tiếp theo: xem SPEC.md §12.

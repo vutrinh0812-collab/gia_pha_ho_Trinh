@@ -27,7 +27,7 @@
   }
 }
 .state {
-  padding-block: calc(48px + var(--safe-top)) 24px;
+  padding-block: 48px 24px;
   text-align: center;
   color: var(--text-2);
 }

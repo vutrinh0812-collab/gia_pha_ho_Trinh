@@ -1,0 +1,39 @@
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--top-bar);
+  padding: var(--safe-top) calc(var(--gutter-r) - 8px) 0 var(--gutter-l);
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.mark {
+  flex: none;
+  color: var(--accent);
+}
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 1.0625rem;
+}
+.search {
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+.search:hover {
+  background: var(--surface-2);
+}

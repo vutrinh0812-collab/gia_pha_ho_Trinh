@@ -189,7 +189,7 @@ export function TreeCanvas(props: Props) {
       sel.call(z.transform, fromUrl);
     } else {
       const first = layoutRef.current.nodes[0];
-      const k = Math.max(minScaleFor(2, coarse), coarse ? 0.85 : 1);
+      const k = Math.max(minScaleFor(2, coarse), 1);
       const cx = first ? first.x + first.w / 2 : 0;
       const cy = first ? first.y : 0;
       sel.call(z.transform, zoomIdentity.translate(size.current.w / 2 - cx * k, TOP_SPACE - cy * k + 8).scale(k));
@@ -246,7 +246,7 @@ export function TreeCanvas(props: Props) {
     canvas.height = mini.H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const css = getComputedStyle(canvas);
-    const colors = { male: css.getPropertyValue('--male'), female: css.getPropertyValue('--female') };
+    const colors = { male: css.getPropertyValue('--mm-male'), female: css.getPropertyValue('--mm-female') };
     ctx.clearRect(0, 0, mini.W, mini.H);
     for (const n of layout.nodes) {
       ctx.fillStyle = (n.person.gender === 'male' ? colors.male : colors.female) || '#888';

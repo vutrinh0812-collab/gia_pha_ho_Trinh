@@ -1,20 +1,14 @@
+/* Gia đình — design "Sơn son". One column on a phone; up to three card columns on wide screens. */
 .view {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding-block: 0 24px;
-  scroll-margin-top: 0;
+  gap: 24px;
+  padding-block: 12px 24px;
 }
 
-/* Lineage breadcrumb: sticky, scrolls sideways, newest generation at the right. */
+/* Lineage crumbs: scroll sideways, the person in focus on the pale son tint. */
 .lineage {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  background: var(--bg);
-  margin: 0 calc(-1 * var(--gutter-r)) 0 calc(-1 * var(--gutter-l));
-  padding: calc(8px + var(--safe-top)) 0 8px;
-  border-bottom: 1px solid var(--line);
+  margin: 0 calc(-1 * var(--gutter-r)) -8px calc(-1 * var(--gutter-l));
 }
 .lineage ol {
   display: flex;
@@ -39,79 +33,52 @@
   padding-right: 4px;
 }
 .crumb {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  min-height: var(--tap);
-  justify-content: center;
-  padding: 2px 10px;
-  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
   border-radius: var(--radius-sm);
   background: none;
+  white-space: nowrap;
   cursor: pointer;
-  line-height: 1.2;
-}
-.crumb[aria-current='page'] {
-  border-color: var(--line);
-  background: var(--surface);
-  cursor: default;
 }
 .crumbGen {
-  font-size: 0.75rem;
   color: var(--text-2);
-}
-.crumbName {
-  font-weight: 600;
   font-size: 0.9375rem;
 }
-
-.parents,
-.spouses {
-  display: grid;
-  gap: 8px;
+.crumbName {
+  font-size: 0.9375rem;
 }
-.pair {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+.crumb[aria-current='page'] {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-weight: 600;
+  cursor: default;
 }
-.connector {
-  width: 2px;
-  height: 14px;
-  margin: -8px auto -8px;
-  background: var(--line);
+.crumb[aria-current='page'] .crumbGen {
+  color: inherit;
 }
 
+/* The person in focus. */
 .center {
-  --role: var(--male);
-  --role-soft: var(--male-soft);
-  padding: 16px;
+  padding: 22px 20px;
   border-radius: var(--radius);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-top: 5px solid var(--role);
-  box-shadow: var(--shadow);
+  background: var(--accent-soft);
   animation: enter 180ms ease-out;
   touch-action: pan-y;
 }
-.center[data-role='female'] {
-  --role: var(--female);
-  --role-soft: var(--female-soft);
-}
-.center[data-role='spouse'] {
-  --role: var(--spouse);
-  --role-soft: var(--spouse-soft);
-}
 .facts {
   margin: 0;
-  font-size: 0.875rem;
-  color: var(--text-2);
+  color: var(--accent-ink);
 }
 .centerName {
   margin: 2px 0 0;
-  font-size: 1.625rem;
+  font-size: 1.75rem;
+  font-weight: 600;
   line-height: 1.2;
-  color: var(--role);
+  letter-spacing: -0.01em;
   text-wrap: balance;
 }
 .otherNames {
@@ -119,63 +86,76 @@
   color: var(--text-2);
 }
 .years {
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   font-size: 1.0625rem;
   font-variant-numeric: tabular-nums;
 }
-.deceased {
-  color: var(--deceased);
-}
 .centerActions {
-  margin-top: 12px;
+  margin-top: 16px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
-.treeButton {
+.primary,
+.secondary {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   min-height: var(--tap);
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--text);
+  padding: 0 18px;
+  border-radius: var(--radius-sm);
   font-weight: 500;
   cursor: pointer;
 }
-.detailButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-height: var(--tap);
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid var(--role);
-  background: var(--role-soft);
+.primary {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.primary:hover {
+  filter: brightness(1.08);
+}
+.secondary {
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
   color: var(--text);
-  font-weight: 600;
-  cursor: pointer;
+}
+.secondary:hover {
+  background: var(--surface-2);
 }
 
+/* Blocks */
 .group {
+  display: grid;
+  gap: 10px;
+}
+.groupTitle {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+.count {
+  color: var(--text-2);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.groupSub {
+  flex-basis: 100%;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--text-2);
+}
+.pair,
+.grid {
   display: grid;
   gap: 8px;
 }
-.groupTitle {
-  margin: 4px 0 0;
-  font-size: 1rem;
-  font-weight: 600;
-}
-.row {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  margin: 0 calc(-1 * var(--gutter-r)) 0 calc(-1 * var(--gutter-l));
-  padding: 2px var(--gutter-r) 8px var(--gutter-l);
-  scroll-padding-left: var(--gutter-l);
+.pair {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .note {
   margin: 0;
@@ -191,35 +171,94 @@
   text-decoration: underline;
   cursor: pointer;
 }
-.upButton {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: var(--tap);
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
+
+/* Upcoming death anniversaries */
+.gio {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.gio li {
+  display: flex;
+}
+.gioItem {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 12px;
+  align-items: baseline;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 1px solid var(--accent-track);
+  border-radius: var(--radius-sm);
   background: var(--surface);
+  text-align: left;
   cursor: pointer;
+}
+.gioItem:hover {
+  background: var(--accent-soft);
+}
+.gioWhen {
+  grid-row: span 2;
+  align-self: center;
+  min-width: 5.8em;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.gioName {
+  font-size: 1.0625rem;
+  font-weight: 500;
+}
+.gioDate {
+  font-size: 0.875rem;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 960px) {
+  .view {
+    padding-block: 32px 48px;
+  }
+  .centerName {
+    font-size: 2rem;
+  }
+  .gio {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  /* Three across: the day count on top, then the name and the date, so names never break. */
+  .gioItem {
+    grid-template-columns: 1fr;
+    row-gap: 4px;
+    align-content: start;
+  }
+  .gioWhen {
+    grid-row: auto;
+    justify-self: start;
+    min-width: 0;
+  }
+}
+@media (min-width: 1360px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @keyframes enter {
   from {
     opacity: 0;
-    transform: translateY(8px);
-  }
-}
-
-/* Desktop: plenty of width, so children and siblings wrap instead of scrolling sideways. */
-@media (min-width: 960px) {
-  .row {
-    flex-wrap: wrap;
-    overflow-x: visible;
-    margin: 0;
-    padding: 2px 0 8px;
-  }
-  .lineage {
-    margin: 0;
+    transform: translateY(6px);
   }
 }

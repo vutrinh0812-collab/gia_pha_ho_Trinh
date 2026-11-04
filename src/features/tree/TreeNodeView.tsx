@@ -80,7 +80,6 @@ export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, o
       }}
     >
       <rect className={styles.box} width={w} height={cardH} rx={8} />
-      <rect className={styles.bar} width={4} height={cardH} rx={2} />
       <g key={lod} className={styles.content}>
         {lod === 0 ? (
           node.gen <= 2 && (
@@ -96,7 +95,7 @@ export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, o
           <>
             {node.caption && (
               <text className={styles.caption} x={12} y={17}>
-                {fit(node.caption, textW, 10.5)}
+                {fit(node.caption, textW, 12)}
               </text>
             )}
             <text className={styles.name} x={12} y={36}>
@@ -109,7 +108,7 @@ export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, o
             )}
             {node.spouses.map((s, i) => (
               <text key={s.person.id} className={styles.spouse} x={12} y={53 + 15 * (i + 1)}>
-                {fit(`${s.role}: ${s.person.fullName}`, textW, 11.5)}
+                {fit(`${s.role}: ${s.person.fullName}`, textW, 13)}
               </text>
             ))}
             {extras.map((line, i) => (

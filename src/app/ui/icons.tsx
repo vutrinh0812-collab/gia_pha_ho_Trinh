@@ -131,3 +131,9 @@ export const LineageIcon = (p: IconProps) => (
     <path d="M12 6.5v3.5M12 14v3.5" />
   </Icon>
 );
+export const CalendarIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="4" y="5" width="16" height="15" rx="2" />
+    <path d="M4 10h16M9 3v4M15 3v4" />
+  </Icon>
+);

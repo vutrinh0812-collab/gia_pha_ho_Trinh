@@ -206,3 +206,33 @@ Mặc định có `<meta name="robots" content="noindex">` để thông tin gia 
 
 ### D35. Font tải song song
 Font Be Vietnam Pro chuyển từ `@import` trong CSS sang thẻ `<link>` trong `<head>`, có `preconnect`. Lighthouse Mobile: Performance tăng từ 86 lên 92 (FCP từ 3,0 xuống 2,7 giây trên 4G giả lập), Accessibility 100, Best Practices 100. Việc tự host font, cần cho in PDF, để sang giai đoạn 6.
+
+---
+
+## Thiết kế giao diện
+
+### D36. Chọn mẫu C "Sơn son"
+Tôi đề xuất 3 mẫu thiết kế, mỗi mẫu là một bản demo bấm thử được (mã nguồn ở `design/proposals/`). Dòng họ chọn **mẫu C "Sơn son"**, và mẫu này nay là giao diện màn hình mặc định thay cho "minimal".
+- **Một màu chủ đạo:** đỏ son `#a3271c`, lấy từ hoành phi và gia phả truyền thống. Màu son đậm chỉ dùng cho điểm nhấn nhỏ: nút chính, mục đang chọn, số giỗ trong tuần. Các mảng lớn dùng sắc nhạt của chính màu này: người đang xem, mục đang chọn, ngày giỗ sắp tới. Nền chính ngả nhẹ về sắc son nhạt nhất (`#fbf8f7`).
+- **Font Lexend**, loại font thiết kế để dễ đọc, có bộ chữ tiếng Việt. Font Be Vietnam Pro được thay toàn bộ, cả trong ảnh xem trước khi chia sẻ link.
+- **Không còn màu theo giới tính** (bỏ xanh/hồng). Tên in màu mực; dâu/rể in nhạt hơn một bậc. Trên Sơ đồ vẫn phân biệt được (SPEC 5.2): con gái trong họ là ô son nhạt, người đã mất là nền ấm hơi xám, dâu/rể ghi trong ô của người phối ngẫu. Bản đồ nhỏ dùng màu xám cho nam và màu son cho nữ.
+- **Không vạch màu bên trái thẻ, không bóng đổ khi đứng yên.** Bóng chỉ còn ở những gì nổi lên trên trang: bảng trượt, hộp tìm kiếm, thẻ mở rộng trên sơ đồ.
+- **Khung app:**
+  - Điện thoại: thanh trên ghi tên dòng họ kèm nút tìm kiếm (không hiện ở Sơ đồ vì Sơ đồ có thanh riêng), cùng thanh điều hướng dưới.
+  - Máy tính: cột trái 248px gồm tên dòng họ, số người và số đời, ô "Tìm người" (`/`), menu, mục Ngày giỗ có số giỗ trong 7 ngày tới. Bảng chi tiết bên phải rộng 380px.
+- **Chế độ Gia đình:**
+  - Người đang xem nằm trên nền son nhạt, kèm 3 nút: Xem chi tiết, Lên đời trước, Trên sơ đồ.
+  - Ngay dưới là dải **"Ngày giỗ sắp tới"** (3 giỗ gần nhất), điểm nhận diện của mẫu.
+  - Cha mẹ, vợ chồng, con (ghép theo từng bà), anh chị em đều là **danh sách dọc** (2–3 cột trên màn hình rộng). Đây là chỗ đổi so với SPEC 5A.1 ("các con xếp thành hàng cuộn ngang"): khi dùng thử, người thứ ba bị cắt nửa trông như lỗi, khó với người lớn tuổi, và dòng họ đã chọn bố cục của mẫu C.
+- **Trang Ngày giỗ** (`/anniversaries`) đã có danh sách giỗ trong 60 ngày tới, mỗi dòng có tên, đời, chi, số năm đã mất, ngày dương và ngày âm (SPEC §9). Nút xuất `.ics` để sang giai đoạn 7.
+- **Bản tối** được thiết kế riêng: nền nâu đen trung tính, màu son sáng hơn (`#ef8a7d`) để chữ vẫn đạt tương phản 4,5:1.
+- **Kết quả đo** bằng bộ kiểm tra của skill design-taste-frontend (`--app`, ở 1440, 768 và 390px):
+
+  | Màn hình | Lỗi (FAIL) | Cảnh báo (WARN) | Ghi chú |
+  |---|---|---|---|
+  | Gia đình | 0 | 0 | trước khi đổi: 1 lỗi |
+  | Danh sách | 0 | 0 | trước khi đổi: 1 lỗi |
+  | Sơ đồ | 0 | 0 | trước khi đổi: 3 lỗi, 1 cảnh báo |
+  | Ngày giỗ | 0 | 1 | danh sách dài nên nhiều mục nằm dưới màn hình đầu, đương nhiên |
+
+  Lighthouse Mobile: Performance 89, Accessibility 100.

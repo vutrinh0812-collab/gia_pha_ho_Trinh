@@ -1,12 +1,12 @@
 .page {
   max-width: 40rem;
   margin: 0 auto;
-  padding-block: calc(16px + var(--safe-top)) calc(24px + var(--safe-bottom));
+  padding-block: 16px calc(24px + var(--safe-bottom));
   padding-left: max(16px, var(--safe-left));
   padding-right: max(16px, var(--safe-right));
 }
 .plain {
-  padding-block: calc(16px + var(--safe-top)) 24px;
+  padding-block: 16px 24px;
 }
 .plain h1 { font-size: 1.5rem; line-height: 1.25; margin: 0.5rem 0 1rem; text-wrap: balance; }
 .page h2, .plain h2 { font-size: 1.125rem; margin: 0 0 8px; text-wrap: balance; }

@@ -10,10 +10,10 @@ import { chromium } from 'playwright';
 if (existsSync('.env')) process.loadEnvFile('.env');
 const title = process.env.VITE_APP_TITLE?.trim() || 'Gia Phả Họ Trịnh';
 
-const RED = '#8b1e1e';
-const RED_DARK = '#6e1414';
-const CREAM = '#f6e7c1';
-const GOLD = '#d9a441';
+const RED = '#a3271c';
+const RED_DARK = '#7d1d15';
+const CREAM = '#fbefec';
+const GOLD = '#e9b8ae';
 
 /** The mark: an ancestor dot, a trunk, a bar and three descendant dots. `s` = size of the drawing box. */
 const mark = (s, stroke = CREAM, dot = CREAM) => `
@@ -32,22 +32,22 @@ const icon = (size, { maskable = false } = {}) => {
   const inner = size - pad * 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
     <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${RED}"/><stop offset="1" stop-color="${RED_DARK}"/></linearGradient></defs>
-    <rect width="${size}" height="${size}" rx="${maskable ? 0 : size * 0.22}" fill="url(#g)"/>
+    <rect width="${size}" height="${size}" rx="${maskable ? 0 : size * 0.22}" fill="${RED}"/>
     <rect x="${size * 0.06}" y="${size * 0.06}" width="${size * 0.88}" height="${size * 0.88}" rx="${size * 0.17}" fill="none" stroke="${GOLD}" stroke-opacity="${maskable ? 0 : 0.55}" stroke-width="${size * 0.012}"/>
     <g transform="translate(${pad},${pad})">${mark(inner)}</g>
   </svg>`;
 };
 
 const og = `<!doctype html><html><head><meta charset="utf-8">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;700;800&display=swap&subset=vietnamese">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&display=swap&subset=vietnamese">
 <style>
   html,body{margin:0;width:1200px;height:630px}
-  body{background:${CREAM};font-family:'Be Vietnam Pro',system-ui,sans-serif;color:#2a1a12;display:flex;align-items:center}
+  body{background:${CREAM};font-family:'Lexend',system-ui,sans-serif;color:#1d1514;display:flex;align-items:center}
   .frame{position:absolute;inset:28px;border:6px solid ${RED};border-radius:8px}
   .frame::after{content:'';position:absolute;inset:10px;border:2px solid ${GOLD};border-radius:4px}
   .wrap{position:relative;display:flex;align-items:center;gap:60px;padding:0 100px}
-  h1{margin:0;font-size:${title.length > 18 ? 64 : 80}px;line-height:1.1;font-weight:800;color:${RED};letter-spacing:-0.01em;text-wrap:balance}
-  p{margin:22px 0 0;font-size:34px;font-weight:500;color:#5a4636}
+  h1{margin:0;font-size:${title.length > 18 ? 64 : 80}px;line-height:1.1;font-weight:600;color:${RED};letter-spacing:-0.01em;text-wrap:balance}
+  p{margin:22px 0 0;font-size:34px;font-weight:400;color:#63575a}
 </style></head><body>
 <div class="frame"></div>
 <div class="wrap">

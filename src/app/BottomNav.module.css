@@ -1,3 +1,4 @@
+/* Phone bottom bar (thumb zone, SPEC 5A.2). Desktop uses SideNav instead. */
 .nav {
   position: fixed;
   left: 0;
@@ -5,8 +6,8 @@
   bottom: 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  padding: 0 var(--safe-right) var(--safe-bottom) var(--safe-left);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 0 calc(6px + var(--safe-right)) var(--safe-bottom) calc(6px + var(--safe-left));
   background: var(--surface);
   border-top: 1px solid var(--line);
 }
@@ -15,7 +16,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   min-height: var(--nav-h);
   min-width: 0;
   padding: 6px 2px;
@@ -23,46 +24,13 @@
   background: none;
   color: var(--text-2);
   text-decoration: none;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: 0.78rem;
   cursor: pointer;
 }
 .item span {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 .active {
   color: var(--accent);
-}
-.active svg {
-  stroke-width: 2.2;
-}
-
-/* Desktop: vertical navigation rail on the left. */
-@media (min-width: 960px) {
-  .nav {
-    top: 0;
-    right: auto;
-    width: var(--rail-w);
-    grid-template-columns: none;
-    grid-auto-rows: 72px;
-    align-content: start;
-    gap: 4px;
-    padding: calc(12px + var(--safe-top)) 0 0 var(--safe-left);
-    border-top: 0;
-    border-right: 1px solid var(--line);
-  }
-  .item {
-    min-height: 72px;
-    border-radius: 12px;
-    margin: 0 8px;
-  }
-  .item:hover {
-    background: var(--surface-2);
-  }
-  .active {
-    background: var(--accent-soft);
-  }
+  font-weight: 600;
 }

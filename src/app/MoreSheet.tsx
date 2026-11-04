@@ -13,7 +13,7 @@ import { InstallCard } from './InstallCard';
 import { useIsDesktop } from './useMediaQuery';
 
 const LINKS = [
-  { to: '/anniversaries', label: 'Lịch ngày giỗ' },
+  { to: '/anniversaries', label: 'Ngày giỗ' },
   { to: '/themes', label: 'Giao diện in (theme)' },
   { to: '/print', label: 'In khổ A1' },
   { to: '/admin', label: 'Mã admin' },

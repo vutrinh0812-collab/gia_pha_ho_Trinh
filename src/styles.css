@@ -1,109 +1,121 @@
 /*
- * Theme "minimal" — screen default (SPEC §7). Full theme registry arrives in phase 5;
- * until then these tokens are the design system of the UI shell.
- * Person colours are checked for WCAG AA (≥ 4.5:1) as text on --surface in both modes.
+ * Screen theme "Sơn son" (design proposal C, chosen by the clan; see DECISIONS D36).
+ * One hue from lacquered altars and printed genealogies, Lexend for reading ease.
+ * Every text colour reaches 4.5:1 on the surface it sits on, in light and dark.
  */
 
 :root {
-  --font-ui: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-ui: 'Lexend', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
-  --bg: #f6f7f9;
+  /* Ground and ink: the ground leans one step toward the palest tint of the son red. */
+  --bg: #fbf8f7;
   --surface: #ffffff;
-  --surface-2: #eef0f3;
-  --text: #15191e;
-  --text-2: #4a535e;
-  --line: #d4d9df;
-  --accent: #9b1c1c;
-  --accent-soft: #f6e3e1;
+  --surface-2: #f6efed;
+  --text: #1d1514;
+  --text-2: #63575a;
+  --line: #ebe1de;
+  --line-strong: #d8ccc9;
+
+  /* The one hue (son, lacquer red): full strength on small marks only, tints on areas. */
+  --accent: #a3271c;
+  --accent-soft: #fbefec;
+  --accent-track: #f4d8d2;
+  --accent-ink: #6b1810;
   --on-accent: #ffffff;
-  --ok: #1a7f37;
-  --warn: #9a6700;
-  --err: #c62828;
+  --ok: #247b50;
+  --warn: #92400e;
+  --err: #a3271c;
 
-  /* People */
-  --male: #1d5fa6;
-  --female: #a62d63;
-  --spouse: #2c7448;
-  --deceased: #6b7280;
-  --male-soft: #e5eef8;
-  --female-soft: #f8e7ef;
-  --spouse-soft: #e5f2ea;
+  /* People: no colour by gender. Names in ink, married-in spouses one step softer;
+     on the tree, women of the clan get the pale son tint so the line still reads at a glance. */
+  --male: var(--text);
+  --female: var(--text);
+  --spouse: #4a3f3e;
+  --deceased: #6f6466;
+  --male-soft: #f1ebe9;
+  --female-soft: #fbefec;
+  --spouse-soft: #f6efed;
 
-  --band: #eef1f5;
-  --deceased-fill: #f3f4f6;
-  --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 2px 8px rgb(16 24 40 / 6%);
-  --scrim: rgb(10 14 20 / 45%);
+  --band: #f6efed;
+  --deceased-fill: #f7f3f2;
+  /* Nothing at rest casts a shadow; only what floats (sheets, dialogs) does. */
+  --shadow: none;
+  --shadow-float: 0 12px 40px rgb(29 21 20 / 16%);
+  --scrim: rgb(29 21 20 / 40%);
 
-  --radius: 12px;
+  --radius: 10px;
   --radius-sm: 8px;
-  --tap: 44px;
+  --tap: 48px;
   --nav-h: 64px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --gutter-l: max(16px, var(--safe-left));
-  /* Shell geometry: phones have a bottom bar; desktop a left rail and a right panel. */
+  --gutter-r: max(16px, var(--safe-right));
+  /* Shell geometry: phones have a top bar and a bottom bar; desktop a sidebar and a right panel. */
   --rail-w: 0px;
   --panel-w: 0px;
-  --panel-size: 400px;
+  --panel-size: 380px;
+  --top-bar: calc(56px + var(--safe-top));
   --bottom-bar: calc(var(--nav-h) + var(--safe-bottom));
-  --gutter-r: max(16px, var(--safe-right));
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #0f1216;
-    --surface: #181c22;
-    --surface-2: #222830;
-    --text: #eef1f4;
-    --text-2: #a9b3be;
-    --line: #2f3741;
-    --accent: #f08a8a;
-    --accent-soft: #3a2224;
-    --on-accent: #1a0d0d;
+    --bg: #151110;
+    --surface: #1e1918;
+    --surface-2: #2a2321;
+    --text: #f4eeec;
+    --text-2: #c4b5b2;
+    --line: #3a302e;
+    --line-strong: #54473f;
+    --accent: #ef8a7d;
+    --accent-soft: #3a201c;
+    --accent-track: #5c2b24;
+    --accent-ink: #f8cfc8;
+    --on-accent: #2a0c08;
     --ok: #56d364;
     --warn: #e3b341;
-    --err: #ff7b72;
-    --male: #8cbcf2;
-    --female: #f3a0c4;
-    --spouse: #8fd3a6;
-    --deceased: #9aa3ad;
-    --male-soft: #1b2a3b;
-    --female-soft: #35202b;
-    --spouse-soft: #1b3024;
-    --band: #141920;
-    --deceased-fill: #1f2329;
-    --shadow: 0 1px 2px rgb(0 0 0 / 40%);
+    --err: #ef8a7d;
+    --spouse: #d8c9c6;
+    --deceased: #a99b98;
+    --male-soft: #2a2321;
+    --female-soft: #3a201c;
+    --spouse-soft: #2a2321;
+    --band: #1b1615;
+    --deceased-fill: #221d1c;
+    --shadow-float: 0 12px 40px rgb(0 0 0 / 50%);
     --scrim: rgb(0 0 0 / 60%);
     color-scheme: dark;
   }
 }
 
 :root[data-theme='dark'] {
-  --bg: #0f1216;
-  --surface: #181c22;
-  --surface-2: #222830;
-  --text: #eef1f4;
-  --text-2: #a9b3be;
-  --line: #2f3741;
-  --accent: #f08a8a;
-  --accent-soft: #3a2224;
-  --on-accent: #1a0d0d;
+  --bg: #151110;
+  --surface: #1e1918;
+  --surface-2: #2a2321;
+  --text: #f4eeec;
+  --text-2: #c4b5b2;
+  --line: #3a302e;
+  --line-strong: #54473f;
+  --accent: #ef8a7d;
+  --accent-soft: #3a201c;
+  --accent-track: #5c2b24;
+  --accent-ink: #f8cfc8;
+  --on-accent: #2a0c08;
   --ok: #56d364;
   --warn: #e3b341;
-  --err: #ff7b72;
-  --male: #8cbcf2;
-  --female: #f3a0c4;
-  --spouse: #8fd3a6;
-  --deceased: #9aa3ad;
-  --male-soft: #1b2a3b;
-  --female-soft: #35202b;
-  --spouse-soft: #1b3024;
-  --band: #141920;
-  --deceased-fill: #1f2329;
-  --shadow: 0 1px 2px rgb(0 0 0 / 40%);
+  --err: #ef8a7d;
+  --spouse: #d8c9c6;
+  --deceased: #a99b98;
+  --male-soft: #2a2321;
+  --female-soft: #3a201c;
+  --spouse-soft: #2a2321;
+  --band: #1b1615;
+  --deceased-fill: #221d1c;
+  --shadow-float: 0 12px 40px rgb(0 0 0 / 50%);
   --scrim: rgb(0 0 0 / 60%);
   color-scheme: dark;
 }
@@ -168,7 +180,8 @@ button {
 
 @media (min-width: 960px) {
   :root {
-    --rail-w: 88px;
+    --rail-w: 248px;
+    --top-bar: 0px;
     --bottom-bar: 0px;
   }
 }
