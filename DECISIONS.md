@@ -95,3 +95,30 @@ Người dùng không chạy được lệnh terminal, nên mỗi giai đoạn �
 - `VITE_ROUTER=memory`: dùng `MemoryRouter`, vì trang nhúng không định tuyến theo đường dẫn URL được.
 - `npm run build:preview` đóng gói thành **một file HTML duy nhất** (CSS + JS nội tuyến, khoảng 190KB). Claude đăng file này thành trang riêng tư trên claude.ai.
 - Lớp `src/lib/data/` (`loadClanSnapshot`) là chỗ duy nhất biết dữ liệu đến từ đâu. Giai đoạn 3 sẽ mở rộng lớp này thay vì gọi Firestore trực tiếp từ giao diện.
+
+---
+
+## Giai đoạn 3a — Giao diện điện thoại
+
+### D18. Các lớp phủ nằm trên URL
+Bảng chi tiết (`?ct=<id>`), tìm kiếm (`?tk=1`), menu "Thêm" (`?them=1`) và người đang ở giữa chế độ Gia đình (`?p=<id>`) đều lưu trong URL. Nhờ vậy:
+- nút **Quay lại** của điện thoại đóng lớp phủ, không thoát khỏi app;
+- link chia sẻ mở đúng chỗ.
+
+Link chia sẻ `/person/:id` chuyển thành `/?p=id&ct=id`. Mở từ kết quả tìm kiếm thì thay thế mục lịch sử, để bấm Quay lại không mở lại ô tìm kiếm.
+
+### D19. Cử chỉ "vuốt lên để về đời trước"
+SPEC ghi "vuốt lên để đi về đời trước". Cử chỉ này chỉ gắn vào **thẻ người ở giữa**, để không lẫn với thao tác cuộn trang. Có thêm nút "Lên đời trước" và thanh dòng dõi cho người không quen vuốt.
+
+### D20. Tải toàn bộ dòng họ một lần (tạm thời)
+SPEC 5A.3 yêu cầu chế độ Gia đình và Danh sách chỉ đọc phần dữ liệu cần thiết. Hiện app vẫn tải toàn bộ `persons` và `unions` một lần, qua `onSnapshot` có cache offline, vì:
+- ước tính khoảng 300–500 người ≈ 150–250KB, đọc một lần rồi lấy từ cache;
+- tính đời, dòng dõi và tìm kiếm đều cần toàn bộ quan hệ.
+
+Sẽ đo lại với 3.000 người ở giai đoạn 7. Nếu chậm trên 4G yếu thì thêm một tài liệu chỉ mục gọn (tên, quan hệ) do admin ghi kèm.
+
+### D21. Màu theo vai trò
+Màu theo vai trò: nam (xanh dương), nữ (hồng đậm), dâu/rể (xanh lá), cả ở chế độ sáng và tối. Người đã mất có chữ "đã mất" màu xám, không dùng biểu tượng tôn giáo.
+
+### D22. Tùy chọn trên từng máy
+Theme sáng/tối, "Chữ lớn" và "Hiện con cháu bên ngoại" lưu trong `localStorage` của từng máy. Nếu trình duyệt chặn bộ nhớ thì tùy chọn vẫn chạy nhưng mất khi tải lại trang. "Hiện bên ngoại" mặc định theo `showMaternalDescendants` của dòng họ.

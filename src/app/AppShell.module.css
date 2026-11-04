@@ -1,0 +1,33 @@
+.shell {
+  min-height: 100dvh;
+}
+.main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding-left: var(--gutter-l);
+  padding-right: var(--gutter-r);
+  padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px);
+}
+.state {
+  padding-block: calc(48px + var(--safe-top)) 24px;
+  text-align: center;
+  color: var(--text-2);
+}
+.state h1 {
+  color: var(--text);
+  font-size: 1.25rem;
+}
+.small {
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+.retry {
+  min-height: var(--tap);
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+  cursor: pointer;
+}

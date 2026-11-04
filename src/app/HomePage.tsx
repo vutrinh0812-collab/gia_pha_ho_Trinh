@@ -1,18 +1,14 @@
-import { Link } from 'react-router-dom';
 import { env, missingEnv } from '@/lib/env';
 import { DataCheck } from './DataCheck';
 import styles from './Page.module.css';
 
-/**
- * Temporary landing page (phases 1–2): verifies configuration, data and the
- * calendar logic. Replaced by the mobile "Gia đình" view in phase 3a.
- */
+/** "Kiểm tra dữ liệu": configuration, data statistics and the lunar calendar tools. */
 export function HomePage() {
   return (
-    <main className={styles.page}>
-      <h1>Gia Phả Dòng Họ</h1>
+    <div className={styles.plain}>
+      <h1>Kiểm tra dữ liệu</h1>
       <p className={styles.muted}>
-        Trang kiểm tra tạm thời của giai đoạn 1–2. Giao diện xem gia phả thật sẽ có ở giai đoạn 3.
+        Thống kê dữ liệu, ngày giỗ sắp tới và công cụ đổi ngày âm – dương.
       </p>
       {env.dataSource === 'demo' && (
         <p className={styles.notice}>Bản xem thử: dùng dữ liệu mẫu hư cấu, chưa nối với Firebase.</p>
@@ -55,13 +51,6 @@ export function HomePage() {
 
       {missingEnv.length === 0 && <DataCheck />}
 
-      <nav className={styles.nav} aria-label="Các trang">
-        <Link to="/person/demo">Chi tiết người</Link>
-        <Link to="/anniversaries">Ngày giỗ</Link>
-        <Link to="/themes">Theme</Link>
-        <Link to="/print">In A1</Link>
-        <Link to="/admin">Admin</Link>
-      </nav>
-    </main>
+    </div>
   );
 }

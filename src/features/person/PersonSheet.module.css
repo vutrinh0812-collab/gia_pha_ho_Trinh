@@ -1,0 +1,108 @@
+.header {
+  --role: var(--male);
+  padding-top: 2px;
+}
+.header[data-role='female'] {
+  --role: var(--female);
+}
+.header[data-role='spouse'] {
+  --role: var(--spouse);
+}
+.name {
+  margin: 0;
+  font-size: 1.375rem;
+  line-height: 1.25;
+  color: var(--role);
+  text-wrap: balance;
+}
+.sub {
+  margin: 2px 0 0;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.details {
+  margin: 8px 0 0;
+  display: grid;
+}
+.detailRow {
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 34%) 1fr;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+.detailRow dt {
+  color: var(--text-2);
+}
+.detailRow dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.relatives {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+.relTitle {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+.relList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.rel {
+  --role: var(--male);
+  width: 100%;
+  min-height: var(--tap);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--role);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+}
+.rel[data-role='female'] {
+  --role: var(--female);
+}
+.rel[data-role='spouse'] {
+  --role: var(--spouse);
+}
+.relName {
+  font-weight: 600;
+  color: var(--role);
+}
+.relMeta {
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+.action {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 48px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  font-weight: 600;
+  cursor: pointer;
+}
+.shareNote {
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  overflow-wrap: anywhere;
+  user-select: all;
+}

@@ -1,0 +1,100 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  animation: show 140ms ease-out;
+}
+.bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: calc(8px + var(--safe-top)) var(--gutter-r) 8px calc(var(--gutter-l) - 8px);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.back {
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.0625rem; /* ≥ 16px avoids zoom-on-focus in iOS Safari */
+}
+.results {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px var(--gutter-r) calc(24px + var(--safe-bottom)) var(--gutter-l);
+}
+.hint {
+  color: var(--text-2);
+  margin: 8px 0;
+}
+.count {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.item {
+  --role: var(--male);
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--role);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+}
+.item[data-role='female'] {
+  --role: var(--female);
+}
+.item[data-role='spouse'] {
+  --role: var(--spouse);
+}
+.name {
+  font-weight: 600;
+  font-size: 1.0625rem;
+  color: var(--role);
+}
+.meta {
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+@keyframes show {
+  from {
+    opacity: 0;
+  }
+}
