@@ -1,0 +1,54 @@
+/* Proposal B — "Mực và giấy" (achromatic ledger).
+   No colour in the chrome: ink on a paper-stone ground, white cards with 1px edges.
+   The one hue (ink blue) marks the screen's main data element: the line of descent
+   from the root ancestor to the person on screen. Gender is not colour-coded.
+   Face: Geist (has the Vietnamese subset). */
+:root {
+  --font: 'Geist', system-ui, sans-serif;
+  --ground: #f4f3f1; --surface: #ffffff; --raised: #f7f6f4;
+  --border: #e2e0db; --rule: #eeece8; --control: #cbc8c2;
+  --text: #121212; --muted: #5c5b57;
+  --hue: #1d5fbf; --link: #1d5fbf; --mark: #121212;
+  --primary: #141414; --on-primary: #ffffff;
+  --radius-card: 8px; --radius-control: 6px; --radius-row: 6px;
+  --fs-body: 16px; --fs-title: 26px; --fs-section: 16px; --fs-focus: 28px;
+  --side-w: 248px; --rail-w: 380px; --block-gap: 12px; --row-gap: 0px;
+  --person-bg: transparent; --person-hover: #f7f6f4; --person-border: 0;
+  --name-weight: 600; --spouse-ink: #121212;
+  --nav-active-bg: #e8e6e1; --hover: #eceae6; --nav-active: #121212;
+  --count-bg: #121212; --count-ink: #ffffff;
+  --gen-bg: #ffffff; --gen-border: 1px solid #e2e0db; --gen-gap: 8px;
+  --side-bg: #f4f3f1; --side-line: #e2e0db;
+}
+.block, .focus { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 18px 18px 8px; }
+.focus { padding: 22px 20px 20px; }
+.block .person { border-bottom: 1px solid var(--rule); border-radius: 0; padding-left: 4px; }
+.block .rows .person:last-child { border-bottom: 0; }
+.rows.two, .rows.grid { column-gap: 20px; }
+.rel .person { border-bottom: 1px solid var(--rule); border-radius: 0; padding-left: 0; }
+.gen-body .person { border-bottom: 1px solid var(--rule); border-radius: 0; }
+
+/* The line of descent: the one coloured element on the screen. */
+.spine { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 16px 18px; margin-bottom: 12px; }
+.spine ol { list-style: none; margin: 0; padding: 0 0 0 18px; position: relative; display: grid; gap: 2px; }
+.spine ol::before { content: ''; position: absolute; left: 5px; top: 14px; bottom: 14px; width: 2px; background: var(--hue); }
+.spine li { position: relative; }
+.spine li::before { content: ''; position: absolute; left: -18px; top: 15px; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 2px solid var(--hue); }
+.spine li[aria-current]::before { background: var(--hue); }
+.spine button { width: 100%; min-height: 44px; display: flex; gap: 10px; align-items: baseline; padding: 8px 6px; border: 0; background: none; text-align: left; border-radius: var(--radius-control); }
+.spine button:hover { background: var(--raised); }
+.spine-gen { flex: none; width: 3.6em; color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+.spine-name { font-size: 16px; }
+.spine li[aria-current] .spine-name { color: var(--hue); font-weight: 600; }
+@media (max-width: 999px) {
+  .spine ol { max-height: none; }
+}
+@media (min-width: 1000px) {
+  .family-grid { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 16px; align-items: start; }
+  .spine { position: sticky; top: 36px; margin: 0; }
+  .family-main .rows.two { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 1000px) {
+  /* Content is about 480px beside the lineage and the detail: two columns keep names on one line. */
+  .rows.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

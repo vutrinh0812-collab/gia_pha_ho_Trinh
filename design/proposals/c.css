@@ -1,0 +1,47 @@
+/* Proposal C — "Sơn son" (accent ladder).
+   One hue taken from the lacquered red of altars and printed genealogies: full strength only
+   on small marks (the primary button, the active tab, the day count), its pale tints on areas
+   (the person in focus, upcoming death anniversaries, the active row). The ground leans one
+   level toward the palest tint. Face: Lexend, built for reading ease; it has the Vietnamese
+   subset (the dealt DM Sans does not). */
+:root {
+  --font: 'Lexend', system-ui, sans-serif;
+  --ground: #fbf8f7; --surface: #ffffff; --raised: #f6efed;
+  --border: #ebe1de; --rule: #f1e9e7; --control: #d8ccc9;
+  --text: #1d1514; --muted: #63575a;
+  --accent: #a3271c; --accent-soft: #fbefec; --accent-track: #f4d8d2; --accent-ink: #6b1810;
+  --link: #a3271c; --mark: #a3271c; --focus: #a3271c;
+  --primary: #a3271c; --on-primary: #ffffff;
+  --radius-card: 10px; --radius-control: 8px; --radius-row: 8px;
+  --fs-body: 16px; --fs-title: 26px; --fs-section: 17px; --fs-focus: 28px;
+  --side-w: 248px; --rail-w: 380px; --block-gap: 20px;
+  --person-bg: #ffffff; --person-hover: #fdf7f6; --person-border: 1px solid #ebe1de;
+  --name-weight: 500; --spouse-ink: #3e3332;
+  --nav-active-bg: #fbefec; --nav-active-ink: #6b1810; --hover: #f6efed; --nav-active: #a3271c;
+  --count-bg: #a3271c; --count-ink: #ffffff;
+  --crumb-current-bg: #fbefec; --crumb-current-ink: #6b1810;
+  --gen-bg: #ffffff; --gen-border: 1px solid #ebe1de;
+  --focus-ink: #1d1514;
+}
+.focus { background: var(--accent-soft); border-radius: var(--radius-card); padding: 22px 20px; }
+.focus-facts { color: var(--accent-ink); }
+.side-link[aria-current='page'] .icon { color: var(--accent); }
+.gio ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.gio li { display: flex; }
+.gio button { width: 100%; display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: baseline; min-height: 56px; padding: 10px 14px; border: 1px solid var(--accent-track); border-radius: var(--radius-row); background: var(--surface); text-align: left; }
+.gio-when { grid-row: span 2; align-self: center; min-width: 5.6em; padding: 6px 8px; border-radius: 6px; background: var(--accent-soft); color: var(--accent-ink); font-size: 14px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; }
+.gio-name { font-size: 17px; font-weight: 500; }
+.gio-date { font-size: 14px; color: var(--muted); }
+.gen-head[aria-expanded='true'] { background: var(--accent-soft); }
+.gen-head[aria-expanded='true'] .gen-name { color: var(--accent-ink); }
+@media (min-width: 1000px) {
+  .main { padding: 36px 40px 64px; }
+  .family, .listview { max-width: 920px; }
+  .family-main { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 20px; }
+  .family-main > * { grid-column: span 2; }
+  .spouses .rows { grid-template-columns: 1fr 1fr; }
+  .gio ul { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  /* Three across: the day count on top, then the name and the date, so names never break. */
+  .gio button { grid-template-columns: 1fr; row-gap: 4px; align-content: start; }
+  .gio-when { grid-row: auto; justify-self: start; min-width: 0; }
+}

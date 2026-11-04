@@ -14,3 +14,5 @@ playwright-report
 storage-debug.log*
 test-results
 ui-debug.log*
+.taste-skill
+design/proposals/dist

@@ -1,0 +1,63 @@
+/* Proposal A — "Sổ gia phả" (editorial greeting).
+   The clan's name is the h1, set in a book serif like the title page of a printed genealogy;
+   below it one line with today's lunar date and the next death anniversary.
+   Tonal panels (paper stone) hold content directly; one teal hue for links and the data mark.
+   Face: Spectral (serif, greeting and names) + Public Sans (text). Both have the Vietnamese subset;
+   the dealt Instrument Sans/Serif do not, hence the swap. */
+:root {
+  --font: 'Public Sans', system-ui, sans-serif;
+  --font-display: 'Spectral', Georgia, serif;
+  --ground: #ffffff; --surface: #f3f3f1; --raised: #ffffff;
+  --border: #ebe9e3; --rule: #e6e4dd; --control: #d3d0c7;
+  --text: #1f201d; --muted: #5a5a55;
+  --accent: #1b6e66; --link: #1b6e66; --mark: #1b6e66;
+  --primary: #1f201d; --on-primary: #ffffff;
+  --radius-card: 22px; --radius-control: 999px; --radius-row: 14px;
+  --fs-body: 16px; --fs-title: 28px; --fs-section: 16px; --fs-focus: 30px;
+  --side-w: 248px; --rail-w: 400px; --block-gap: 16px;
+  --person-bg: #ffffff; --person-hover: #fbfaf7; --person-border: 1px solid #ebe9e3;
+  --name-weight: 500; --spouse-ink: #3d3d39;
+  --nav-active-bg: #ecebe6; --hover: #f3f2ee; --nav-active: #1f201d;
+  --count-bg: #1b6e66; --count-ink: #ffffff;
+  --crumb-bg: transparent; --crumb-current-bg: #f3f3f1;
+  --gen-bg: #f3f3f1; --gen-gap: 10px;
+  --focus-weight: 600; --rail-bg: #ffffff;
+}
+.hello { margin: 4px 0 20px; }
+.hello h1 { margin: 0; font: 600 28px/1.15 var(--font-display); letter-spacing: -0.015em; text-wrap: balance; }
+.hello-fact { margin: 10px 0 0; font-size: 17px; max-width: 46ch; }
+.block, .focus { background: var(--surface); border-radius: var(--radius-card); padding: 20px; }
+.focus { padding: 24px 22px; display: flex; flex-direction: column; }
+/* When the focus panel stretches beside the anniversaries, its actions sit at its foot. */
+.focus-actions { margin-top: auto; padding-top: 16px; }
+.focus-name { font-weight: 600; }
+.person-name { font-family: var(--font-display); font-size: 19px; }
+.d-name, .list-head h1 { font-family: var(--font-display); }
+.crumbs ol { margin-bottom: 12px; }
+.gio-panel { display: none; }
+.gio-panel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.gio-panel button { width: 100%; display: flex; flex-direction: column; align-items: flex-start; min-height: 52px; padding: 8px 10px; border: 0; border-radius: 12px; background: none; text-align: left; }
+.gio-panel button:hover { background: #ffffff; }
+.gp-name { font: 500 17px/1.3 var(--font-display); }
+.gp-date { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.gio-panel li:first-child .gp-date { color: var(--accent); font-weight: 600; }
+@media (min-width: 1000px) {
+  .main { padding: 56px 48px 72px; }
+  .family, .listview, .placeholder { max-width: 1040px; margin: 0 auto; }
+  .hello h1 { font-size: 46px; }
+  .hello { margin-bottom: 28px; }
+  :root { --fs-focus: 36px; }
+  /* 12 columns, every block spans 12; rows inside a block use 2-3 columns. */
+  .family-main { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .family-main > * { grid-column: span 12; }
+  .family-main > .focus { grid-column: span 8; }
+  .family-main > .gio-panel { display: block; grid-column: span 4; }
+  /* Parents and spouses keep their own height: stacked, rows side by side inside. */
+}
+@media (min-width: 1000px) {
+  /* A keeps its centred column: the detail slides over from the right instead of narrowing it. */
+  #app { grid-template-columns: var(--side-w) minmax(0, 1fr); }
+  .rail-wrap, .rail-wrap:not(:empty) { width: 0; }
+  .rail-wrap[data-open='true'] .scrim { display: block; background: rgb(31 32 29 / 22%); }
+  .rail, .rail-wrap[data-open='false'] .rail { position: fixed; top: 0; right: 0; left: auto; bottom: 0; height: auto; box-shadow: -12px 0 40px rgb(0 0 0 / 14%); /* taste-skill-ignore: floats over the page */ }
+}
