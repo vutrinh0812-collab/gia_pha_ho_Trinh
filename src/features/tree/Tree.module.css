@@ -581,3 +581,14 @@ main > .view {
   font-size: 0.875rem;
   line-height: 1.4;
 }
+.railEmpty {
+  max-width: 5.5em;
+  margin-top: 2px;
+  color: var(--text-2);
+  font-size: 0.6875rem;
+  font-style: normal;
+  line-height: 1.2;
+}
+.rail[data-tight='true'] .railEmpty {
+  display: none;
+}

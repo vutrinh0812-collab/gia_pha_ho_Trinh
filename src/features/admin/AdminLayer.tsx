@@ -34,12 +34,12 @@ function ActionMenu({ model, person }: { model: ClanModel; person: PersonRec }) 
   const { open, close } = useAdminUi();
   const parentUnion = model.index.parentUnionOf(person.id);
   const siblings = parentUnion ? model.index.childrenOf(parentUnion.id).length : 0;
-  const isRoot = person.id === model.rootId;
+  const isRoot = model.founders.some((f) => f.id === person.id);
   const items: Array<[string, () => void, boolean?]> = [
     ['Sửa thông tin', () => open('edit', person.id)],
     ['Thêm con', () => open('addChild', person.id)],
     ...(person.isBloodline ? ([[person.gender === 'male' ? 'Thêm vợ' : 'Thêm chồng', () => open('addSpouse', person.id)]] as Array<[string, () => void]>) : []),
-    ...(isRoot ? ([['Thêm cha (đời trên thủy tổ)', () => open('addFather', person.id)]] as Array<[string, () => void]>) : []),
+    ...(isRoot ? ([[(model.founders.length > 1 ? 'Thêm cha chung (đời trên đời 1)' : 'Thêm cha (đời trên thủy tổ)'), () => open('addFather', person.id)]] as Array<[string, () => void]>) : []),
     ...(siblings > 1 ? ([['Đổi thứ tự anh chị em', () => open('reorder', person.id)]] as Array<[string, () => void]>) : []),
     ['Xóa', () => open('delete', person.id), true],
   ];

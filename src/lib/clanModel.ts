@@ -28,6 +28,8 @@ export interface Family {
 export interface ClanModel {
   settings: ClanSettings;
   rootId: string;
+  /** Generation-1 people: the root plus any other family that starts the book. */
+  founders: PersonRec[];
   index: FamilyIndex<PersonRec, UnionRec>;
   gens: GenerationResult;
   /** Persons connected to the root. */
@@ -80,6 +82,7 @@ export function buildClanModel(snap: ClanSnapshot): ClanModel | null {
   return {
     settings,
     rootId: settings.rootPersonId,
+    founders: gens.founders.map((id) => index.persons.get(id)!),
     index,
     gens,
     persons,

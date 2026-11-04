@@ -192,25 +192,38 @@ export function addSpouse(model: ClanModel, personId: string, fields: PersonFiel
   return { groupId: newId(), summary: `Thêm ${role} của ${person.fullName}: ${spouse.fullName}`, changes };
 }
 
-/** Adds a generation above the root ancestor (SPEC §6 "Thêm cha", root only). */
-export function addFather(model: ClanModel, rootId: string, fields: PersonFields): ChangeSet {
+/**
+ * Adds a generation above the root ancestor (SPEC §6 "Thêm cha", root only).
+ * When the book starts from several families (founders), the new father becomes
+ * the common ancestor of all of them, so every generation number shifts together.
+ */
+export function addFather(model: ClanModel, personId: string, fields: PersonFields): ChangeSet {
+  const rootId = personId;
   const root = requirePerson(model, rootId);
-  if (rootId !== model.rootId || root.parentUnionId) throw new AdminError('Chỉ thêm cha cho thủy tổ (người ở đời đầu tiên).');
+  if (!model.founders.some((p) => p.id === rootId) || root.parentUnionId) {
+    throw new AdminError('Chỉ thêm cha cho thủy tổ (người ở đời 1).');
+  }
   const father = checkPerson({ ...fields, gender: 'male', isBloodline: true, parentUnionId: null });
   const fatherId = newId();
   const unionId = newId();
   const union = checkUnion({ bloodlinePersonId: fatherId, spousePersonId: null, order: 1, status: 'married' });
-  const rootBefore = personContent(root);
-  const rootAfter = checkPerson({ ...rootBefore, parentUnionId: unionId, birthOrder: rootBefore.birthOrder ?? 1 });
+  const adopted = model.founders.filter((p) => !p.parentUnionId);
+  const children = adopted.map((p, i) => {
+    const before = personContent(p);
+    return { person: p, before, after: checkPerson({ ...before, parentUnionId: unionId, birthOrder: i + 1 }) };
+  });
   const sBefore = settingsContent(model.settings);
   const sAfter = { ...sBefore, rootPersonId: fatherId };
+  const names = adopted.length > 1 ? `${adopted.length} gia đình đời 1` : root.fullName;
   return {
     groupId: newId(),
-    summary: `Thêm cha của ${root.fullName}: ${father.fullName} (thủy tổ mới)`,
+    summary: `Thêm cha của ${names}: ${father.fullName} (thủy tổ mới)`,
     changes: [
       { collection: 'persons', id: fatherId, action: 'create', after: father as unknown as Doc },
       { collection: 'unions', id: unionId, action: 'create', after: union as unknown as Doc },
-      { collection: 'persons', id: rootId, action: 'update', before: rootBefore as unknown as Doc, after: rootAfter as unknown as Doc },
+      ...children.map(
+        (c): Change => ({ collection: 'persons', id: c.person.id, action: 'update', before: c.before as unknown as Doc, after: c.after as unknown as Doc }),
+      ),
       { collection: 'settings', id: SETTINGS_ID, action: 'update', before: sBefore as unknown as Doc, after: sAfter as unknown as Doc },
     ],
   };

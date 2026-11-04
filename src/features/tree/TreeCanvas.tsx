@@ -99,6 +99,8 @@ export function TreeCanvas(props: Props) {
         // Hide the rail when generations are too close on screen to label legibly.
         const rowGap = ((layoutRef.current.rows[0]?.height ?? 60) + VGAP) * t.k;
         rail.style.opacity = rowGap < 34 ? '0' : '1';
+        // The small "đang cập nhật" caption needs more room than the generation number.
+        rail.dataset.tight = rowGap < 80 ? 'true' : 'false';
         for (const el of Array.from(rail.children) as HTMLElement[]) {
           const top = Number(el.dataset.top);
           const rh = Number(el.dataset.h);
@@ -401,6 +403,7 @@ export function TreeCanvas(props: Props) {
           <div key={r.gen} className={styles.railLabel} data-top={r.top} data-h={r.height}>
             <span>Đời</span>
             <strong>{r.gen}</strong>
+            {r.empty && <em className={styles.railEmpty}>đang cập nhật</em>}
           </div>
         ))}
       </div>

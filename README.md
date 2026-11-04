@@ -313,3 +313,32 @@ Trong bản xem thử (không có Firebase), mã admin là `ma-admin-demo`. Mọ
 - **Đổi giao diện sơ đồ:** trong màn Sơ đồ, bấm nút **Giao diện** (biểu tượng bảng màu). Chọn Sơn son, Truyền thống đỏ, Sơn mài vàng, Giấy dó mực tàu hoặc Men lam. Máy sẽ nhớ lựa chọn này, và trang In cũng dùng sẵn giao diện đó.
 - Admin chọn giao diện in mặc định cho cả dòng họ ở **Quản trị → Cài đặt dòng họ**.
 - Xuất file PDF/SVG/PNG để mang đi in: giai đoạn 6.
+
+## 12. Nạp gia phả họ Trịnh (từ sổ gia phả)
+
+Dữ liệu từ sổ nằm trong `private-data/ho-trinh.json` (9 gia đình, 57 người). Thư mục `private-data/` **không đưa lên Git** (repo công khai): giữ file này trên máy quản trị, còn người xem đọc từ Firebase. Đời III trong sổ là **Đời 1** trong app. File gồm `sach` (nội dung sổ), `gioi_tinh` (sổ không ghi giới tính), `suy_doan` (tên cần xác nhận) và `cai_dat`; xem mẫu ở `tests/fixtures/book-sample.json`.
+
+1. Làm theo mục 3 để có project, Firestore, tài khoản admin và khóa service account (bước 3.7).
+2. Nạp thử trên emulator (không ảnh hưởng dữ liệu thật):
+
+   ```bash
+   npm run emulators
+   ```
+
+   ```bash
+   npm run import:ho-trinh
+   ```
+
+3. Nạp lên project thật. Thêm `--clear` nếu dòng họ đang có dữ liệu mẫu cần xóa:
+
+   ```bash
+   npm run import:ho-trinh -- --real --admin-uid <UID admin>
+   ```
+
+4. Xem thử không cần Firebase, với dữ liệu trong `private-data/`:
+
+   ```bash
+   VITE_DEMO_DATASET=ho-trinh npm run dev:demo
+   ```
+
+**Mở rộng đời:** thêm con để mở đời xuống dưới (đời 4 đang trống). Muốn thêm tổ tiên ở trên, mở một người ở đời 1 và chọn **Thêm cha chung**; mọi người sẽ lùi một đời.

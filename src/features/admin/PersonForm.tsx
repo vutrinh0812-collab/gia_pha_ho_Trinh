@@ -147,7 +147,11 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
           </p>
         )}
         {mode === 'addFather' && (
-          <p className={styles.note}>Người này sẽ thành thủy tổ mới (đời 1); mọi người hiện có lùi xuống một đời.</p>
+          <p className={styles.note}>
+            {model.founders.length > 1
+              ? `Người này sẽ thành thủy tổ mới (đời 1) và là cha chung của cả ${model.founders.length} gia đình đang ở đời 1. Mọi người hiện có lùi xuống một đời.`
+              : 'Người này sẽ thành thủy tổ mới (đời 1); mọi người hiện có lùi xuống một đời.'}
+          </p>
         )}
 
         <fieldset className={styles.fieldset}>

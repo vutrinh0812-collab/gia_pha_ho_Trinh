@@ -235,7 +235,7 @@ export default function TreeView() {
           <h1 className={styles.title}>
             Sơ đồ
             <span className={styles.titleSub}>
-              {layout.nodes.length} người · {layout.rows.length} đời
+              {layout.nodes.length} người · {layout.rows.filter((r) => !r.empty).length} đời
             </span>
           </h1>
           <button

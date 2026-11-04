@@ -4,6 +4,11 @@
  * Generations are never stored (SPEC §3): the root ancestor is generation 1,
  * a child is its bloodline parent's generation + 1 and a spouse shares the
  * generation of the bloodline partner.
+ *
+ * A clan may start from several families whose common ancestors are unknown
+ * (a family book that begins mid-way): every bloodline person without parents
+ * is a "founder" and is generation 1 like the root. Adding a common ancestor
+ * above them later shifts everybody down by one.
  */
 import type { Gender } from './types';
 
@@ -90,7 +95,9 @@ export function buildFamilyIndex<P extends PersonNode, U extends UnionLink>(
 }
 
 export interface GenerationResult {
-  /** Generation (1-based) of every person reachable from the root. */
+  /** Generation-1 persons: the root first, then the other parentless bloodline persons in birth order. */
+  founders: string[];
+  /** Generation (1-based) of every person reachable from the root or a founder. */
   generation: ReadonlyMap<string, number>;
   /**
    * Persons descending from the root through a daughter (bên ngoại),
@@ -113,6 +120,7 @@ export function computeGenerations(index: FamilyIndex, rootPersonId: string): Ge
 
   if (!index.persons.has(rootPersonId)) {
     return {
+      founders: [],
       generation,
       maternal,
       maxGeneration,
@@ -121,9 +129,15 @@ export function computeGenerations(index: FamilyIndex, rootPersonId: string): Ge
     };
   }
 
+  const others = [...index.persons.values()]
+    .filter((p) => p.isBloodline && !p.parentUnionId && p.id !== rootPersonId)
+    .sort(byBirthOrder)
+    .map((p) => p.id);
+  const founders = [rootPersonId, ...others];
+
   // Iterative BFS over bloodline persons; safe for deep trees.
-  const queue: string[] = [rootPersonId];
-  generation.set(rootPersonId, 1);
+  const queue: string[] = [...founders];
+  for (const id of founders) generation.set(id, 1);
   for (let head = 0; head < queue.length; head++) {
     const personId = queue[head]!;
     const person = index.persons.get(personId);
@@ -152,7 +166,7 @@ export function computeGenerations(index: FamilyIndex, rootPersonId: string): Ge
   }
 
   const unreachable = [...index.persons.keys()].filter((id) => !generation.has(id));
-  return { generation, maternal, maxGeneration, unreachable, conflicts };
+  return { founders, generation, maternal, maxGeneration, unreachable, conflicts };
 }
 
 /**

@@ -15,6 +15,7 @@
     "test:rules": "firebase emulators:exec --only firestore,storage --project demo-gia-pha \"vitest run --config vitest.rules.config.ts\"",
     "test:all": "npm test && npm run test:rules",
     "seed": "tsx scripts/seed.ts",
+    "import:ho-trinh": "tsx scripts/import-ho-trinh.ts",
     "admin:setup": "tsx scripts/setup-admin.ts",
     "dev:demo": "vite --mode demo",
     "build:preview": "tsc -b && vite build --mode demo && node scripts/build-preview.mjs",

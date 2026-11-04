@@ -1,0 +1,81 @@
+{
+  "sach": {
+    "tieu_de": "Sổ gia phả mẫu (hư cấu)",
+    "gia_dinh": [
+      {
+        "id": "GD-A",
+        "trang": 12,
+        "ten_gia_dinh": "Lê Văn Một",
+        "doi_III": {
+          "nguoi_ho_trinh": { "ho_ten": "Lê Văn Một", "ghi_chu": "Một phần tên bị làm mờ trên ảnh" },
+          "vo_chong": { "ho_ten": "Phạm Thị Hai" }
+        },
+        "con": [
+          {
+            "stt": 1,
+            "ho_ten": "Lê Văn Ba",
+            "vo_chong": { "ho_ten": "Đỗ Thị Bốn" },
+            "con": [
+              { "ho_ten": "Lê Minh Năm" },
+              { "ho_ten": "Lê Thu Sáu", "can_kiem_tra": "Chữ cuối khó đọc: Sáu / Sấu" }
+            ]
+          },
+          {
+            "stt": 2,
+            "ho_ten": "Lê Thị Bảy",
+            "vo_chong": { "ho_ten": "Mai Văn Tám" },
+            "con": [{ "ho_ten": "Mai Lê Chín" }]
+          }
+        ]
+      },
+      {
+        "id": "GD-B",
+        "trang": null,
+        "ten_gia_dinh": "Lê Thị Mười",
+        "doi_III": {
+          "nguoi_ho_trinh": { "ho_ten": "Lê Thị Mười" },
+          "vo_chong": { "ho_ten": "Hoàng Quốc Cường" }
+        },
+        "con": [
+          { "stt": 1, "ho_ten": "Hoàng Lê Anh", "vo_chong": null, "con": [] },
+          {
+            "stt": 2,
+            "ho_ten": "Hoàng Lê Bình",
+            "vo_chong": null,
+            "con": [{ "ho_ten": "Hoàng Lê Chi" }, { "ho_ten": "Hoàng Lê Dũng" }]
+          }
+        ]
+      },
+      {
+        "id": "GD-C",
+        "trang": 7,
+        "ten_gia_dinh": "Lê Văn Mười Một",
+        "doi_III": {
+          "nguoi_ho_trinh": { "ho_ten": "Lê Văn Mười Một", "ten_goi_khac": ["Tí", "Tèo"] },
+          "vo_chong": null
+        },
+        "con": []
+      }
+    ]
+  },
+  "gioi_tinh": {
+    "Lê Minh Năm": "nam",
+    "Lê Thu Sáu": "nu",
+    "Mai Lê Chín": "nam",
+    "Hoàng Quốc Cường": "nam",
+    "Hoàng Lê Anh": "nu",
+    "Hoàng Lê Bình": "nam",
+    "Hoàng Lê Chi": "nu",
+    "Hoàng Lê Dũng": "nam"
+  },
+  "suy_doan": ["Hoàng Lê Chi"],
+  "cai_dat": {
+    "clanName": "Họ Lê",
+    "title": "Gia phả họ Lê (mẫu)",
+    "coupletLeft": "",
+    "coupletRight": "",
+    "colophon": "",
+    "defaultThemeId": "truyen-thong-do",
+    "showMaternalDescendants": true
+  }
+}

@@ -275,8 +275,9 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
       )}
       {root && (
         <text x={W / 2} y={rootY} textAnchor="middle" fontFamily={t.heading.family} fontWeight={t.heading.weight} fontSize={rootSize} fill={c.accent}>
-          Thủy tổ: {root.fullName}
-          {lifeSpan(root) ? ` (${lifeSpan(root)})` : ''}
+          {model.founders.length > 1
+            ? `Gồm ${model.founders.length} gia đình ở đời 1`
+            : `Thủy tổ: ${root.fullName}${lifeSpan(root) ? ` (${lifeSpan(root)})` : ''}`}
         </text>
       )}
       {branchLine && (

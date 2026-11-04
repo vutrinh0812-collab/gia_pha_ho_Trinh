@@ -344,3 +344,27 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   4. Truyền thống đỏ.
 - Trang Giao diện in có thêm 2 nút cho mỗi theme: "In với giao diện này" và "Dùng cho sơ đồ".
 - **Sửa lỗi cũ:** trên máy tính, sơ đồ bị bó trong cột giữa rộng 46rem, vì quy tắc căn giữa nội dung trang cũng áp vào sơ đồ. Giờ sơ đồ chiếm hết chiều ngang. Lỗi lộ ra khi đổi nền theme.
+
+## Dữ liệu thật: sổ gia phả họ Trịnh
+
+### D47. Nhiều gia đình cùng ở đời 1
+- Sổ gia phả bắt đầu từ "đời III" (9 gia đình) và chưa ghi tổ tiên đời I, II. Người dùng chọn **đánh số lại từ Đời 1**: đời III của sổ là Đời 1 trong app, đời IV là Đời 2, đời V là Đời 3.
+- **Quy ước mới:** mọi người huyết thống không có cha mẹ đều là "người đứng đầu" (founder), thuộc đời 1 như thủy tổ. `settings.rootPersonId` vẫn là một trong số đó (gia đình đầu tiên trong sổ).
+- Không cần đổi cấu trúc Firestore và Security Rules. Người đứng đầu có `birthOrder` theo thứ tự trong sổ để sắp xếp ổn định.
+- Phần còn lại giữ nguyên: số đời vẫn tính từ cha mẹ, không lưu.
+- Sơ đồ, bản in và danh sách chi in đều xuất phát từ tất cả người đứng đầu. Bản in ghi "Gồm N gia đình ở đời 1" thay cho dòng "Thủy tổ".
+- **Con của con gái là bên ngoại** (ẩn trên cây nếu tắt tùy chọn). Dòng họ này bật `showMaternalDescendants`, vì sổ ghi cả con cháu bên ngoại.
+- Chuyển đổi từ sổ: `src/lib/import/giaPhaSo.ts`. Test dùng sổ hư cấu `tests/fixtures/book-sample.json`.
+- **Dữ liệu thật không nằm trong Git** (repo công khai): chỉ ở `private-data/ho-trinh.json` trên máy quản trị (thư mục này trong `.gitignore`) và trong Firebase. Người xem đọc từ Firebase qua giao diện web.
+
+### D48. Mở rộng đời ở cả hai chiều
+- **Xuống dưới:** Thêm con vẫn như cũ. Đời thứ 4 hiện sẵn dưới dạng dòng trống "đang cập nhật" (tối thiểu 4 đời trên sơ đồ đầy đủ, `MIN_GENERATIONS` trong `layout.ts`). Tiêu đề sơ đồ chỉ đếm đời có người.
+- **Lên trên:** "Thêm cha" dùng được ở mọi người đời 1. Khi có nhiều gia đình đời 1, người cha mới trở thành **cha chung** của tất cả. Số đời của mọi người cùng lùi một đời, nên số đời luôn nhất quán. Hoàn tác như các thao tác khác (một nhóm thay đổi).
+- Muốn gắn riêng một gia đình dưới tổ tiên khác thì chưa làm. Chờ người nhà xác nhận quan hệ giữa các gia đình.
+
+### D49. Giới tính và chỗ chưa chắc
+- Sổ không ghi giới tính. Quy ước: "Thị" trong tên là nữ, "Văn" là nam. Các tên còn lại được xếp thủ công theo tên và giới tính của vợ/chồng.
+- Người nào suy đoán yếu có ghi chú "Cần xác nhận: giới tính suy từ tên". Bảng giới tính nằm trong file dữ liệu riêng.
+- Chữ khó đọc và chỗ bị làm mờ trong sổ nằm ở phần Ghi chú của từng người, kèm số trang sổ cho người đứng đầu.
+- Chỗ sổ ghi mơ hồ về cha mẹ được đặt theo đúng sổ và có ghi chú nêu khả năng khác; chờ người nhà xác nhận.
+- Chưa có ngày sinh, ngày mất, câu đối, lạc khoản: để trống để admin nhập.

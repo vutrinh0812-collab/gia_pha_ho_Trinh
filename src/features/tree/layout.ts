@@ -14,6 +14,8 @@ import { spouseRole } from '@/lib/format';
 export const NODE_W = 176;
 /** Vertical gap between generations; L3/L4 cards expand into it. */
 export const VGAP = 76;
+/** Default number of generation rows on a full tree (the app starts with 4 generations). */
+export const MIN_GENERATIONS = 4;
 const SIBLING_GAP = 14;
 const COUSIN_GAP = 34;
 const BASE_H = 62;
@@ -79,6 +81,8 @@ export interface TreeFamily {
 
 export interface TreeRow {
   gen: number;
+  /** A generation shown as a placeholder: nobody recorded yet. */
+  empty?: boolean;
   top: number;
   /** Height of the node band (without the gap below). */
   height: number;
@@ -147,7 +151,7 @@ function countShownDescendants(model: ClanModel, id: string, f: TreeFilters): nu
 
 /** Persons the layout starts from (forest), according to the branch and from-generation filters. */
 function startingPersons(model: ClanModel, f: TreeFilters): PersonRec[] {
-  let starts: PersonRec[] = [model.get(model.rootId)!];
+  let starts: PersonRec[] = model.founders;
   if (f.branch) {
     starts = model.persons.filter((p) => {
       if (!isShown(model, p, f) || p.branchLabel !== f.branch) return false;
@@ -240,6 +244,12 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
     top += height + VGAP;
   }
   const rowTop = new Map(rows.map((r) => [r.gen, r.top]));
+  // A new clan shows at least MIN_GENERATIONS rows so the next generation is visibly waiting to be filled.
+  const padRows = !f.branch && f.fromGen === null && f.toGen === null && !f.focusId;
+  while (padRows && rows.length > 0 && rows[rows.length - 1]!.gen < MIN_GENERATIONS) {
+    const last = rows[rows.length - 1]!;
+    rows.push({ gen: last.gen + 1, empty: true, top: last.top + last.height + VGAP, height: BASE_H });
+  }
 
   const layout = flextree<Datum>({
     nodeSize: (n) => (n.data.id === VIRTUAL_ROOT ? [0, 0] : [NODE_W, (rowH.get(n.data.gen) ?? 0) + VGAP]),

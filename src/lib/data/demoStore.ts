@@ -3,13 +3,18 @@
  * accepts admin writes and notifies subscribers like a realtime database would.
  * Changes last until the page is reloaded.
  */
+import { convertPrivateFile, type PrivateClanFile } from '../import/giaPhaSo';
 import { generateSampleData } from '../sampleData';
 import type { ClanSettings, PersonFields, UnionFields, WithId } from '../types';
 import type { ClanSnapshot } from './types';
 
 type Listener = (snap: ClanSnapshot) => void;
 
-const data = generateSampleData();
+// VITE_DEMO_DATASET=ho-trinh previews the real clan from private-data/ho-trinh.json (kept out of Git)
+// instead of the fictitious sample. Without that file the glob is empty and the sample is used.
+const privateFiles = import.meta.glob<PrivateClanFile>('../../../private-data/ho-trinh.json', { eager: true, import: 'default' });
+const privateFile = import.meta.env.VITE_DEMO_DATASET === 'ho-trinh' ? Object.values(privateFiles)[0] : undefined;
+const data = privateFile ? convertPrivateFile(privateFile) : generateSampleData();
 const persons = new Map<string, WithId<PersonFields>>(data.persons.map((p) => [p.id, p]));
 const unions = new Map<string, WithId<UnionFields>>(data.unions.map((u) => [u.id, u]));
 let settings: ClanSettings = data.settings;

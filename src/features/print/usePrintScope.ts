@@ -16,7 +16,7 @@ export function branchOptions(model: ClanModel): BranchOption[] {
       .flatMap((u) => model.index.childrenOf(u.id))
       .reduce((n, c) => n + 1 + count(c.id), 0);
   return model.persons
-    .filter((p) => p.isBloodline && !model.isMaternal(p.id) && p.id !== model.rootId)
+    .filter((p) => p.isBloodline && !model.isMaternal(p.id) && !(model.founders.length === 1 && p.id === model.rootId))
     .map((p) => ({ person: p, gen: model.generationOf(p.id) ?? 0, descendants: count(p.id) }))
     .filter((o) => o.descendants > 0)
     .sort((a, b) => a.gen - b.gen || b.descendants - a.descendants);
