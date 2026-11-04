@@ -117,14 +117,16 @@ describe('other pages', () => {
     expect(screen.getAllByText(/âm lịch/).length).toBeGreaterThan(0);
   });
 
-  it('renders placeholders inside the shell', () => {
+  it('previews every print theme', async () => {
     renderAt('/themes');
-    expect(screen.getByRole('heading', { name: 'Giao diện in (theme)' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Giao diện in' })).toBeInTheDocument();
+    expect(screen.getAllByRole('img', { name: /Bản in/ }).length).toBe(4);
   });
 
   it('lazy-loads the print page', async () => {
     renderAt('/print');
     expect(await screen.findByRole('heading', { name: 'In khổ A1' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Phạm vi in')).toBeInTheDocument();
   });
 
   it('shows a not-found page for unknown routes', () => {

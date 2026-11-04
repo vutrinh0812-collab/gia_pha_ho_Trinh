@@ -10,6 +10,7 @@ import { PlaceholderPage } from './PlaceholderPage';
 
 // Heavy, rarely-used areas are code-split (SPEC 5A.3 bundle budget).
 const PrintPage = lazy(() => import('@/features/print/PrintPage'));
+const ThemesPage = lazy(() => import('@/features/print/ThemesPage'));
 const AdminPage = lazy(() => import('@/features/admin/AdminPage'));
 const AdminSettingsPage = lazy(() => import('@/features/admin/SettingsPage'));
 const AdminHistoryPage = lazy(() => import('@/features/admin/HistoryPage'));
@@ -52,7 +53,7 @@ export function AppRoutes() {
         />
         <Route path="person/:id" element={<PersonLink />} />
         <Route path="anniversaries" element={<AnniversariesPage />} />
-        <Route path="themes" element={<PlaceholderPage title="Giao diện in (theme)" phase={5} />} />
+        <Route path="themes" element={<ThemesPage />} />
         <Route path="print" element={<PrintPage />} />
         <Route path="admin" element={<AdminPage />} />
         <Route path="admin/cai-dat" element={<AdminSettingsPage />} />

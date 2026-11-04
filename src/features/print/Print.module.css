@@ -1,0 +1,163 @@
+.page {
+  display: grid;
+  gap: 16px;
+  padding-block: 16px 32px;
+}
+@media (min-width: 960px) {
+  .page {
+    padding-block: 32px 48px;
+  }
+}
+.head h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.25;
+}
+.head p {
+  margin: 6px 0 0;
+  color: var(--text-2);
+  max-width: 62ch;
+}
+.field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.field label {
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+.field select {
+  min-height: 48px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  max-width: 100%;
+}
+.hint {
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+.controls {
+  display: grid;
+  gap: 12px;
+}
+@media (min-width: 960px) {
+  .controls {
+    grid-template-columns: 2fr 1fr 1fr;
+    align-items: start;
+  }
+  .controls .toggles {
+    grid-column: 1 / -1;
+  }
+}
+.toggles {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+.toggles legend {
+  font-size: 0.875rem;
+  color: var(--text-2);
+  padding: 0;
+  margin-bottom: 4px;
+}
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+.themeGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 20px;
+}
+@media (min-width: 900px) {
+  .themeGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.themeCard {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.posterButton {
+  display: block;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: none;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+.poster {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.themeName {
+  margin: 4px 0 0;
+  font-size: 1.125rem;
+}
+.themeText {
+  margin: 0;
+  color: var(--text-2);
+}
+.preview {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  background: #111;
+}
+.viewerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: calc(8px + var(--safe-top)) var(--gutter-r) 8px var(--gutter-l);
+  color: #fff;
+  font-weight: 600;
+}
+.viewerClose {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgb(255 255 255 / 40%);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+.viewerScroll {
+  flex: 1;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+/* Large enough to read names; scroll and pinch to move around. */
+.posterLarge {
+  display: block;
+  width: max(100%, 2200px);
+  height: auto;
+}

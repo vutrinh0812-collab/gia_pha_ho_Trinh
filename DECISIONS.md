@@ -289,3 +289,42 @@ Test bảo mật chạy chính hàm `writeChangeSet` của bản Firebase trên 
 - **Hiển thị lớp trên cùng:** các bảng admin luôn nằm trên bảng chi tiết. Lỗi form bị che phía dưới đã được phát hiện khi thử bằng trình duyệt thật và đã sửa.
 - **Tải khi cần:** phần admin chỉ tải khi admin mở một bảng hoặc vào trang quản trị. Người xem không tải thêm gì.
 - **Nhập/xuất Excel và JSON** để sang giai đoạn 7, như kế hoạch.
+
+## Giai đoạn 5 — Theme và in theo chi
+
+### D42. Hệ thống theme
+- Mỗi theme là một thư mục `src/themes/<id>/` gồm `theme.ts` (theo interface `Theme` của SPEC §8) và thư mục `ornaments/` chứa các file SVG tự vẽ.
+- `registry.ts` tự tìm mọi theme bằng `import.meta.glob`. **Thêm theme mới chỉ cần thêm một thư mục**, không phải sửa code ở chỗ khác.
+- Hoa văn SVG được nhúng thẳng vào bản in (không tải từ mạng), nên khi xuất PDF/SVG ở giai đoạn 6 không bị thiếu hình.
+- Theme `son-son` là giao diện màn hình đã chọn (D36). Tên cũ `minimal` vẫn dùng được, trỏ sang `son-son`.
+
+### D43. Bốn theme in để duyệt
+SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắng gốm Chu Đậu), để người dùng có 4 lựa chọn và chọn 2:
+
+| Theme | Phong cách | Font |
+|---|---|---|
+| Truyền thống đỏ | nền kem, viền hồi văn đỏ, băng rôn cuộn thư, cành mai | Noto Serif, Noto Serif Display |
+| Sơn mài vàng | nền nâu đen, viền vàng ánh kim, mây, núi, hoa sen | Playfair Display, Lora, Dancing Script |
+| Giấy dó mực tàu | nền giấy dó, mực đen, núi thủy mặc, trúc, con dấu đỏ | Cormorant Garamond |
+| Men lam | nền trắng ngà, lam cobalt, viền dây leo, hồ sen | Prata, Literata |
+
+- Mọi font đều hỗ trợ đủ dấu tiếng Việt và có giấy phép OFL.
+- Sau khi người dùng chọn, 2 theme không được chọn vẫn giữ trong code nhưng ẩn khỏi danh sách.
+
+### D44. In theo chi (rẽ nhánh)
+- **Yêu cầu:** in chi của ông A (ví dụ ở đời 3) thì bản in gồm:
+  - mọi người từ thủy tổ xuống tới ông A;
+  - toàn bộ con cháu của ông A;
+  - anh chị em của ông A và các nhánh khác vẫn hiện, nhưng **con cháu của họ được thu gọn**, chỉ ghi "+N con cháu".
+- **Cách làm:** thêm `focusId` vào bộ lọc sơ đồ. Chỉ mở những người nằm trên đường thủy tổ → A và mọi hậu duệ của A; những người khác coi như "thu gọn". Bố cục sơ đồ màn hình và bản in dùng chung một hàm.
+- Chọn vợ hoặc chồng của A thì cho ra cùng chi của A.
+- **Cách chọn chi để in:**
+  - trang **In gia phả**: ô "Phạm vi in" (toàn bộ, hoặc theo chi, nhóm theo đời);
+  - trong bảng chi tiết một người có con: link "In gia phả theo chi của …".
+- Bản in có thêm dòng "Chi ông … (đời …): đầy đủ con cháu; các nhánh khác thu gọn".
+
+### D45. Bố cục poster A1
+- Khổ A1 tính bằng mm (841×594 ngang).
+- Thứ tự từ trên xuống: tiêu đề (băng rôn), phụ đề, dòng thủy tổ, dòng chi; câu đối dọc hai bên; dải màu xen kẽ theo đời; lạc khoản ở góc dưới.
+- **Cây rộng mà ít đời:** khi chiều ngang giới hạn tỷ lệ, poster kéo giãn khoảng cách giữa các đời (ô người giữ nguyên kích thước) cho kín chiều cao giấy, không để trống nửa trang.
+- Tự co chữ, đặt ô dọc và xuất PDF/SVG/PNG thuộc giai đoạn 6.

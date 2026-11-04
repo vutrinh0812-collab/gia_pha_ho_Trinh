@@ -31,6 +31,12 @@ export interface TreeFilters {
   showSpouses: boolean;
   showMaternal: boolean;
   collapsed: ReadonlySet<string>;
+  /**
+   * Branch view ("in theo chi"): show the line from the root ancestor down to this
+   * person and ALL of their descendants; everyone else along the way (siblings,
+   * uncles…) is shown but kept collapsed, with the count of hidden descendants.
+   */
+  focusId?: string | null;
 }
 
 export interface TreeSpouse {
@@ -189,9 +195,28 @@ function spousesOf(model: ClanModel, p: PersonRec): TreeSpouse[] {
     .map(({ u, person }) => ({ person, role: spouseRole(person.gender, u.order, unions.length) }));
 }
 
+/** The ids kept open in a branch view: the line from the root to the focus person, and their descendants. */
+export function branchOpenIds(model: ClanModel, focusId: string, f: TreeFilters): Set<string> {
+  const person = model.get(focusId);
+  // A spouse's branch is their partner's.
+  const anchor = person && !person.isBloodline ? model.index.spouseUnionsOf(focusId)[0]?.bloodlinePersonId : focusId;
+  const open = new Set<string>();
+  if (!anchor || !model.get(anchor)) return open;
+  for (const p of model.lineage(anchor)) open.add(p.id);
+  const stack = [anchor];
+  while (stack.length) {
+    const id = stack.pop()!;
+    open.add(id);
+    for (const c of shownChildren(model, id, f)) stack.push(c.id);
+  }
+  return open;
+}
+
 export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout {
   const info = new Map<string, { spouses: TreeSpouse[]; shownKids: PersonRec[] }>();
   const rowH = new Map<number, number>();
+  const branchOpen = f.focusId ? branchOpenIds(model, f.focusId, f) : null;
+  const isCollapsed = (id: string) => f.collapsed.has(id) || (branchOpen !== null && !branchOpen.has(id));
 
   const build = (p: PersonRec): Datum => {
     const gen = model.generationOf(p.id)!;
@@ -200,7 +225,7 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
     info.set(p.id, { spouses, shownKids: kids });
     const h = BASE_H + spouses.length * SPOUSE_LINE;
     rowH.set(gen, Math.max(rowH.get(gen) ?? 0, h));
-    return { id: p.id, gen, h, children: f.collapsed.has(p.id) ? [] : kids.map(build) };
+    return { id: p.id, gen, h, children: isCollapsed(p.id) ? [] : kids.map(build) };
   };
 
   const starts = startingPersons(model, f);
@@ -236,7 +261,7 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
     if (d.id === VIRTUAL_ROOT) return;
     const person = model.get(d.id)!;
     const meta = info.get(d.id)!;
-    const collapsed = f.collapsed.has(d.id) && meta.shownKids.length > 0;
+    const collapsed = isCollapsed(d.id) && meta.shownKids.length > 0;
     const parentId = n.parent && n.parent.data.id !== VIRTUAL_ROOT ? n.parent.data.id : null;
     const node: TreeNode = {
       id: d.id,

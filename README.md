@@ -9,7 +9,7 @@ Web app lưu giữ và cập nhật gia phả của một dòng họ, hiển th�
 
 **Công nghệ:** React 18 + Vite + TypeScript · Zustand · Firebase (Firestore, Auth, Storage, Hosting) · Vitest.
 
-**Trạng thái:** ✅ Giai đoạn 1 (khởi tạo) · ✅ Giai đoạn 2 (dữ liệu & bảo mật) · ✅ Giai đoạn 3a (giao diện điện thoại: Gia đình, Danh sách, tìm kiếm) · ✅ Giai đoạn 3b (Sơ đồ: phóng to nhiều mức, thu gọn nhánh, lọc, dòng dõi) · ✅ Giai đoạn 3c (bố cục máy tính, phím tắt) · ✅ Giai đoạn 3d (cài lên điện thoại, xem khi mất mạng, chia sẻ link) · ✅ Giao diện Sơn son · ✅ Giai đoạn 4 (chế độ Admin: sửa, thêm, xóa, lịch sử, hoàn tác). Các giai đoạn tiếp theo: xem SPEC.md §12.
+**Trạng thái:** ✅ Giai đoạn 1 (khởi tạo) · ✅ Giai đoạn 2 (dữ liệu & bảo mật) · ✅ Giai đoạn 3a (giao diện điện thoại: Gia đình, Danh sách, tìm kiếm) · ✅ Giai đoạn 3b (Sơ đồ: phóng to nhiều mức, thu gọn nhánh, lọc, dòng dõi) · ✅ Giai đoạn 3c (bố cục máy tính, phím tắt) · ✅ Giai đoạn 3d (cài lên điện thoại, xem khi mất mạng, chia sẻ link) · ✅ Giao diện Sơn son · ✅ Giai đoạn 4 (chế độ Admin: sửa, thêm, xóa, lịch sử, hoàn tác) · 🟡 Giai đoạn 5 (theme in, in theo chi — đang chờ chọn 2 theme). Các giai đoạn tiếp theo: xem SPEC.md §12.
 
 ---
 
@@ -300,3 +300,14 @@ Test tự động dùng trình duyệt giả lập. Những việc sau cần là
 6. **Quản trị → Cài đặt dòng họ**: tên, tiêu đề, câu đối, lạc khoản, hiện hay ẩn con cháu bên ngoại.
 
 Trong bản xem thử (không có Firebase), mã admin là `ma-admin-demo`. Mọi thay đổi chỉ nằm trong trang đó và mất khi tải lại.
+
+## 11. Giao diện in và in theo chi
+
+- **Thêm → Giao diện in (theme)** (`/themes`): xem cùng một bản in A1 với các theme, bấm **Xem lớn** để xem chi tiết.
+- **In gia phả** (`/print`): chọn theme, khổ ngang/dọc, ẩn hoặc hiện vợ chồng, năm sinh mất, câu đối…
+- **In theo chi:** ở ô **Phạm vi in**, chọn một người. Bản in sẽ gồm:
+  - mọi người từ thủy tổ xuống tới người đó;
+  - toàn bộ con cháu của người đó;
+  - anh chị em và các nhánh khác vẫn hiện, nhưng con cháu của họ được thu gọn, ghi "+N con cháu".
+- Cách nhanh hơn: mở chi tiết một người có con, rồi bấm **In gia phả theo chi của …**.
+- Xuất file PDF/SVG/PNG để mang đi in: giai đoạn 6.

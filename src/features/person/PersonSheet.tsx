@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useOverlays } from '@/app/useOverlays';
 import { FamilyIcon, LineageIcon, ShareIcon } from '@/app/ui/icons';
 import { Sheet } from '@/app/ui/Sheet';
@@ -93,6 +93,11 @@ export function PersonSheet({ id }: { id: string }) {
       <AdminActions personId={person.id} />
       <Details model={model} person={person} />
       <Relatives model={model} person={person} onPick={(p) => showPerson(p.id)} />
+      {model.index.unionsOf(person.id).some((u) => model.index.childrenOf(u.id).length > 0) && (
+        <p className={styles.printLink}>
+          <Link to={`/print?goc=${encodeURIComponent(person.id)}`}>In gia phả theo chi của {person.fullName} →</Link>
+        </p>
+      )}
     </Sheet>
   );
 }

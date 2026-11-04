@@ -131,3 +131,59 @@ describe('lod', () => {
     expect(lodFor(minScaleFor(2, false), false)).toBe(2);
   });
 });
+
+describe('branch view (in theo chi)', () => {
+  // A man of generation 3 with children and siblings.
+  const focus = model.persons.find(
+    (p) =>
+      p.isBloodline &&
+      model.generationOf(p.id) === 3 &&
+      model.index.unionsOf(p.id).some((u) => model.index.childrenOf(u.id).length) &&
+      model.index.childrenOf(model.index.parentUnionOf(p.id)!.id).length > 1,
+  )!;
+  const layout = computeTreeLayout(model, { ...base, focusId: focus.id });
+  const descendants = (id: string): string[] =>
+    model.index.unionsOf(id).flatMap((u) => model.index.childrenOf(u.id)).flatMap((c) => (c.isBloodline && !model.isMaternal(c.id) ? [c.id, ...descendants(c.id)] : []));
+
+  it('shows the line from the root to the person', () => {
+    for (const p of model.lineage(focus.id)) {
+      expect(layout.byId.get(p.id)?.collapsed ?? false).toBe(false);
+    }
+  });
+
+  it('shows every descendant of the person', () => {
+    for (const id of descendants(focus.id)) expect(layout.byId.has(id)).toBe(true);
+  });
+
+  it("shows the person's siblings, but not their descendants", () => {
+    const sibs = model.index.childrenOf(model.index.parentUnionOf(focus.id)!.id).filter((s) => s.id !== focus.id);
+    expect(sibs.length).toBeGreaterThan(0);
+    for (const s of sibs) {
+      const node = layout.byId.get(s.id)!;
+      expect(node).toBeDefined();
+      expect(node.childIds).toEqual([]);
+      if (descendants(s.id).length) {
+        expect(node.collapsed).toBe(true);
+        expect(node.hiddenCount).toBe(descendants(s.id).length);
+      }
+      for (const d of descendants(s.id)) expect(layout.byId.has(d)).toBe(false);
+    }
+  });
+
+  it('keeps uncles collapsed too, and the whole thing smaller than the full tree', () => {
+    const grandpaUnion = model.index.parentUnionOf(model.index.parentUnionOf(focus.id)!.bloodlinePersonId);
+    if (grandpaUnion) {
+      for (const uncle of model.index.childrenOf(grandpaUnion.id)) {
+        if (model.lineage(focus.id).some((p) => p.id === uncle.id)) continue;
+        expect(layout.byId.get(uncle.id)?.childIds ?? []).toEqual([]);
+      }
+    }
+    expect(layout.nodes.length).toBeLessThan(computeTreeLayout(model, base).nodes.length);
+  });
+
+  it("a spouse's branch is their partner's", () => {
+    const wife = model.get(model.index.unionsOf(focus.id)[0]!.spousePersonId!)!;
+    const viaWife = computeTreeLayout(model, { ...base, focusId: wife.id });
+    expect(viaWife.nodes.map((n) => n.id).sort()).toEqual(layout.nodes.map((n) => n.id).sort());
+  });
+});
