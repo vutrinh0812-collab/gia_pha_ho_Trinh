@@ -11,6 +11,10 @@ interface ImportMetaEnv {
   readonly VITE_ADMIN_EMAIL?: string;
   readonly VITE_USE_EMULATOR?: string;
   readonly VITE_APPCHECK_SITE_KEY?: string;
+  /** 'firebase' (default) | 'demo' — demo runs on in-memory fictitious data. */
+  readonly VITE_DATA_SOURCE?: string;
+  /** 'browser' (default) | 'memory' — memory for embedded previews without URL routing. */
+  readonly VITE_ROUTER?: string;
 }
 
 interface ImportMeta {

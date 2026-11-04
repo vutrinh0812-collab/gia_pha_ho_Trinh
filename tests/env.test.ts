@@ -23,5 +23,14 @@ describe('parseEnv', () => {
     expect(env.adminEmail).toBe('admin@example.com');
     expect(env.useEmulator).toBe(true);
     expect(env.appCheckSiteKey).toBeNull();
+    expect(env.dataSource).toBe('firebase');
+    expect(env.router).toBe('browser');
+  });
+
+  it('needs no Firebase config in demo mode', () => {
+    const { missing, env } = parseEnv({ VITE_DATA_SOURCE: 'demo', VITE_ROUTER: 'memory' });
+    expect(missing).toEqual([]);
+    expect(env.dataSource).toBe('demo');
+    expect(env.router).toBe('memory');
   });
 });

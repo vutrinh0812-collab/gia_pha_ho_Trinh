@@ -12,6 +12,9 @@ export interface AppEnv {
   adminEmail: string;
   useEmulator: boolean;
   appCheckSiteKey: string | null;
+  /** 'demo' runs on in-memory fictitious data and needs no Firebase project. */
+  dataSource: 'firebase' | 'demo';
+  router: 'browser' | 'memory';
 }
 
 export type RawEnv = Partial<Record<keyof ImportMetaEnv, string | undefined>>;
@@ -31,7 +34,8 @@ export interface EnvResult {
 
 export function parseEnv(raw: RawEnv): EnvResult {
   const get = (k: keyof ImportMetaEnv): string => (raw[k] ?? '').trim();
-  const missing = REQUIRED.filter((k) => get(k) === '');
+  const dataSource = get('VITE_DATA_SOURCE') === 'demo' ? 'demo' : 'firebase';
+  const missing = dataSource === 'demo' ? [] : REQUIRED.filter((k) => get(k) === '');
   return {
     missing,
     env: {
@@ -47,6 +51,8 @@ export function parseEnv(raw: RawEnv): EnvResult {
       adminEmail: get('VITE_ADMIN_EMAIL').toLowerCase(),
       useEmulator: get('VITE_USE_EMULATOR') === 'true',
       appCheckSiteKey: get('VITE_APPCHECK_SITE_KEY') || null,
+      dataSource,
+      router: get('VITE_ROUTER') === 'memory' ? 'memory' : 'browser',
     },
   };
 }

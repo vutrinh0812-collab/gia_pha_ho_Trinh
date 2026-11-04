@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter, Route, Routes } from 'react-router-dom';
+import { env } from '@/lib/env';
 import { HomePage } from './HomePage';
 import { PlaceholderPage } from './PlaceholderPage';
 
@@ -7,13 +8,16 @@ import { PlaceholderPage } from './PlaceholderPage';
 const PrintPage = lazy(() => import('@/features/print/PrintPage'));
 const AdminPage = lazy(() => import('@/features/admin/AdminPage'));
 
+// Embedded previews (claude.ai artifact) cannot use path routing, so they keep routes in memory.
+const Router = env.router === 'memory' ? MemoryRouter : BrowserRouter;
+
 export function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Suspense fallback={<p className="page-loading">Đang tải…</p>}>
         <AppRoutes />
       </Suspense>
-    </BrowserRouter>
+    </Router>
   );
 }
 

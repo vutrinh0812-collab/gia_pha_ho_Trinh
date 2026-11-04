@@ -224,6 +224,8 @@ Mã admin = mật khẩu của tài khoản admin. Có hai cách:
 | `npm run dev` | chạy app với project Firebase thật (đọc `.env`) |
 | `npm run dev:emu` | chạy app với emulator (đọc `.env.emulator`) |
 | `npm run emulators` | bật Firebase Emulator (Firestore, Auth, Storage, Hosting) |
+| `npm run build:preview` | đóng gói bản xem thử (dữ liệu mẫu, không cần Firebase) thành 1 file HTML: `dist-preview/gia-pha-xem-thu.html` |
+| `npm run dev:demo` | chạy app với dữ liệu mẫu, không cần Firebase |
 | `npm run seed` | nạp dữ liệu mẫu hư cấu vào emulator (`--clear` để làm lại, `--real` cho project thật) |
 | `npm run admin:setup` | tạo tài khoản admin / đổi mã admin (`--real` cho project thật) |
 | `npm test` | chạy unit test (âm lịch, tính đời, dữ liệu mẫu, kiểm tra dữ liệu) |

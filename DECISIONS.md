@@ -88,3 +88,10 @@ Rules chỉ nhận `image/jpeg|png|webp|gif|avif`, nhỏ hơn 2MB. Không nhận
 
 ### D16. Chạy test rules sau proxy HTTP
 Storage Emulator đọc Firestore Emulator qua HTTP và dùng biến `HTTP(S)_PROXY` nhưng bỏ qua `NO_PROXY`. Trong môi trường có proxy, phải chạy test bằng `env -u HTTPS_PROXY -u HTTP_PROXY npm run test:rules`. Máy cá nhân thông thường không gặp vấn đề này. `firebase.json` cũng ghim các emulator vào `127.0.0.1` để tránh lỗi IPv6.
+
+### D17. Chế độ demo và bản xem thử không cần terminal
+Người dùng không chạy được lệnh terminal, nên mỗi giai đoạn được giao kèm một **bản xem thử** mở được trên điện thoại.
+- `VITE_DATA_SOURCE=demo`: app chạy trên dữ liệu mẫu hư cấu trong trình duyệt, không cần Firebase. Lựa chọn nguồn dữ liệu được quyết định lúc build, nên bản demo không chứa mã Firebase và bản thật không chứa bộ sinh dữ liệu mẫu.
+- `VITE_ROUTER=memory`: dùng `MemoryRouter`, vì trang nhúng không định tuyến theo đường dẫn URL được.
+- `npm run build:preview` đóng gói thành **một file HTML duy nhất** (CSS + JS nội tuyến, khoảng 190KB). Claude đăng file này thành trang riêng tư trên claude.ai.
+- Lớp `src/lib/data/` (`loadClanSnapshot`) là chỗ duy nhất biết dữ liệu đến từ đâu. Giai đoạn 3 sẽ mở rộng lớp này thay vì gọi Firestore trực tiếp từ giao diện.
