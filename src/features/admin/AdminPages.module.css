@@ -1,0 +1,244 @@
+.page {
+  display: grid;
+  gap: 16px;
+  padding-block: 16px 32px;
+  max-width: 40rem;
+}
+.page h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.25;
+}
+.h2 {
+  margin: 8px 0 0;
+  font-size: 1.0625rem;
+}
+.lead {
+  margin: 0;
+  color: var(--text-2);
+}
+.back {
+  margin: 0;
+}
+.back a {
+  color: var(--accent);
+  font-weight: 500;
+}
+.signIn {
+  display: grid;
+  gap: 8px;
+}
+.signIn label {
+  font-weight: 500;
+}
+.codeRow {
+  display: flex;
+  gap: 8px;
+}
+.codeRow input,
+.field input,
+.field select {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.0625rem;
+}
+.form {
+  display: grid;
+  gap: 14px;
+}
+.field {
+  display: grid;
+  gap: 4px;
+}
+.field label {
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+.hint {
+  font-size: 0.8125rem;
+  color: var(--text-2);
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+}
+.check input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--accent);
+}
+.primary,
+.primaryLink,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  justify-self: start;
+}
+.primary,
+.primaryLink {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.primary:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.secondary {
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--text);
+}
+.ghost {
+  flex: none;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font: inherit;
+  cursor: pointer;
+}
+.primarySmall {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.textButton {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-weight: 500;
+}
+.note {
+  margin: 0;
+  color: var(--text-2);
+}
+.demo {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.linkCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+}
+a.linkCard:hover {
+  background: var(--surface-2);
+}
+.linkCard[aria-disabled='true'] {
+  opacity: 0.6;
+}
+.linkTitle {
+  font-weight: 600;
+  font-size: 1.0625rem;
+}
+.linkText {
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+.howto {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 6px;
+}
+.filters {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 10px;
+}
+.history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.entryText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.entrySummary {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.entryMeta {
+  font-size: 0.875rem;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.entryActions {
+  display: flex;
+  gap: 6px;
+}
+@media (max-width: 420px) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+  .entry {
+    flex-wrap: wrap;
+  }
+}

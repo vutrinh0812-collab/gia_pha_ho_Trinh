@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { PersonSheet } from '@/features/person/PersonSheet';
 import { SearchOverlay } from '@/features/search/SearchOverlay';
@@ -9,6 +9,12 @@ import { TopBar } from './TopBar';
 import { MoreSheet } from './MoreSheet';
 import { ShortcutHelp } from './ShortcutHelp';
 import { StatusBanner } from './StatusBanner';
+import { Toast } from './Toast';
+import { useAdminStore } from '@/store/adminStore';
+import { useAdminUi } from '@/store/adminUiStore';
+
+// Admin panels are only downloaded once an admin opens one.
+const AdminLayer = lazy(() => import('@/features/admin/AdminLayer'));
 import { isInDialog, useHotkeys } from './useHotkeys';
 import { useIsDesktop } from './useMediaQuery';
 import { useOverlays } from './useOverlays';
@@ -24,6 +30,9 @@ export function AppShell() {
   // The tree has its own floating header; every other phone screen shows the clan's name.
   const showTopBar = !desktop && pathname !== '/so-do';
   useEffect(() => start(), [start]);
+  useEffect(() => useAdminStore.getState().init(), []);
+  const isAdmin = useAdminStore((s) => s.status === 'admin');
+  const adminAction = useAdminUi((s) => s.action);
 
   // Global shortcuts (see ShortcutHelp).
   useHotkeys((e) => {
@@ -78,10 +87,17 @@ export function AppShell() {
       </main>
       {!desktop && <BottomNav />}
       <StatusBanner />
+      <Toast />
       {model && detail && <PersonSheet id={detail} />}
       {model && params.has('tk') && <SearchOverlay />}
       {params.has('them') && <MoreSheet />}
       {params.has('phim') && <ShortcutHelp />}
+      {/* Last, so admin panels open above the detail sheet and other overlays. */}
+      {isAdmin && adminAction && model && (
+        <Suspense fallback={null}>
+          <AdminLayer />
+        </Suspense>
+      )}
     </div>
   );
 }

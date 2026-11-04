@@ -298,6 +298,9 @@ describe('audit log', () => {
     await assertFails(setDoc(doc(db, `${base}/auditLog/a7`), audit({ collection: 'config' })));
     await assertFails(setDoc(doc(db, `${base}/auditLog/a7`), audit({ at: Timestamp.fromMillis(0) })));
     await assertFails(setDoc(doc(db, `${base}/auditLog/a7`), audit({ before: 'not a map' })));
+    await assertFails(setDoc(doc(db, `${base}/auditLog/a7`), audit({ summary: 'x'.repeat(301) })));
+    await assertFails(setDoc(doc(db, `${base}/auditLog/a7`), audit({ groupId: '' })));
+    await assertSucceeds(setDoc(doc(db, `${base}/auditLog/a8`), audit({ groupId: 'g1', summary: 'Thêm con: Trịnh Văn An' })));
   });
 });
 

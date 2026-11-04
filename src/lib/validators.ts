@@ -85,7 +85,9 @@ export function validatePersonFields(p: PersonFields): ValidationErrors {
   if (!optString(p.occupation, LIMITS.shortText)) errors.push('Nghề nghiệp quá dài.');
   if (!optString(p.branchLabel, LIMITS.shortText)) errors.push('Tên chi quá dài.');
   if (!optString(p.notes, LIMITS.longText)) errors.push('Ghi chú quá dài.');
-  if (p.photoUrl !== undefined && (typeof p.photoUrl !== 'string' || p.photoUrl.length > LIMITS.url || !p.photoUrl.startsWith('https://'))) {
+  // https:// in Firebase (rules enforce it); the preview build keeps photos as data: URLs.
+  const demoPhoto = typeof p.photoUrl === 'string' && p.photoUrl.startsWith('data:image/') && import.meta.env?.VITE_DATA_SOURCE === 'demo';
+  if (p.photoUrl !== undefined && !demoPhoto && (typeof p.photoUrl !== 'string' || p.photoUrl.length > LIMITS.url || !p.photoUrl.startsWith('https://'))) {
     errors.push('Đường dẫn ảnh không hợp lệ.');
   }
   return errors;

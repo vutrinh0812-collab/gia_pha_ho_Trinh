@@ -16,7 +16,7 @@ const LINKS = [
   { to: '/anniversaries', label: 'Ngày giỗ' },
   { to: '/themes', label: 'Giao diện in (theme)' },
   { to: '/print', label: 'In khổ A1' },
-  { to: '/admin', label: 'Mã admin' },
+  { to: '/admin', label: 'Chế độ Admin' },
   { to: '/kiem-tra', label: 'Kiểm tra dữ liệu' },
 ];
 

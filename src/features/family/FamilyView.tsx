@@ -8,6 +8,8 @@ import type { ClanModel, Partnership, PersonRec } from '@/lib/clanModel';
 import { childrenGroupLabel, givenName, lifeSpan, spouseRole } from '@/lib/format';
 import { useClanStore } from '@/store/clanStore';
 import { usePrefsStore } from '@/store/prefsStore';
+import { useAdminStore } from '@/store/adminStore';
+import { useAdminUi } from '@/store/adminUiStore';
 import { PersonCard, roleOf } from '../person/PersonCard';
 import styles from './FamilyView.module.css';
 
@@ -235,6 +237,8 @@ interface CenterProps {
 function CenterCard({ model, person, generation, otherNames, onOpen, onUp }: CenterProps) {
   const start = useRef<{ x: number; y: number } | null>(null);
   const navigate = useNavigate();
+  const isAdmin = useAdminStore((s) => s.status === 'admin');
+  const openAdmin = useAdminUi((s) => s.open);
   const years = lifeSpan(person);
   const deceased = person.death?.isDeceased === true;
   const facts = [
@@ -288,6 +292,11 @@ function CenterCard({ model, person, generation, otherNames, onOpen, onUp }: Cen
         >
           <TreeIcon width={18} height={18} /> Trên sơ đồ
         </button>
+        {isAdmin && (
+          <button type="button" className={styles.secondary} onClick={() => openAdmin('menu', person.id)}>
+            Thao tác (Admin)
+          </button>
+        )}
       </div>
     </section>
   );

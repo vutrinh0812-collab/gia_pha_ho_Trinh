@@ -11,6 +11,8 @@ import { PlaceholderPage } from './PlaceholderPage';
 // Heavy, rarely-used areas are code-split (SPEC 5A.3 bundle budget).
 const PrintPage = lazy(() => import('@/features/print/PrintPage'));
 const AdminPage = lazy(() => import('@/features/admin/AdminPage'));
+const AdminSettingsPage = lazy(() => import('@/features/admin/SettingsPage'));
+const AdminHistoryPage = lazy(() => import('@/features/admin/HistoryPage'));
 // The full tree (d3) is only downloaded when the "Sơ đồ" tab is opened (SPEC 5A.3).
 const TreeView = lazy(() => import('@/features/tree/TreeView'));
 
@@ -53,6 +55,8 @@ export function AppRoutes() {
         <Route path="themes" element={<PlaceholderPage title="Giao diện in (theme)" phase={5} />} />
         <Route path="print" element={<PrintPage />} />
         <Route path="admin" element={<AdminPage />} />
+        <Route path="admin/cai-dat" element={<AdminSettingsPage />} />
+        <Route path="admin/lich-su" element={<AdminHistoryPage />} />
         <Route path="kiem-tra" element={<HomePage />} />
         <Route path="*" element={<PlaceholderPage title="Không tìm thấy trang" />} />
       </Route>

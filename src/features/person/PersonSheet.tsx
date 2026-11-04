@@ -7,6 +7,8 @@ import type { ClanModel, PersonRec } from '@/lib/clanModel';
 import { formatDateInfo, genderLabel, lifeSpan, spouseRole } from '@/lib/format';
 import { daysBetween, nextLunarAnniversary, type SolarDate } from '@/lib/lunar';
 import { shareLink } from '@/lib/share';
+import { useAdminStore } from '@/store/adminStore';
+import { useAdminUi } from '@/store/adminUiStore';
 import { useClanStore } from '@/store/clanStore';
 import { roleOf } from './PersonCard';
 import styles from './PersonSheet.module.css';
@@ -88,6 +90,7 @@ export function PersonSheet({ id }: { id: string }) {
           {shareNote}
         </p>
       )}
+      <AdminActions personId={person.id} />
       <Details model={model} person={person} />
       <Relatives model={model} person={person} onPick={(p) => showPerson(p.id)} />
     </Sheet>
@@ -197,6 +200,23 @@ function Relatives({ model, person, onPick }: { model: ClanModel; person: Person
           </ul>
         </section>
       ))}
+    </div>
+  );
+}
+
+/** For admins: edit this person, or open every action (add child, spouse, delete…). */
+function AdminActions({ personId }: { personId: string }) {
+  const isAdmin = useAdminStore((s) => s.status === 'admin');
+  const open = useAdminUi((s) => s.open);
+  if (!isAdmin) return null;
+  return (
+    <div className={styles.adminActions}>
+      <button type="button" className={styles.adminPrimary} onClick={() => open('edit', personId)}>
+        Sửa thông tin
+      </button>
+      <button type="button" className={styles.adminSecondary} onClick={() => open('menu', personId)}>
+        Thao tác khác…
+      </button>
     </div>
   );
 }

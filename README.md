@@ -9,7 +9,7 @@ Web app lưu giữ và cập nhật gia phả của một dòng họ, hiển th�
 
 **Công nghệ:** React 18 + Vite + TypeScript · Zustand · Firebase (Firestore, Auth, Storage, Hosting) · Vitest.
 
-**Trạng thái:** ✅ Giai đoạn 1 (khởi tạo) · ✅ Giai đoạn 2 (dữ liệu & bảo mật) · ✅ Giai đoạn 3a (giao diện điện thoại: Gia đình, Danh sách, tìm kiếm) · ✅ Giai đoạn 3b (Sơ đồ: phóng to nhiều mức, thu gọn nhánh, lọc, dòng dõi) · ✅ Giai đoạn 3c (bố cục máy tính, phím tắt) · ✅ Giai đoạn 3d (cài lên điện thoại, xem khi mất mạng, chia sẻ link). Các giai đoạn tiếp theo: xem SPEC.md §12.
+**Trạng thái:** ✅ Giai đoạn 1 (khởi tạo) · ✅ Giai đoạn 2 (dữ liệu & bảo mật) · ✅ Giai đoạn 3a (giao diện điện thoại: Gia đình, Danh sách, tìm kiếm) · ✅ Giai đoạn 3b (Sơ đồ: phóng to nhiều mức, thu gọn nhánh, lọc, dòng dõi) · ✅ Giai đoạn 3c (bố cục máy tính, phím tắt) · ✅ Giai đoạn 3d (cài lên điện thoại, xem khi mất mạng, chia sẻ link) · ✅ Giao diện Sơn son · ✅ Giai đoạn 4 (chế độ Admin: sửa, thêm, xóa, lịch sử, hoàn tác). Các giai đoạn tiếp theo: xem SPEC.md §12.
 
 ---
 
@@ -286,3 +286,17 @@ Test tự động dùng trình duyệt giả lập. Những việc sau cần là
 2. Làm như trên với **Messenger/Facebook**.
 3. Mở bằng **Safari trên iPhone**: thêm vào màn hình chính, mở lại, bật chế độ máy bay, mở lại lần nữa.
 4. Mở bằng **Chrome trên Android**: cài ứng dụng, xoay ngang khi xem Sơ đồ.
+
+## 10. Chế độ Admin (sửa gia phả)
+
+1. Mở **Thêm → Chế độ Admin** (hoặc vào `/admin`), nhập **mã admin**.
+2. Thanh **"Đang ở chế độ Admin · Thoát"** hiện ra. Phiên tự thoát sau 30 phút không thao tác, hoặc khi đóng trình duyệt.
+3. Sửa một người theo một trong các cách:
+   - **nhấn giữ** vào tên người đó (trên điện thoại);
+   - mở **Xem chi tiết** rồi bấm **Sửa thông tin** hoặc **Thao tác khác…**;
+   - bấm **Thao tác (Admin)** trên thẻ người đang xem.
+4. **Thao tác** gồm: thêm con, thêm vợ/chồng, thêm cha cho thủy tổ, đổi thứ tự anh chị em, xóa. **Người còn con không xóa được**; hãy xóa hoặc chuyển các con trước.
+5. **Quản trị → Lịch sử thay đổi**: xem mọi thay đổi, lọc theo tên hoặc ngày, và **hoàn tác** từng thao tác.
+6. **Quản trị → Cài đặt dòng họ**: tên, tiêu đề, câu đối, lạc khoản, hiện hay ẩn con cháu bên ngoại.
+
+Trong bản xem thử (không có Firebase), mã admin là `ma-admin-demo`. Mọi thay đổi chỉ nằm trong trang đó và mất khi tải lại.

@@ -26,10 +26,7 @@ export function subscribeClan(onData: (snap: ClanSnapshot) => void, onError: (e:
   let unsubscribe: (() => void) | null = null;
   let cancelled = false;
   const ready = IS_DEMO
-    ? import('./demoSource').then((m) => {
-        onData(m.loadDemoSnapshot());
-        return () => {};
-      })
+    ? import('./demoSource').then((m) => m.subscribeDemo(onData))
     : import('./firebaseSource').then((m) => m.subscribeFirebase(onData, onError));
   ready.then(
     (unsub) => {

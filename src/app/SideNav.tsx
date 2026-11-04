@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 import { todaySolar, upcomingAnniversaries } from '@/lib/anniversaries';
 import { useClanStore } from '@/store/clanStore';
+import { AdminStatus } from './AdminStatus';
 import { BrandMark } from './BrandMark';
 import { CalendarIcon, FamilyIcon, ListIcon, MoreIcon, SearchIcon, TreeIcon } from './ui/icons';
 import { useOverlays } from './useOverlays';
@@ -62,6 +63,7 @@ export function SideNav() {
         </ul>
       </nav>
       <div className={styles.foot}>
+        <AdminStatus variant="side" />
         <button type="button" className={styles.link} onClick={() => open('them')}>
           <MoreIcon width={18} height={18} /> <span>Thêm</span>
         </button>

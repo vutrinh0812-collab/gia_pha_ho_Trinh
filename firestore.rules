@@ -133,8 +133,10 @@ service cloud.firestore {
     }
 
     function validAudit(d) {
-      return d.keys().hasOnly(['at', 'by', 'action', 'collection', 'docId', 'before', 'after'])
+      return d.keys().hasOnly(['at', 'by', 'action', 'collection', 'docId', 'before', 'after', 'groupId', 'summary'])
         && d.keys().hasAll(['at', 'by', 'action', 'collection', 'docId'])
+        && (!('groupId' in d) || isId(d.groupId))
+        && optStr(d, 'summary', 300)
         && d.at == request.time
         && d.by == request.auth.uid
         && d.action in ['create', 'update', 'delete']

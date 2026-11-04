@@ -135,6 +135,10 @@ export interface AuditEntry<T extends TimestampLike = TimestampLike> {
   before?: Record<string, unknown>;
   /** Snapshot after the change (absent on delete). */
   after?: Record<string, unknown>;
+  /** Entries written by one admin action share a group, undone together. */
+  groupId?: string;
+  /** What the admin did, in words ("Thêm con: Trịnh Văn An"). */
+  summary?: string;
 }
 
 /** clans/{clanId}/config/admins — written only from the Firebase Console or Admin SDK. */

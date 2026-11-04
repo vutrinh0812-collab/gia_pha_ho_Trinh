@@ -236,3 +236,56 @@ Tôi đề xuất 3 mẫu thiết kế, mỗi mẫu là một bản demo bấm t
   | Ngày giỗ | 0 | 1 | danh sách dài nên nhiều mục nằm dưới màn hình đầu, đương nhiên |
 
   Lighthouse Mobile: Performance 89, Accessibility 100.
+
+---
+
+## Giai đoạn 4 — Admin
+
+### D37. Mỗi thao tác là một "bộ thay đổi" ghi trong một batch
+`src/lib/admin/changes.ts` là phần lõi thuần, không có giao diện. Nó biến mỗi thao tác của admin thành một danh sách tài liệu cần ghi:
+- **Thao tác có sẵn:** sửa, thêm con, thêm vợ/chồng, thêm cha cho thủy tổ, đổi thứ tự anh chị em, xóa, sửa cài đặt.
+- **Quy tắc kiểm tra:**
+  - dữ liệu được kiểm tra bằng `validators.ts`;
+  - không xóa người còn con, không xóa thủy tổ;
+  - "Thêm cha" chỉ áp dụng cho thủy tổ.
+- **Cách ghi:** backend ghi mọi tài liệu cùng **một dòng nhật ký cho mỗi tài liệu** trong **một batch** (SPEC §3). Mọi dòng nhật ký của một thao tác có chung `groupId` và một `summary` bằng chữ, ví dụ "Thêm con của X: Y". Rules được mở rộng để chấp nhận hai trường này.
+- **Khi sửa:** chỉ ghi các trường có trong bản mới và xóa (`deleteField`) các trường bị bỏ, để giữ `createdAt` như rules yêu cầu.
+
+Các tình huống cụ thể:
+- **Thêm con cho người chưa có hôn nhân:** tạo hôn nhân với "vợ/chồng chưa rõ".
+- **Thêm vợ/chồng:** nếu có hôn nhân đang để trống tên người phối ngẫu thì điền vào đó, ngược lại tạo hôn nhân mới với `order` kế tiếp.
+- **Xóa người trong họ:** xóa luôn hôn nhân của người đó, và người phối ngẫu nếu không còn hôn nhân nào khác.
+- **Xóa dâu/rể:** hôn nhân nào còn con thì giữ lại, chỉ để trống tên người phối ngẫu.
+
+### D38. Hoàn tác an toàn
+Hoàn tác đảo ngược **cả nhóm** của một thao tác. Trước khi làm, app kiểm tra mỗi tài liệu hiện vẫn đúng như sau thao tác đó. Nếu đã có người sửa tiếp thì app **từ chối**, để không làm mất thay đổi mới hơn. Bản thân thao tác hoàn tác cũng được ghi vào nhật ký, nên hoàn tác được tiếp.
+
+### D39. Hai backend, một giao diện lập trình
+`AdminBackend` có hai bản:
+- **Firebase:** Auth email/mật khẩu, phiên lưu theo tab (`browserSessionPersistence`), kiểm tra quyền bằng cách đọc `config/admins`, ghi theo batch, ảnh lưu trên Storage.
+- **Demo:** chạy trong bộ nhớ cho bản xem thử, mã `ma-admin-demo`, ảnh lưu dạng data URL, mất khi tải lại trang. Riêng validator chấp nhận `data:image/` cho bản demo; rules Firebase vẫn chỉ nhận `https://`.
+
+Test bảo mật chạy chính hàm `writeChangeSet` của bản Firebase trên emulator. Kết quả: admin ghi được mọi thao tác và hoàn tác được; người không có quyền bị chặn và không có gì được ghi.
+
+### D40. Phiên admin
+Đăng nhập xong, app còn kiểm tra UID có trong `config/admins`. Đúng mã nhưng không có quyền thì tự đăng xuất và báo rõ.
+- **Tự thoát sau 30 phút không thao tác** (nhấn, gõ phím, cuộn). Thời điểm thao tác cuối được lưu trong `sessionStorage`, nên tải lại trang cũng không kéo dài được phiên.
+- Đóng tab thì phiên kết thúc.
+- Khi đang là admin, thanh "Đang ở chế độ Admin · Thoát" luôn hiện: dưới thanh trên trên điện thoại, cuối cột trái trên máy tính, và ở đầu trang Sơ đồ.
+
+### D41. Giao diện admin
+- **Cách mở thao tác:**
+  - nhấn giữ 0,55 giây vào một người (điện thoại, SPEC 5A.2);
+  - nút "Thao tác (Admin)" trên thẻ người đang xem;
+  - nút "Sửa thông tin" và "Thao tác khác…" trong bảng chi tiết.
+- **Form người:**
+  - toàn màn hình trên điện thoại, khung bên phải trên máy tính;
+  - chia 5 nhóm: Cơ bản, Tên khác, Ngày sinh, Ngày mất và giỗ, Thông tin khác;
+  - ngày tháng cho phép nhập riêng năm, hoặc năm và tháng; tự gợi ý ngày âm từ ngày dương và ngược lại; ngày giỗ gợi ý theo ngày mất âm lịch.
+- **Ảnh:**
+  - thu nhỏ ngay trên máy thành 800px và 120px dạng JPEG trước khi tải lên (SPEC §4);
+  - chọn từ máy ảnh hoặc thư viện (không ép dùng máy ảnh);
+  - nút tải ảnh tự ẩn nếu project chưa bật Storage (D8).
+- **Hiển thị lớp trên cùng:** các bảng admin luôn nằm trên bảng chi tiết. Lỗi form bị che phía dưới đã được phát hiện khi thử bằng trình duyệt thật và đã sửa.
+- **Tải khi cần:** phần admin chỉ tải khi admin mở một bảng hoặc vào trang quản trị. Người xem không tải thêm gì.
+- **Nhập/xuất Excel và JSON** để sang giai đoạn 7, như kế hoạch.

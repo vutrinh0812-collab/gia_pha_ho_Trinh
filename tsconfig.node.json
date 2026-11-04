@@ -11,7 +11,8 @@
     "moduleResolution": "bundler",
     "types": [
       "node",
-      "vitest/globals"
+      "vitest/globals",
+      "vite/client"
     ],
     "strict": true,
     "skipLibCheck": true,
@@ -30,6 +31,8 @@
     "e2e",
     "playwright.config.ts",
     "scripts",
+    "src/types",
+    "src/vite-env.d.ts",
     "tests/rules",
     "vite.config.ts",
     "vitest.rules.config.ts"

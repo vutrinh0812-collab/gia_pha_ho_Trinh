@@ -3,6 +3,9 @@ import { useOverlays } from '@/app/useOverlays';
 import { ChevronIcon } from '@/app/ui/icons';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
 import { lifeSpan } from '@/lib/format';
+import { useLongPress } from '@/app/useLongPress';
+import { useAdminStore } from '@/store/adminStore';
+import { useAdminUi } from '@/store/adminUiStore';
 import { useClanStore } from '@/store/clanStore';
 import { usePrefsStore } from '@/store/prefsStore';
 import { roleOf } from '../person/PersonCard';
@@ -104,24 +107,7 @@ export function ListView() {
                       <ul className={styles.rows}>
                         {b.rows.map(({ person, spouses }) => (
                           <li key={person.id}>
-                            <button
-                              type="button"
-                              className={styles.row}
-                              data-role={roleOf(person)}
-                              onClick={() => openOverlay('ct', person.id)}
-                            >
-                              <span className={styles.name}>{person.fullName}</span>
-                              <span className={styles.meta}>
-                                {[lifeSpan(person), person.death?.isDeceased && !lifeSpan(person) ? 'đã mất' : null]
-                                  .filter(Boolean)
-                                  .join(' · ')}
-                              </span>
-                              {spouses.length > 0 && (
-                                <span className={styles.spouses}>
-                                  {person.gender === 'male' ? 'Vợ' : 'Chồng'}: {spouses.map((s) => s.fullName).join(', ')}
-                                </span>
-                              )}
-                            </button>
+                            <ListRow person={person} spouses={spouses} onOpen={() => openOverlay('ct', person.id)} />
                           </li>
                         ))}
                       </ul>
@@ -134,5 +120,24 @@ export function ListView() {
         })}
       </ol>
     </div>
+  );
+}
+
+function ListRow({ person, spouses, onOpen }: { person: PersonRec; spouses: PersonRec[]; onOpen(): void }) {
+  const isAdmin = useAdminStore((st) => st.status === 'admin');
+  const openAdmin = useAdminUi((st) => st.open);
+  const press = useLongPress(isAdmin ? () => openAdmin('menu', person.id) : null);
+  return (
+    <button type="button" className={styles.row} data-role={roleOf(person)} onClick={onOpen} {...press}>
+      <span className={styles.name}>{person.fullName}</span>
+      <span className={styles.meta}>
+        {[lifeSpan(person), person.death?.isDeceased && !lifeSpan(person) ? 'đã mất' : null].filter(Boolean).join(' · ')}
+      </span>
+      {spouses.length > 0 && (
+        <span className={styles.spouses}>
+          {person.gender === 'male' ? 'Vợ' : 'Chồng'}: {spouses.map((sp) => sp.fullName).join(', ')}
+        </span>
+      )}
+    </button>
   );
 }
