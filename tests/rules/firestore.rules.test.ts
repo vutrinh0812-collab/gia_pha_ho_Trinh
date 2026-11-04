@@ -22,18 +22,15 @@ import {
 } from 'firebase/firestore';
 
 const CLAN = 'ho-test';
-const ADMIN_UID = 'admin-uid';
+const ADMIN_UID = 'web-admin';
 const base = `clans/${CLAN}`;
 
 let env: RulesTestEnvironment;
 
 const asDb = (ctx: RulesTestContext) => ctx.firestore() as unknown as Firestore;
 const anon = () => asDb(env.unauthenticatedContext());
-const admin = () => asDb(env.authenticatedContext(ADMIN_UID, { email: 'admin@example.com', email_verified: true }));
-/** A signed-in user who is NOT in config/admins (e.g. someone who self-registered). */
-const stranger = () => asDb(env.authenticatedContext('stranger-uid', { email: 'x@example.com', email_verified: true }));
-/** Same email as the admin but a different uid — must not be trusted. */
-const impostor = () => asDb(env.authenticatedContext('impostor-uid', { email: 'admin@example.com', email_verified: true }));
+/** The web app writes without a Firebase login (frontend password lock). */
+const admin = anon;
 
 const meta = (uid = ADMIN_UID) => ({ createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedBy: uid });
 
@@ -95,7 +92,6 @@ beforeEach(async () => {
     const db = asDb(ctx);
     const now = Timestamp.now();
     const m = { createdAt: now, updatedAt: now, updatedBy: ADMIN_UID };
-    await setDoc(doc(db, `${base}/config/admins`), { uids: [ADMIN_UID] });
     await setDoc(doc(db, `${base}/persons/p1`), { fullName: 'Trịnh Công Nguyên', gender: 'male', isBloodline: true, ...m });
     await setDoc(doc(db, `${base}/unions/u1`), { bloodlinePersonId: 'p1', order: 1, ...m });
     await setDoc(doc(db, `${base}/settings/main`), { ...settings(), ...m });
@@ -104,71 +100,69 @@ beforeEach(async () => {
 });
 
 describe('public read', () => {
-  it('anyone can read persons, unions and settings', async () => {
-    await assertSucceeds(getDoc(doc(anon(), `${base}/persons/p1`)));
-    await assertSucceeds(getDocs(collection(anon(), `${base}/persons`)));
-    await assertSucceeds(getDocs(collection(anon(), `${base}/unions`)));
-    await assertSucceeds(getDoc(doc(anon(), `${base}/settings/main`)));
-  });
-
-  it('nobody but the admin can read the audit log or admin list', async () => {
-    for (const db of [anon(), stranger(), impostor()]) {
-      await assertFails(getDocs(collection(db, `${base}/auditLog`)));
-      await assertFails(getDoc(doc(db, `${base}/config/admins`)));
-    }
-    await assertSucceeds(getDocs(collection(admin(), `${base}/auditLog`)));
-    await assertSucceeds(getDoc(doc(admin(), `${base}/config/admins`)));
+  it('anyone can read persons, unions, settings, the audit log and the password hash', async () => {
+    const db = anon();
+    await assertSucceeds(getDoc(doc(db, `${base}/persons/p1`)));
+    await assertSucceeds(getDoc(doc(db, `${base}/unions/u1`)));
+    await assertSucceeds(getDoc(doc(db, `${base}/settings/main`)));
+    await assertSucceeds(getDocs(collection(db, `${base}/auditLog`)));
+    await assertSucceeds(getDoc(doc(db, `${base}/config/lock`)));
   });
 
   it('unknown collections are denied', async () => {
     await assertFails(getDoc(doc(anon(), `${base}/secrets/x`)));
+    await assertFails(getDoc(doc(anon(), `${base}/config/admins`)));
+    await assertFails(getDocs(collection(anon(), `${base}/config`)));
     await assertFails(getDoc(doc(anon(), 'other/x')));
   });
 });
 
-describe('NO write succeeds without the admin code', () => {
-  const nonAdmins = [
-    ['unauthenticated', anon],
-    ['signed-in non-admin', stranger],
-    ['impostor with admin email', impostor],
-  ] as const;
-
-  describe.each(nonAdmins)('%s', (_label, getDb) => {
-    it('cannot create, update or delete persons', async () => {
-      const db = getDb();
-      await assertFails(setDoc(doc(db, `${base}/persons/p2`), person({}, 'stranger-uid')));
-      await assertFails(updateDoc(doc(db, `${base}/persons/p1`), { fullName: 'Đổi tên' }));
-      await assertFails(deleteDoc(doc(db, `${base}/persons/p1`)));
-    });
-
-    it('cannot write unions', async () => {
-      const db = getDb();
-      await assertFails(setDoc(doc(db, `${base}/unions/u2`), union()));
-      await assertFails(updateDoc(doc(db, `${base}/unions/u1`), { order: 2 }));
-      await assertFails(deleteDoc(doc(db, `${base}/unions/u1`)));
-    });
-
-    it('cannot write settings', async () => {
-      const db = getDb();
-      await assertFails(setDoc(doc(db, `${base}/settings/main`), settings()));
-      await assertFails(updateDoc(doc(db, `${base}/settings/main`), { title: 'X' }));
-    });
-
-    it('cannot write the audit log', async () => {
-      await assertFails(setDoc(doc(getDb(), `${base}/auditLog/a2`), audit()));
-    });
-
-    it('cannot make itself admin', async () => {
-      await assertFails(setDoc(doc(getDb(), `${base}/config/admins`), { uids: ['stranger-uid', 'impostor-uid'] }));
-    });
+// Admin mode is a password lock in the web page only, so the database accepts
+// well-formed writes from any client (signed in or not).
+describe('writes without a login (frontend lock)', () => {
+  it('a web client can create, update and delete a person', async () => {
+    const db = anon();
+    await assertSucceeds(setDoc(doc(db, `${base}/persons/p2`), person()));
+    await assertSucceeds(
+      updateDoc(doc(db, `${base}/persons/p2`), { fullName: 'Đổi tên', updatedAt: serverTimestamp(), updatedBy: ADMIN_UID }),
+    );
+    await assertSucceeds(deleteDoc(doc(db, `${base}/persons/p2`)));
   });
 
-  it('an admin of another clan cannot write this clan', async () => {
-    await env.withSecurityRulesDisabled(async (ctx) => {
-      await setDoc(doc(asDb(ctx), 'clans/other/config/admins'), { uids: ['other-admin'] });
-    });
-    const db = asDb(env.authenticatedContext('other-admin'));
-    await assertFails(setDoc(doc(db, `${base}/persons/p2`), person({}, 'other-admin')));
+  it('cannot write the config except the password lock', async () => {
+    const db = anon();
+    await assertFails(setDoc(doc(db, `${base}/config/admins`), { uids: ['x'] }));
+    await assertFails(setDoc(doc(db, `${base}/config/other`), { a: 1 }));
+    await assertFails(setDoc(doc(db, `${base}/secrets/x`), { a: 1 }));
+  });
+});
+
+describe('password lock document', () => {
+  const lock = (overrides: Record<string, unknown> = {}) => ({
+    salt: '0123456789abcdef',
+    hash: 'a'.repeat(64),
+    updatedAt: serverTimestamp(),
+    ...overrides,
+  });
+
+  it('accepts a salted hash', async () => {
+    await assertSucceeds(setDoc(doc(anon(), `${base}/config/lock`), lock()));
+    await assertSucceeds(setDoc(doc(anon(), `${base}/config/lock`), lock({ hash: 'b'.repeat(64) })));
+  });
+
+  it.each([
+    ['a plain password', { hash: '7150565' }],
+    ['upper-case hex', { hash: 'A'.repeat(64) }],
+    ['a short salt', { salt: 'x' }],
+    ['an extra field', { password: '7150565' }],
+    ['a client-chosen time', { updatedAt: Timestamp.fromMillis(0) }],
+  ])('rejects %s', async (_label, overrides) => {
+    await assertFails(setDoc(doc(anon(), `${base}/config/lock`), lock(overrides)));
+  });
+
+  it('cannot be deleted', async () => {
+    await assertSucceeds(setDoc(doc(anon(), `${base}/config/lock`), lock()));
+    await assertFails(deleteDoc(doc(anon(), `${base}/config/lock`)));
   });
 });
 
@@ -215,7 +209,7 @@ describe('admin writes', () => {
     ['birthOrder as float', { birthOrder: 1.5 }],
     ['http photo', { photoUrl: 'http://example.com/a.jpg' }],
     ['notes too long', { notes: 'x'.repeat(5001) }],
-    ['spoofed updatedBy', { updatedBy: 'someone-else' }],
+    ['empty updatedBy', { updatedBy: '' }],
     ['client-chosen updatedAt', { updatedAt: Timestamp.fromMillis(0) }],
   ])('rejects a person with %s', async (_label, overrides) => {
     await assertFails(setDoc(doc(admin(), `${base}/persons/p3`), person(overrides)));
@@ -260,10 +254,6 @@ describe('admin writes', () => {
     await env.withSecurityRulesDisabled((ctx) => deleteDoc(doc(asDb(ctx), `${base}/settings/main`)));
     await assertSucceeds(setDoc(doc(db, `${base}/settings/main`), settings()));
   });
-
-  it('cannot modify the admin list', async () => {
-    await assertFails(setDoc(doc(admin(), `${base}/config/admins`), { uids: [ADMIN_UID, 'friend'] }));
-  });
 });
 
 describe('audit log', () => {
@@ -279,7 +269,7 @@ describe('audit log', () => {
     const db = admin();
     const batch = writeBatch(db);
     batch.set(doc(db, `${base}/persons/p6`), person());
-    batch.set(doc(db, `${base}/auditLog/a6`), audit({ by: 'someone-else' }));
+    batch.set(doc(db, `${base}/auditLog/a6`), audit({ by: '' }));
     await assertFails(batch.commit());
     await env.withSecurityRulesDisabled(async (ctx) => {
       expect((await getDoc(doc(asDb(ctx), `${base}/persons/p6`))).exists()).toBe(false);

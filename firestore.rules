@@ -2,9 +2,12 @@ rules_version = '2';
 
 // Security rules for the genealogy app (SPEC §4).
 //
-//  - persons, unions, settings: public read, admin-only write, with schema validation.
-//  - auditLog: admin-only read/create; entries are immutable (no update/delete for anyone).
-//  - config/admins: never writable from clients (Console / Admin SDK only).
+//  - Admin mode is a password lock in the web page only (src/lib/admin/lock.ts), chosen
+//    by the clan for simplicity. There is no server-side login, so these rules let
+//    ANYONE write; they only keep the data well-formed. Keep regular backups.
+//  - persons, unions, settings: public read and write, with schema validation.
+//  - auditLog: public read/create; entries are immutable (no update/delete for anyone).
+//  - config/lock: the salted password hash { salt, hash, updatedAt }.
 //  - everything else: denied.
 //
 // Field limits mirror src/lib/types.ts LIMITS and src/lib/validators.ts — keep in sync.
@@ -14,13 +17,11 @@ service cloud.firestore {
 
     // ---------- Auth ----------
 
-    // Single extension point for authorization. Admins are listed by uid in
-    // clans/{clanId}/config/admins { uids: [...] } (see DECISIONS.md D9).
-    // Later per-branch admins can be added here (e.g. custom claims) without
-    // touching the collection rules below.
+    // Single extension point for authorization. Admin mode is a frontend password
+    // lock (no Firebase Auth), so every client may write. To bring back a real
+    // server-side check, change only this function.
     function isAdmin(clanId) {
-      return request.auth != null
-        && request.auth.uid in get(/databases/$(database)/documents/clans/$(clanId)/config/admins).data.uids;
+      return true;
     }
 
     // ---------- Generic validators ----------
@@ -65,7 +66,7 @@ service cloud.firestore {
     function validMeta(d) {
       return d.createdAt is timestamp
         && d.updatedAt == request.time
-        && d.updatedBy == request.auth.uid
+        && isId(d.updatedBy)
         && (resource == null || d.createdAt == resource.data.createdAt);
     }
 
@@ -138,7 +139,7 @@ service cloud.firestore {
         && (!('groupId' in d) || isId(d.groupId))
         && optStr(d, 'summary', 300)
         && d.at == request.time
-        && d.by == request.auth.uid
+        && isId(d.by)
         && d.action in ['create', 'update', 'delete']
         && d.collection in ['persons', 'unions', 'settings']
         && isId(d.docId)
@@ -169,15 +170,20 @@ service cloud.firestore {
       }
 
       match /auditLog/{logId} {
-        allow read: if isAdmin(clanId);
+        allow read: if true;
         allow create: if isAdmin(clanId) && validAudit(request.resource.data);
         allow update, delete: if false;
       }
 
-      // Lets a signed-in user find out whether they are an admin (denied otherwise).
-      match /config/admins {
-        allow get: if request.auth != null && request.auth.uid in resource.data.uids;
-        allow list, write: if false;
+      // Salted SHA-256 hash of the admin password (frontend lock).
+      match /config/lock {
+        allow get: if true;
+        allow create, update: if request.resource.data.keys().hasOnly(['salt', 'hash', 'updatedAt'])
+          && request.resource.data.salt is string && request.resource.data.salt.size() >= 8
+          && request.resource.data.salt.size() <= 64
+          && request.resource.data.hash is string && request.resource.data.hash.matches('[0-9a-f]{64}')
+          && request.resource.data.updatedAt == request.time;
+        allow list, delete: if false;
       }
     }
   }

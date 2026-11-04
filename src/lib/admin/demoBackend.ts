@@ -2,50 +2,38 @@ import { demoDocs } from '../data/demoStore';
 import type { ClanSettings, PersonFields, UnionFields } from '../types';
 import type { AdminBackend, AdminUser } from './backend';
 import { newId, type AuditRecord } from './changes';
+import { checkPassword, createSession, makeLock, type StoredLock } from './lock';
 
-/** Admin code of the preview build (no real account behind it). */
+/** Admin password of the preview build (no real account behind it). */
 export const DEMO_ADMIN_CODE = 'ma-admin-demo';
 const DEMO_USER: AdminUser = { uid: 'demo-admin', email: 'admin@example.com' };
-const SESSION_KEY = 'giapha.demoAdmin';
+const session = createSession('giapha.demoAdmin', DEMO_USER);
 
 const audit: AuditRecord[] = [];
-const userListeners = new Set<(u: AdminUser | null) => void>();
+/** Changed password, for this page only (null = DEMO_ADMIN_CODE). */
+let demoLock: StoredLock | null = null;
 
-function readSession(): boolean {
-  try {
-    return sessionStorage.getItem(SESSION_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-function writeSession(on: boolean) {
-  try {
-    if (on) sessionStorage.setItem(SESSION_KEY, '1');
-    else sessionStorage.removeItem(SESSION_KEY);
-  } catch {
-    /* storage blocked: the session lasts until reload */
-  }
+async function matches(code: string): Promise<boolean> {
+  return demoLock ? checkPassword(code, demoLock) : code.trim() === DEMO_ADMIN_CODE;
 }
 
 export const demoBackend: AdminBackend = {
-  onUserChange(cb) {
-    userListeners.add(cb);
-    cb(readSession() ? DEMO_USER : null);
-    return () => userListeners.delete(cb);
-  },
+  onUserChange: (cb) => session.onUserChange(cb),
   async signIn(code) {
     await new Promise((r) => setTimeout(r, 150));
-    if (code.trim() !== DEMO_ADMIN_CODE) throw new Error('Mã admin không đúng.');
-    writeSession(true);
-    userListeners.forEach((l) => l(DEMO_USER));
+    if (!(await matches(code))) throw new Error('Mật khẩu không đúng.');
+    session.start();
     return DEMO_USER;
   },
   async signOut() {
-    writeSession(false);
-    userListeners.forEach((l) => l(null));
+    session.end();
   },
   async isAdmin(user) {
     return user.uid === DEMO_USER.uid;
+  },
+  async changePassword(current, next) {
+    if (!(await matches(current))) throw new Error('Mật khẩu hiện tại không đúng.');
+    demoLock = await makeLock(next);
   },
   async apply(set, user) {
     const at = Date.now();

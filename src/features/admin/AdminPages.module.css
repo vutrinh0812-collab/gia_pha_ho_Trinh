@@ -36,6 +36,7 @@
   gap: 8px;
 }
 .codeRow input,
+.signIn > input,
 .field input,
 .field select {
   flex: 1;

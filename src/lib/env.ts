@@ -24,7 +24,6 @@ const REQUIRED = [
   'VITE_FIREBASE_PROJECT_ID',
   'VITE_FIREBASE_APP_ID',
   'VITE_CLAN_ID',
-  'VITE_ADMIN_EMAIL',
 ] as const;
 
 export interface EnvResult {

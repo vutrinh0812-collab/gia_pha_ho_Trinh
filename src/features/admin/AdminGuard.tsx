@@ -9,10 +9,10 @@ export function AdminGuard({ children }: { children: ReactNode }) {
   if (status === 'admin') return <>{children}</>;
   return (
     <div className={styles.page}>
-      <h1>Cần mã admin</h1>
+      <h1>Cần mật khẩu admin</h1>
       <p className={styles.lead}>Trang này chỉ dành cho admin.</p>
       <Link to="/admin" className={styles.primaryLink}>
-        Nhập mã admin
+        Nhập mật khẩu
       </Link>
     </div>
   );

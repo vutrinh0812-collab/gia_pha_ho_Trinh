@@ -145,22 +145,16 @@ Script tạo tài khoản admin và nạp dữ liệu mẫu cần một "khóa q
    $env:GOOGLE_APPLICATION_CREDENTIALS="C:\firebase-keys\gia-pha.json"
    ```
 
-### 3.8 Tạo tài khoản admin (mã admin)
-Mã admin là mật khẩu của tài khoản có email `VITE_ADMIN_EMAIL`. Nên dùng một email **thật bạn quản lý**, ví dụ `giapha.hotrinh@gmail.com`, và không chia sẻ email này công khai.
+### 3.8 Mật khẩu admin
+Không cần tạo tài khoản. Chế độ Admin là **khóa bằng mật khẩu ngay trên trang web**. Mật khẩu mặc định là `7150565`. Hãy đổi ngay sau khi vào lần đầu, ở **Quản trị → Đổi mật khẩu** (xem mục 4).
 
-**Cách A — dùng script (khuyên dùng):**
+Cần đưa luật bảo mật lên Firebase một lần (và mỗi khi `firestore.rules` hoặc `storage.rules` thay đổi):
 
 ```bash
-npm run admin:setup -- --real
+npx firebase deploy --only firestore:rules,storage
 ```
 
-Script hỏi mã admin mới (ít nhất 8 ký tự, nên từ 12 trở lên), rồi tự tạo tài khoản và cấp quyền admin.
-
-**Cách B — làm tay trong Console** (khi không muốn tạo khóa service account):
-1. **Authentication → Users → Add user**: nhập email admin và mã admin. Bấm vào dòng vừa tạo và chép **User UID**.
-2. **Firestore Database → Start collection**:
-   - Collection ID: `clans` → Document ID: giá trị `VITE_CLAN_ID` (ví dụ `ho-trinh`). Có thể thêm một field bất kỳ, ví dụ `name` = `Họ Trịnh`.
-   - Trong document đó: **Start collection** `config` → Document ID `admins` → field `uids`, kiểu **array**, phần tử đầu (kiểu string) là UID vừa chép.
+Không dùng được dòng lệnh thì mở Firebase Console → **Firestore Database → Rules**, dán toàn bộ nội dung file `firestore.rules` rồi bấm **Publish**. Làm tương tự với **Storage → Rules** và file `storage.rules`.
 
 ### 3.9 Nạp dữ liệu mẫu lên project thật (tùy chọn)
 Chỉ nên làm để thử nghiệm. Trước khi nhập dữ liệu thật, hãy xóa dữ liệu mẫu bằng `--clear`.
@@ -177,19 +171,11 @@ npm run dev
 
 Mở http://localhost:5173. Trang chủ phải báo **Chế độ: Firebase thật** và **✓ Kết nối thành công**.
 
-## 4. Đổi mã admin
+## 4. Đổi mật khẩu admin
 
-Mã admin = mật khẩu của tài khoản admin. Có hai cách:
+Vào **Quản trị** (`/admin`) → phần **Đổi mật khẩu**: nhập mật khẩu hiện tại, mật khẩu mới (ít nhất 4 ký tự) hai lần, rồi bấm **Đổi mật khẩu**. Mật khẩu được lưu dạng mã hóa (SHA-256 có salt) trong Firestore, tại `clans/{clanId}/config/lock`.
 
-- **Cách 1 (khuyên dùng):** chạy lại script ở bước 3.8. Mọi phiên admin đang mở sẽ bị đăng xuất ngay.
-
-  ```bash
-  npm run admin:setup -- --real
-  ```
-
-- **Cách 2:** Firebase Console → **Authentication → Users** → dòng tài khoản admin → menu **⋮** → **Reset password**. Firebase gửi email đặt lại mật khẩu tới email admin; mở email và đặt mã mới.
-
-⚠️ **Không xóa rồi tạo lại tài khoản admin.** Tài khoản mới sẽ có UID khác và mất quyền admin, trừ khi bạn cập nhật lại `config/admins` (bước 3.8, cách B).
+**Quên mật khẩu:** vào Firebase Console → Firestore → `clans/{clanId}/config` → xóa document `lock`. Mật khẩu trở về mặc định `7150565`.
 
 ## 5. Đưa lên mạng (deploy)
 
@@ -229,7 +215,7 @@ Mã admin = mật khẩu của tài khoản admin. Có hai cách:
 | `npm run build:preview` | đóng gói bản xem thử (dữ liệu mẫu, không cần Firebase) thành 1 file HTML: `dist-preview/gia-pha-xem-thu.html` |
 | `npm run dev:demo` | chạy app với dữ liệu mẫu, không cần Firebase |
 | `npm run seed` | nạp dữ liệu mẫu hư cấu vào emulator (`--clear` để làm lại, `--real` cho project thật) |
-| `npm run admin:setup` | tạo tài khoản admin / đổi mã admin (`--real` cho project thật) |
+| `npm run admin:setup` | (không còn cần) tài khoản Firebase cho cách admin cũ |
 | `npm test` | chạy unit test (âm lịch, tính đời, dữ liệu mẫu, kiểm tra dữ liệu) |
 | `npm run test:rules` | chạy test bảo mật Firestore/Storage trên emulator (cần Java) |
 | `npm run test:all` | chạy cả hai loại test |
@@ -262,10 +248,11 @@ storage.rules     # ảnh: công khai đọc; chỉ admin tải lên; ảnh < 2M
 ## 8. Bảo mật — tóm tắt
 
 - Ai có link đều **xem** được cây gia phả.
-- Chỉ tài khoản có UID nằm trong `clans/{clanId}/config/admins` mới **ghi** được. Danh sách này chỉ sửa được bằng Console hoặc script quản trị, không sửa được từ web.
-- Mọi dữ liệu ghi vào đều được kiểm tra kiểu và độ dài ngay trong `firestore.rules`.
-- Lịch sử thay đổi (`auditLog`) chỉ admin đọc được, và không ai sửa hay xóa được.
-- `npm run test:rules` chứng minh các điều trên bằng 54 test. Trong đó có test cho người lạ tự đăng ký tài khoản **trùng email admin**: vẫn bị chặn.
+- Chế độ Admin chỉ là **khóa bằng mật khẩu trên trang web** (lựa chọn của dòng họ cho đơn giản). Không có đăng nhập phía máy chủ, nên `firestore.rules` cho **bất kỳ ai** ghi dữ liệu đúng định dạng. Người rành kỹ thuật có thể bỏ qua ô mật khẩu (dùng công cụ lập trình của trình duyệt) để sửa hoặc xóa dữ liệu. Mật khẩu ngắn toàn chữ số cũng dò ra được nhanh.
+- Vì vậy hãy **sao lưu thường xuyên** (Firebase Console → Firestore → Import/Export, hoặc bật Point-in-time recovery), và dùng **Lịch sử thay đổi** để xem, hoàn tác.
+- Mọi dữ liệu ghi vào vẫn được kiểm tra kiểu và độ dài ngay trong `firestore.rules`. Lịch sử thay đổi (`auditLog`) không ai sửa hay xóa được qua web.
+- Muốn quay lại bảo vệ thật phía máy chủ: chỉ cần sửa hàm `isAdmin` trong `firestore.rules` và `storage.rules`.
+- `npm run test:rules` kiểm tra các luật trên.
 
 ## 9. Chia sẻ link, cài lên điện thoại, xem khi mất mạng
 
@@ -289,7 +276,7 @@ Test tự động dùng trình duyệt giả lập. Những việc sau cần là
 
 ## 10. Chế độ Admin (sửa gia phả)
 
-1. Mở **Thêm → Chế độ Admin** (hoặc vào `/admin`), nhập **mã admin**.
+1. Mở **Thêm → Chế độ Admin** (hoặc vào `/admin`), nhập **mật khẩu** (mặc định `7150565`).
 2. Thanh **"Đang ở chế độ Admin · Thoát"** hiện ra. Phiên tự thoát sau 30 phút không thao tác, hoặc khi đóng trình duyệt.
 3. Sửa một người theo một trong các cách:
    - **nhấn giữ** vào tên người đó (trên điện thoại);
@@ -299,7 +286,7 @@ Test tự động dùng trình duyệt giả lập. Những việc sau cần là
 5. **Quản trị → Lịch sử thay đổi**: xem mọi thay đổi, lọc theo tên hoặc ngày, và **hoàn tác** từng thao tác.
 6. **Quản trị → Cài đặt dòng họ**: tên, tiêu đề, câu đối, lạc khoản, hiện hay ẩn con cháu bên ngoại.
 
-Trong bản xem thử (không có Firebase), mã admin là `ma-admin-demo`. Mọi thay đổi chỉ nằm trong trang đó và mất khi tải lại.
+Trong bản xem thử (không có Firebase), mật khẩu là `ma-admin-demo`. Mọi thay đổi chỉ nằm trong trang đó và mất khi tải lại.
 
 ## 11. Giao diện in và in theo chi
 
@@ -332,7 +319,7 @@ Dữ liệu từ sổ nằm trong `private-data/ho-trinh.json` (9 gia đình, 57
 3. Nạp lên project thật. Thêm `--clear` nếu dòng họ đang có dữ liệu mẫu cần xóa:
 
    ```bash
-   npm run import:ho-trinh -- --real --admin-uid <UID admin>
+   npm run import:ho-trinh -- --real
    ```
 
 4. Xem thử không cần Firebase, với dữ liệu trong `private-data/`:
@@ -359,10 +346,9 @@ Web chỉ là các file tĩnh; dữ liệu đọc thẳng từ Firebase, nên Ve
    | `VITE_FIREBASE_MESSAGING_SENDER_ID` | `messagingSenderId` |
    | `VITE_FIREBASE_APP_ID` | `appId` |
    | `VITE_CLAN_ID` | `ho-trinh` |
-   | `VITE_ADMIN_EMAIL` | email tài khoản admin |
    | `VITE_SITE_URL` | địa chỉ web sau khi có (để chia sẻ link có ảnh xem trước) |
 
-3. Bấm **Deploy**. Sau khi có địa chỉ (ví dụ `https://ten-ban.vercel.app`), vào Firebase → **Authentication → Settings → Authorized domains → Add domain** và thêm tên miền đó. Thiếu bước này thì đăng nhập admin báo lỗi.
+3. Bấm **Deploy**.
 4. Điền lại `VITE_SITE_URL` bằng địa chỉ thật rồi **Redeploy**.
 
 Dữ liệu thật **không** nằm trong repo: nó ở Firebase (nạp bằng `npm run import:ho-trinh`, mục 12).

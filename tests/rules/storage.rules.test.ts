@@ -6,19 +6,17 @@ import {
   type RulesTestContext,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { doc, setDoc, type Firestore } from 'firebase/firestore';
 import { deleteObject, getBytes, ref, uploadBytes, type FirebaseStorage } from 'firebase/storage';
 
 const CLAN = 'ho-test';
-const ADMIN_UID = 'admin-uid';
 const photo = (name = 'p1/800.jpg') => `clans/${CLAN}/photos/${name}`;
 
 let env: RulesTestEnvironment;
 
 const storageOf = (ctx: RulesTestContext) => ctx.storage() as unknown as FirebaseStorage;
 const anon = () => storageOf(env.unauthenticatedContext());
-const admin = () => storageOf(env.authenticatedContext(ADMIN_UID));
-const stranger = () => storageOf(env.authenticatedContext('stranger-uid'));
+/** The web app uploads without a Firebase login (frontend password lock). */
+const admin = anon;
 
 const bytes = (size: number) => new Uint8Array(size);
 const jpeg = { contentType: 'image/jpeg' };
@@ -30,7 +28,6 @@ beforeAll(async () => {
     storage: { rules: readFileSync('storage.rules', 'utf8') },
   });
   await env.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore() as unknown as Firestore, `clans/${CLAN}/config/admins`), { uids: [ADMIN_UID] });
     await uploadBytes(ref(storageOf(ctx), photo('seed.jpg')), bytes(10), jpeg);
   });
 });
@@ -42,13 +39,6 @@ afterAll(async () => {
 describe('storage rules', () => {
   it('anyone can read photos', async () => {
     await assertSucceeds(getBytes(ref(anon(), photo('seed.jpg'))));
-  });
-
-  it('non-admins cannot upload or delete', async () => {
-    for (const s of [anon(), stranger()]) {
-      await assertFails(uploadBytes(ref(s, photo()), bytes(100), jpeg));
-      await assertFails(deleteObject(ref(s, photo('seed.jpg'))));
-    }
   });
 
   it('admin can upload a small image', async () => {

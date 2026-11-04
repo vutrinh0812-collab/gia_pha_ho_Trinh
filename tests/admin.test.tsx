@@ -39,12 +39,12 @@ beforeEach(() => {
 describe('admin sign-in', () => {
   it('rejects a wrong code and accepts the right one', async () => {
     renderAt('/admin');
-    const input = await screen.findByLabelText('Mã admin');
+    const input = await screen.findByLabelText('Mật khẩu');
     const submit = screen.getByRole('button', { name: 'Vào chế độ Admin' });
     await waitFor(() => expect(submit).toBeEnabled()); // the previous session is checked first
     fireEvent.change(input, { target: { value: 'sai' } });
     fireEvent.click(submit);
-    expect(await screen.findByText('Mã admin không đúng.')).toBeInTheDocument();
+    expect(await screen.findByText('Mật khẩu không đúng.')).toBeInTheDocument();
 
     fireEvent.change(input, { target: { value: 'ma-admin-demo' } });
     fireEvent.click(screen.getByRole('button', { name: 'Vào chế độ Admin' }));
@@ -68,7 +68,7 @@ describe('admin sign-in', () => {
 
   it('keeps admin pages closed to visitors', async () => {
     renderAt('/admin/lich-su');
-    expect(await screen.findByRole('heading', { name: 'Cần mã admin' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Cần mật khẩu admin' })).toBeInTheDocument();
   });
 });
 
@@ -177,5 +177,48 @@ describe('admin editing (demo backend)', () => {
     fireEvent.click(within(form).getByRole('button', { name: /Lưu|Thêm/ }));
     await waitFor(() => expect(useClanStore.getState().model!.get(useClanStore.getState().model!.rootId)!.fullName).toBe('Trịnh Tổ Mới'));
     expect(useClanStore.getState().model!.generationOf(before.rootId)).toBe(2);
+  });
+});
+
+describe('admin password', () => {
+  it('changes the password from the admin page', async () => {
+    await signIn();
+    renderAt('/admin');
+    await screen.findByRole('heading', { name: 'Đổi mật khẩu' });
+    fireEvent.change(screen.getByLabelText('Mật khẩu hiện tại'), { target: { value: 'ma-admin-demo' } });
+    fireEvent.change(screen.getByLabelText('Mật khẩu mới'), { target: { value: '1234' } });
+    fireEvent.change(screen.getByLabelText('Nhập lại mật khẩu mới'), { target: { value: '9999' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Đổi mật khẩu' }));
+    expect(await screen.findByText('Hai lần nhập mật khẩu mới không giống nhau.')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Nhập lại mật khẩu mới'), { target: { value: '1234' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Đổi mật khẩu' }));
+    await waitFor(() => expect(screen.getByLabelText('Mật khẩu mới')).toHaveValue(''));
+
+    await act(async () => {
+      await useAdminStore.getState().signOut();
+    });
+    await act(async () => {
+      expect(await useAdminStore.getState().signIn('ma-admin-demo')).toBe(false);
+      expect(await useAdminStore.getState().signIn('1234')).toBe(true);
+    });
+    // Put the demo password back for the other tests.
+    await act(async () => {
+      await useAdminStore.getState().changePassword('1234', 'ma-admin-demo', 'ma-admin-demo');
+    });
+  });
+});
+
+describe('password lock', () => {
+  it('hashes with the salt and accepts the default password', async () => {
+    const { checkPassword, defaultLock, makeLock, DEFAULT_ADMIN_PASSWORD } = await import('@/lib/admin/lock');
+    const def = await defaultLock();
+    expect(def.hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(await checkPassword(DEFAULT_ADMIN_PASSWORD, def)).toBe(true);
+    expect(await checkPassword(` ${DEFAULT_ADMIN_PASSWORD} `, def)).toBe(true);
+    expect(await checkPassword('7150566', def)).toBe(false);
+    const lock = await makeLock('mat-khau-moi');
+    expect(lock.hash).not.toContain('mat-khau-moi');
+    expect(await checkPassword('mat-khau-moi', lock)).toBe(true);
   });
 });

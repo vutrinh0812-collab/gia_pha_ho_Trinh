@@ -4,6 +4,7 @@ import { env } from '@/lib/env';
 import { useAdminStore } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
 import { useClanStore } from '@/store/clanStore';
+import { useToastStore } from '@/store/toastStore';
 import styles from './AdminPages.module.css';
 
 /** /admin — enter the admin code (SPEC §4), then the admin home. */
@@ -20,7 +21,7 @@ function SignIn() {
   return (
     <div className={styles.page}>
       <h1>Chế độ Admin</h1>
-      <p className={styles.lead}>Nhập mã admin để thêm, sửa hoặc xóa thông tin trong gia phả. Người xem bình thường không cần mã.</p>
+      <p className={styles.lead}>Nhập mật khẩu để thêm, sửa hoặc xóa thông tin trong gia phả. Người xem bình thường không cần mật khẩu.</p>
       <form
         className={styles.signIn}
         onSubmit={(e) => {
@@ -28,9 +29,7 @@ function SignIn() {
           void signIn(code);
         }}
       >
-        {/* Hidden username so password managers file the code under the admin account. */}
-        <input type="text" name="username" autoComplete="username" value={env.adminEmail} readOnly hidden />
-        <label htmlFor="admin-code">Mã admin</label>
+        <label htmlFor="admin-code">Mật khẩu</label>
         <div className={styles.codeRow}>
           <input
             id="admin-code"
@@ -59,7 +58,7 @@ function SignIn() {
       </form>
       {env.dataSource === 'demo' && (
         <p className={styles.demo}>
-          Bản xem thử: mã admin là <strong>ma-admin-demo</strong>. Mọi thay đổi chỉ nằm trong trang này và mất khi tải lại.
+          Bản xem thử: mật khẩu là <strong>ma-admin-demo</strong>. Mọi thay đổi chỉ nằm trong trang này và mất khi tải lại.
         </p>
       )}
       <p className={styles.note}>Phiên admin tự thoát sau 30 phút không thao tác, hoặc khi đóng trình duyệt.</p>
@@ -110,9 +109,69 @@ function AdminHome() {
         <li>Thêm cả một đời: dùng “Thêm đời trên / dưới” ở trên, hoặc nút cùng tên trên màn Sơ đồ.</li>
         <li>Người còn con không xóa được; hãy xóa hoặc chuyển các con trước.</li>
       </ul>
+      <ChangePassword />
       <button type="button" className={styles.secondary} onClick={() => void signOut()}>
         Thoát chế độ Admin
       </button>
     </div>
+  );
+}
+
+function ChangePassword() {
+  const changePassword = useAdminStore((s) => s.changePassword);
+  const showToast = useToastStore((s) => s.show);
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const field = (id: string, label: string, value: string, set: (v: string) => void, auto: string) => (
+    <>
+      <label htmlFor={id}>{label}</label>
+      <input
+        id={id}
+        type="password"
+        autoComplete={auto}
+        autoCapitalize="off"
+        autoCorrect="off"
+        spellCheck={false}
+        value={value}
+        onChange={(e) => set(e.target.value)}
+      />
+    </>
+  );
+  return (
+    <>
+      <h2 className={styles.h2}>Đổi mật khẩu</h2>
+      <form
+        className={styles.signIn}
+        onSubmit={(e) => {
+          e.preventDefault();
+          setBusy(true);
+          setError(null);
+          changePassword(current, next, confirm)
+            .then(() => {
+              setCurrent('');
+              setNext('');
+              setConfirm('');
+              showToast('Đã đổi mật khẩu. Lần sau hãy dùng mật khẩu mới.');
+            })
+            .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Không đổi được mật khẩu.'))
+            .finally(() => setBusy(false));
+        }}
+      >
+        {field('pw-current', 'Mật khẩu hiện tại', current, setCurrent, 'current-password')}
+        {field('pw-next', 'Mật khẩu mới', next, setNext, 'new-password')}
+        {field('pw-confirm', 'Nhập lại mật khẩu mới', confirm, setConfirm, 'new-password')}
+        {error && (
+          <p className={styles.error} role="alert">
+            {error}
+          </p>
+        )}
+        <button type="submit" className={styles.primary} disabled={busy}>
+          {busy ? 'Đang lưu…' : 'Đổi mật khẩu'}
+        </button>
+      </form>
+    </>
   );
 }

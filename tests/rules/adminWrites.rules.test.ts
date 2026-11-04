@@ -1,6 +1,7 @@
 /**
  * The Firebase admin backend's batched writes (data + audit in one batch) run against
- * the real security rules: accepted for the admin, refused for anyone else.
+ * the real security rules. Admin mode is a frontend password lock, so the web client
+ * writes without a Firebase login; the rules still refuse malformed batches as a whole.
  */
 import { readFileSync } from 'node:fs';
 import {
@@ -10,7 +11,7 @@ import {
   type RulesTestContext,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { collection, doc, getDocs, setDoc, Timestamp, writeBatch, type Firestore } from 'firebase/firestore';
+import { collection, doc, getDocs, Timestamp, writeBatch, type Firestore } from 'firebase/firestore';
 import { addChild, addFather, addSpouse, deletePerson, editPerson, personContent, undoGroup, type AuditRecord } from '../../src/lib/admin/changes';
 import { writeChangeSet } from '../../src/lib/admin/firebaseBackend';
 import { buildClanModel } from '../../src/lib/clanModel';
@@ -18,7 +19,7 @@ import { generateSampleData } from '../../src/lib/sampleData';
 
 const CLAN = 'ho-admin';
 const base = `clans/${CLAN}`;
-const ADMIN = 'admin-uid';
+const ADMIN = 'web-admin';
 let env: RulesTestEnvironment;
 const dbOf = (ctx: RulesTestContext) => ctx.firestore() as unknown as Firestore;
 const data = generateSampleData();
@@ -48,7 +49,6 @@ beforeEach(async () => {
     const db = dbOf(ctx);
     const now = Timestamp.now();
     const meta = { createdAt: now, updatedAt: now, updatedBy: 'seed' };
-    await setDoc(doc(db, `${base}/config/admins`), { uids: [ADMIN] });
     const writes: Array<[string, object]> = [
       ...data.persons.map(({ id, ...f }): [string, object] => [`${base}/persons/${id}`, { ...f, ...meta }]),
       ...data.unions.map(({ id, ...f }): [string, object] => [`${base}/unions/${id}`, { ...f, ...meta }]),
@@ -64,7 +64,7 @@ beforeEach(async () => {
 
 describe('Firebase admin backend writes under the security rules', () => {
   it('admin: edit, add child, add spouse, delete — each with its audit entries', async () => {
-    const db = dbOf(env.authenticatedContext(ADMIN));
+    const db = dbOf(env.unauthenticatedContext());
     let model = await loadModel(db);
     const p = model.get('p0007')!;
     await assertSucceeds(writeChangeSet(db, base, editPerson(model, p.id, { ...personContent(p), notes: 'Đã sửa', burialPlace: undefined }), ADMIN));
@@ -82,7 +82,7 @@ describe('Firebase admin backend writes under the security rules', () => {
   });
 
   it('admin: undo restores a deleted person through the rules', async () => {
-    const db = dbOf(env.authenticatedContext(ADMIN));
+    const db = dbOf(env.unauthenticatedContext());
     let model = await loadModel(db);
     const leaf = model.persons.find((x) => x.isBloodline && !model.index.unionsOf(x.id).length && model.generationOf(x.id) === 7)!;
     const del = deletePerson(model, leaf.id);
@@ -98,21 +98,19 @@ describe('Firebase admin backend writes under the security rules', () => {
   });
 
   it('admin: add a father above the root (person, union, root and settings in one batch)', async () => {
-    const db = dbOf(env.authenticatedContext(ADMIN));
+    const db = dbOf(env.unauthenticatedContext());
     const model = await loadModel(db);
     await assertSucceeds(
       writeChangeSet(db, base, addFather(model, model.rootId, { fullName: 'Trịnh Công Tiên', gender: 'male', isBloodline: true }), ADMIN),
     );
   });
 
-  it('anyone else: the same batches are refused, nothing is written', async () => {
-    const admin = dbOf(env.authenticatedContext(ADMIN));
-    const model = await loadModel(admin);
+  it('a batch with a malformed document is refused, nothing is written', async () => {
+    const db = dbOf(env.unauthenticatedContext());
+    const model = await loadModel(db);
     const set = addChild(model, 'p0007', { fullName: 'Trịnh Văn Lạ', gender: 'male', isBloodline: true });
-    for (const ctx of [env.unauthenticatedContext(), env.authenticatedContext('stranger', { email: 'admin@example.com' })]) {
-      await assertFails(writeChangeSet(dbOf(ctx), base, set, 'stranger'));
-    }
-    const after = await loadModel(admin);
+    await assertFails(writeChangeSet(db, base, set, ''));
+    const after = await loadModel(db);
     expect(after.persons.some((x) => x.fullName === 'Trịnh Văn Lạ')).toBe(false);
   });
 });

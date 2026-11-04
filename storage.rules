@@ -1,15 +1,15 @@
 rules_version = '2';
 
-// Photo storage (SPEC §4): public read, admin-only upload, images only, < 2 MB.
+// Photo storage (SPEC §4): public read and upload, images only, < 2 MB.
+// Admin mode is a frontend password lock (no Firebase Auth), so uploads cannot be
+// limited to the admin here; only the size and type are checked.
 // Files live under clans/{clanId}/photos/... (e.g. photos/{personId}/800.jpg and 120.jpg thumbnails).
-// Admin check reads the same Firestore document as firestore.rules (cross-service rules).
 
 service firebase.storage {
   match /b/{bucket}/o {
 
     function isAdmin(clanId) {
-      return request.auth != null
-        && request.auth.uid in firestore.get(/databases/(default)/documents/clans/$(clanId)/config/admins).data.uids;
+      return true;
     }
 
     match /clans/{clanId}/photos/{allPaths=**} {

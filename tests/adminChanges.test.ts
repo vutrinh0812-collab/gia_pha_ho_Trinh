@@ -22,7 +22,7 @@ const groupOf = async (set: ChangeSet) => (await demoBackend.listAudit()).filter
 
 describe('admin change sets (demo backend)', () => {
   it('signs in only with the demo code', async () => {
-    await expect(demoBackend.signIn('sai-ma')).rejects.toThrow('Mã admin không đúng.');
+    await expect(demoBackend.signIn('sai-ma')).rejects.toThrow('Mật khẩu không đúng.');
     await expect(demoBackend.signIn(DEMO_ADMIN_CODE)).resolves.toMatchObject({ uid: 'demo-admin' });
   });
 

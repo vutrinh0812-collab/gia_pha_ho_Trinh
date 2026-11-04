@@ -4,7 +4,7 @@ describe('parseEnv', () => {
   it('reports missing required variables', () => {
     const { missing, env } = parseEnv({});
     expect(missing).toContain('VITE_FIREBASE_API_KEY');
-    expect(missing).toContain('VITE_ADMIN_EMAIL');
+    expect(missing).not.toContain('VITE_ADMIN_EMAIL');
     expect(env.useEmulator).toBe(false);
     expect(env.clanId).toBe('default');
   });

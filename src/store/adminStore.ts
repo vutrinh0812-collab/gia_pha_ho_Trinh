@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import type { AdminUser } from '@/lib/admin/backend';
 import type { ChangeSet } from '@/lib/admin/changes';
-import { env } from '@/lib/env';
 import { useToastStore } from './toastStore';
 
 /** Sign out after this long without any interaction (SPEC §4). */
@@ -38,6 +37,8 @@ interface AdminState {
   init(): void;
   signIn(code: string): Promise<boolean>;
   signOut(reason?: string): Promise<void>;
+  /** Changes the admin password; throws an Error with a Vietnamese message. */
+  changePassword(current: string, next: string, confirm: string): Promise<void>;
   /** Writes an admin action; returns false (and shows why) when it failed. */
   apply(set: ChangeSet, okText?: string): Promise<boolean>;
 }
@@ -99,14 +100,7 @@ export const useAdminStore = create<AdminState>((set, get) => {
     }
     if (!ok) {
       await b.signOut().catch(() => undefined);
-      set({
-        status: 'signedOut',
-        user: null,
-        error:
-          `Mã admin đúng, nhưng tài khoản chưa có trong danh sách admin của dòng họ "${env.clanId}". ` +
-          `Trong Firestore, tài liệu clans/${env.clanId}/config/admins cần có trường uids (kiểu array) chứa UID: ${user.uid} ` +
-          '(hoặc chạy lại npm run admin:setup -- --real, xem README mục 3.8).',
-      });
+      set({ status: 'signedOut', user: null, error: 'Không vào được chế độ Admin.' });
       return false;
     }
     set({ status: 'admin', user, error: null });
@@ -135,7 +129,7 @@ export const useAdminStore = create<AdminState>((set, get) => {
             if (get().status === 'admin' || get().status === 'signingIn') return;
             // Restored session: it still has to be fresh enough.
             if (Date.now() - readActivity() >= IDLE_LIMIT_MS) {
-              void get().signOut('Phiên admin đã hết hạn. Hãy nhập lại mã admin.');
+              void get().signOut('Phiên admin đã hết hạn. Hãy nhập lại mật khẩu.');
               return;
             }
             void becomeAdmin(user);
@@ -148,7 +142,7 @@ export const useAdminStore = create<AdminState>((set, get) => {
     },
     async signIn(code) {
       if (!code.trim()) {
-        set({ error: 'Hãy nhập mã admin.' });
+        set({ error: 'Hãy nhập mật khẩu.' });
         return false;
       }
       set({ status: 'signingIn', error: null });
@@ -177,10 +171,16 @@ export const useAdminStore = create<AdminState>((set, get) => {
         useToastStore.getState().show(reason ?? 'Đã thoát chế độ Admin.');
       }
     },
+    async changePassword(current, next, confirm) {
+      const { validateNewPassword } = await import('@/lib/admin/lock');
+      validateNewPassword(next, confirm);
+      await (await backend()).changePassword(current, next.trim());
+      touch();
+    },
     async apply(changeSet, okText = 'Đã lưu.') {
       const user = get().user;
       if (get().status !== 'admin' || !user) {
-        useToastStore.getState().show('Cần nhập mã admin trước khi sửa.', 'error');
+        useToastStore.getState().show('Cần nhập mật khẩu admin trước khi sửa.', 'error');
         return false;
       }
       try {
