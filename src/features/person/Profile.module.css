@@ -223,6 +223,22 @@
   .profile[data-variant='page'] .printLink {
     grid-column: 1 / -1;
   }
+  /* Facts and biography on the left, the (longer) family on the right. */
+  .profile[data-variant='page'] [data-area='about'] {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .profile[data-variant='page'] [data-area='bio'] {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  .profile[data-variant='page'] [data-area='family'] {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+  }
+  .profile[data-variant='page'] .printLink {
+    grid-row: 4;
+  }
 }
 .card {
   background: var(--surface);

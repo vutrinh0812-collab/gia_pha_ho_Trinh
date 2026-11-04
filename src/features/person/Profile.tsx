@@ -274,9 +274,9 @@ function Anniversary({ person }: { person: PersonRec }) {
   );
 }
 
-function Card({ title, onEdit, children }: { title: string; onEdit?: () => void; children: ReactNode }) {
+function Card({ title, area, onEdit, children }: { title: string; area: 'about' | 'bio' | 'family'; onEdit?: () => void; children: ReactNode }) {
   return (
-    <section className={styles.card} aria-label={title}>
+    <section className={styles.card} data-area={area} aria-label={title}>
       <div className={styles.cardHead}>
         <h3>{title}</h3>
         {onEdit && (
@@ -321,7 +321,7 @@ function About({
   const shown = rows.filter((r) => r.value);
   const missing = isAdmin ? rows.filter((r) => !r.value && r.add) : [];
   return (
-    <Card title="Giới thiệu" onEdit={isAdmin ? onEdit : undefined}>
+    <Card title="Giới thiệu" area="about" onEdit={isAdmin ? onEdit : undefined}>
       {shown.length === 0 && !isAdmin && <p className={styles.empty}>Chưa có thông tin.</p>}
       <ul className={styles.facts}>
         {shown.map((r) => (
@@ -350,7 +350,7 @@ function About({
 function Biography({ person, isAdmin, onEdit }: { person: PersonRec; isAdmin: boolean; onEdit(): void }) {
   if (!person.notes && !isAdmin) return null;
   return (
-    <Card title="Tiểu sử, ghi chú" onEdit={isAdmin && person.notes ? onEdit : undefined}>
+    <Card title="Tiểu sử, ghi chú" area="bio" onEdit={isAdmin && person.notes ? onEdit : undefined}>
       {person.notes ? (
         <p className={styles.bio}>{person.notes}</p>
       ) : (
@@ -397,7 +397,7 @@ function FamilyCard({
   if (!groups.length && !isAdmin) return null;
 
   return (
-    <Card title="Gia đình">
+    <Card title="Gia đình" area="family">
       {groups.map((g) => (
         <div key={g.label} className={styles.group}>
           <h4 className={styles.groupTitle}>{g.label}</h4>
