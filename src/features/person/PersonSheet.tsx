@@ -6,6 +6,7 @@ import { Sheet } from '@/app/ui/Sheet';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
 import { formatDateInfo, genderLabel, lifeSpan, spouseRole } from '@/lib/format';
 import { daysBetween, nextLunarAnniversary, type SolarDate } from '@/lib/lunar';
+import { shareLink } from '@/lib/share';
 import { useClanStore } from '@/store/clanStore';
 import { roleOf } from './PersonCard';
 import styles from './PersonSheet.module.css';
@@ -41,22 +42,13 @@ export function PersonSheet({ id }: { id: string }) {
   }
 
   const share = async () => {
-    const url = personUrl(person.id);
-    const title = `${person.fullName} — ${model.settings.title}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title, url });
-        return;
-      }
-    } catch (e) {
-      if ((e as DOMException).name === 'AbortError') return;
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      setShareNote('Đã sao chép đường link.');
-    } catch {
-      setShareNote(url);
-    }
+    const result = await shareLink({
+      title: `${person.fullName} — ${model.settings.title}`,
+      text: `${person.fullName} trong ${model.settings.title}`,
+      url: personUrl(person.id),
+    });
+    if (result.kind === 'copied') setShareNote('Đã sao chép đường link.');
+    else if (result.kind === 'manual') setShareNote(`Sao chép đường link này: ${result.url}`);
   };
 
   return (

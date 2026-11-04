@@ -17,7 +17,8 @@
     "seed": "tsx scripts/seed.ts",
     "admin:setup": "tsx scripts/setup-admin.ts",
     "dev:demo": "vite --mode demo",
-    "build:preview": "tsc -b && vite build --mode demo && node scripts/build-preview.mjs"
+    "build:preview": "tsc -b && vite build --mode demo && node scripts/build-preview.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "d3-flextree": "^2.1.2",
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^3.0.4",
+    "@playwright/test": "^1.63.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/d3-selection": "^3.0.12",

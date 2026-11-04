@@ -7,7 +7,7 @@ Web app lưu giữ và cập nhật gia phả của một dòng họ, hiển th�
 
 **Công nghệ:** React 18 + Vite + TypeScript · Zustand · Firebase (Firestore, Auth, Storage, Hosting) · Vitest.
 
-**Trạng thái:** ✅ Giai đoạn 1 (khởi tạo) · ✅ Giai đoạn 2 (dữ liệu & bảo mật) · ✅ Giai đoạn 3a (giao diện điện thoại: Gia đình, Danh sách, tìm kiếm) · ✅ Giai đoạn 3b (Sơ đồ: phóng to nhiều mức, thu gọn nhánh, lọc, dòng dõi) · ✅ Giai đoạn 3c (bố cục máy tính, phím tắt). Các giai đoạn tiếp theo: xem SPEC.md §12.
+**Trạng thái:** ✅ Giai đoạn 1 (khởi tạo) · ✅ Giai đoạn 2 (dữ liệu & bảo mật) · ✅ Giai đoạn 3a (giao diện điện thoại: Gia đình, Danh sách, tìm kiếm) · ✅ Giai đoạn 3b (Sơ đồ: phóng to nhiều mức, thu gọn nhánh, lọc, dòng dõi) · ✅ Giai đoạn 3c (bố cục máy tính, phím tắt) · ✅ Giai đoạn 3d (cài lên điện thoại, xem khi mất mạng, chia sẻ link). Các giai đoạn tiếp theo: xem SPEC.md §12.
 
 ---
 
@@ -231,6 +231,7 @@ Mã admin = mật khẩu của tài khoản admin. Có hai cách:
 | `npm test` | chạy unit test (âm lịch, tính đời, dữ liệu mẫu, kiểm tra dữ liệu) |
 | `npm run test:rules` | chạy test bảo mật Firestore/Storage trên emulator (cần Java) |
 | `npm run test:all` | chạy cả hai loại test |
+| `npm run test:e2e` | test trên điện thoại giả lập (iPhone SE, iPhone 14, Pixel 5, Galaxy A 360px, Zalo, Facebook) |
 | `npm run build` | kiểm tra kiểu + build bản production vào `dist/` |
 | `npm run preview` | xem thử bản build |
 
@@ -263,3 +264,23 @@ storage.rules     # ảnh: công khai đọc; chỉ admin tải lên; ảnh < 2M
 - Mọi dữ liệu ghi vào đều được kiểm tra kiểu và độ dài ngay trong `firestore.rules`.
 - Lịch sử thay đổi (`auditLog`) chỉ admin đọc được, và không ai sửa hay xóa được.
 - `npm run test:rules` chứng minh các điều trên bằng 54 test. Trong đó có test cho người lạ tự đăng ký tài khoản **trùng email admin**: vẫn bị chặn.
+
+## 9. Chia sẻ link, cài lên điện thoại, xem khi mất mạng
+
+- **Ảnh xem trước khi gửi link qua Zalo/Messenger/Facebook:**
+  - Cần điền `VITE_SITE_URL` (địa chỉ web thật, ví dụ `https://gia-pha-ho-trinh.web.app`) và `VITE_APP_TITLE` trong `.env`, rồi build lại.
+  - Muốn đổi tên dòng họ trên ảnh xem trước: sửa `VITE_APP_TITLE` rồi chạy `node scripts/make-icons.mjs`.
+  - Zalo/Facebook lưu ảnh xem trước một thời gian. Khi đổi ảnh, dùng [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/) để làm mới.
+- **Cài lên màn hình chính:**
+  - Android/Chrome: menu "Thêm" có nút cài.
+  - iPhone/Safari: bấm Chia sẻ, chọn "Thêm vào MH chính".
+  - Trong Zalo/Facebook: phải chọn "Mở bằng trình duyệt" trước.
+- **Mất mạng:** những gì đã xem vẫn mở được; trang báo "Đang mất mạng".
+
+### Kiểm tra bằng tay trên điện thoại thật (sau khi đưa web lên mạng)
+Test tự động dùng trình duyệt giả lập. Những việc sau cần làm bằng tay một lần trên máy thật:
+
+1. Gửi link trang chủ và link một người qua **Zalo**: xem ảnh xem trước, bấm mở, tìm một người, bấm Chia sẻ.
+2. Làm như trên với **Messenger/Facebook**.
+3. Mở bằng **Safari trên iPhone**: thêm vào màn hình chính, mở lại, bật chế độ máy bay, mở lại lần nữa.
+4. Mở bằng **Chrome trên Android**: cài ứng dụng, xoay ngang khi xem Sơ đồ.

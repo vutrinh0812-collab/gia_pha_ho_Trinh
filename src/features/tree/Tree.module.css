@@ -373,6 +373,7 @@
   bottom: 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
+  background: var(--surface);
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   box-shadow: var(--shadow);
   overflow: hidden;
@@ -386,6 +387,7 @@
   position: absolute;
   border: 1.5px solid var(--accent);
   border-radius: 2px;
+  background: transparent;
   background: color-mix(in srgb, var(--accent) 10%, transparent);
   pointer-events: none;
 }

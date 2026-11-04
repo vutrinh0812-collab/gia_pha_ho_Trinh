@@ -6,6 +6,7 @@ import { useClanStore } from '@/store/clanStore';
 import { BottomNav } from './BottomNav';
 import { MoreSheet } from './MoreSheet';
 import { ShortcutHelp } from './ShortcutHelp';
+import { StatusBanner } from './StatusBanner';
 import { isInDialog, useHotkeys } from './useHotkeys';
 import { useIsDesktop } from './useMediaQuery';
 import { useOverlays } from './useOverlays';
@@ -70,6 +71,7 @@ export function AppShell() {
         )}
       </main>
       <BottomNav />
+      <StatusBanner />
       {model && detail && <PersonSheet id={detail} />}
       {model && params.has('tk') && <SearchOverlay />}
       {params.has('them') && <MoreSheet />}

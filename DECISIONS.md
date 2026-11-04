@@ -170,3 +170,39 @@ Mốc là **960px**. Từ đó trở lên:
 - **Sơ đồ:** `+`/`−` phóng to/thu nhỏ, `0` vừa màn hình, `H` về thủy tổ, `C` thu gọn/mở hết, `L` lọc, các phím mũi tên để di chuyển sơ đồ.
 
 Phím tắt không chạy khi đang gõ vào ô nhập liệu. Phím tắt của từng trang cũng không chạy khi đang thao tác trong một bảng đang mở.
+
+---
+
+## Giai đoạn 3d — PWA, chia sẻ, trình duyệt nhúng
+
+### D31. Service worker tự viết, không dùng Workbox
+Một plugin Vite nhỏ (`build/pwa.ts`) tạo ra `sw.js` cùng danh sách file của bản build. Cách lưu và tải từng loại file:
+
+| Loại | Cách làm |
+|---|---|
+| App shell, tính cả phần Sơ đồ chưa mở lần nào | Lưu sẵn khi cài |
+| Trang HTML | Ưu tiên mạng, chờ tối đa 4 giây rồi dùng bản đã lưu (hợp với 4G yếu) |
+| File build (JS, CSS) | Ưu tiên bản đã lưu (`ignoreVary`, vì tên file có mã hash) |
+| Font Google, ảnh Firebase Storage | Trả bản đã lưu ngay, đồng thời tải bản mới về |
+| Dữ liệu Firestore | Không qua service worker; dùng bộ đệm offline riêng của Firestore (IndexedDB) |
+
+Khi có phiên bản mới, app hiện thông báo "Cập nhật" và **chỉ tải lại trang khi người dùng bấm nút**. Test e2e đã bắt được lỗi tự tải lại trang ở lần cài đầu tiên; lỗi này đã sửa.
+
+### D32. Ảnh xem trước khi chia sẻ link (Open Graph)
+Zalo và Facebook không chạy JavaScript khi đọc link, nên các thẻ `og:*` phải nằm sẵn trong `index.html` lúc build. Chúng được lấy từ `VITE_APP_TITLE`, `VITE_APP_DESCRIPTION` và `VITE_SITE_URL`. **Phải điền `VITE_SITE_URL`** để `og:image` là địa chỉ đầy đủ; Facebook không chấp nhận đường dẫn tương đối.
+
+Ảnh `og-image.png` (1200×630) và các icon do `scripts/make-icons.mjs` vẽ ra. Hình là bản tự vẽ: một chấm tổ tiên, thân cây và ba chấm con cháu.
+
+**Hạn chế:** mọi link, kể cả `/person/:id`, hiện **cùng một** ảnh và tiêu đề. Hosting tĩnh không tạo được ảnh riêng cho từng người; muốn vậy cần Cloud Functions, tức gói Blaze. Sẽ xem lại nếu cần.
+
+### D33. Không cho Google lập chỉ mục
+Mặc định có `<meta name="robots" content="noindex">` để thông tin gia đình không hiện trên kết quả tìm kiếm Google. Muốn bật thì đặt `VITE_ALLOW_INDEXING=true`. Thẻ này không ảnh hưởng đến ảnh xem trước trên Zalo/Facebook. Không chặn bằng `robots.txt`, vì một số bot đọc link xem trước tuân theo file này.
+
+### D34. Trình duyệt nhúng (Zalo, Facebook, Messenger)
+- **Nhận diện** qua user agent (`src/lib/inApp.ts`). Menu "Thêm" hướng dẫn "⋯ → Mở bằng trình duyệt" vì các trình duyệt này không cài PWA được.
+- **Chịu được môi trường bị chặn:** `localStorage` báo lỗi, không có IndexedDB, không có Web Share, clipboard bị chặn. Có test e2e riêng cho trường hợp này. Khi mọi cách chia sẻ đều bị chặn, link hiện ra để người dùng tự sao chép.
+- **CSS có phương án dự phòng** cho WebView cũ: `vh` trước `dvh`, màu đặc trước `color-mix`.
+- **Giới hạn:** test e2e chạy bằng Chromium với user agent và kích thước của từng máy. Safari iOS thật và WebView thật của Zalo/Facebook vẫn phải thử bằng tay trên điện thoại (xem README).
+
+### D35. Font tải song song
+Font Be Vietnam Pro chuyển từ `@import` trong CSS sang thẻ `<link>` trong `<head>`, có `preconnect`. Lighthouse Mobile: Performance tăng từ 86 lên 92 (FCP từ 3,0 xuống 2,7 giây trên 4G giả lập), Accessibility 100, Best Practices 100. Việc tự host font, cần cho in PDF, để sang giai đoạn 6.

@@ -6,6 +6,10 @@ import { ChevronIcon } from './ui/icons';
 import { useOverlays } from './useOverlays';
 import styles from './MoreSheet.module.css';
 
+import { useState } from 'react';
+import { env } from '@/lib/env';
+import { shareLink } from '@/lib/share';
+import { InstallCard } from './InstallCard';
 import { useIsDesktop } from './useMediaQuery';
 
 const LINKS = [
@@ -29,9 +33,29 @@ export function MoreSheet() {
   const model = useClanStore((s) => s.model);
   const { theme, setTheme, largeText, setLargeText, showMaternal, setShowMaternal } = usePrefsStore();
   const maternalOn = showMaternal ?? model?.settings.showMaternalDescendants ?? false;
+  const [shareNote, setShareNote] = useState<string | null>(null);
+  const shareApp = async () => {
+    const title = model?.settings.title ?? document.title;
+    const result = await shareLink({ title, text: `Xem ${title}`, url: `${window.location.origin}/` });
+    if (result.kind === 'copied') setShareNote('Đã sao chép đường link.');
+    else if (result.kind === 'manual') setShareNote(`Sao chép đường link này: ${result.url}`);
+  };
 
   return (
     <Sheet label="Thêm" onClose={() => close('them')} header={<h2 className={styles.title}>Thêm</h2>}>
+      {env.router === 'browser' && (
+        <>
+          <button type="button" className={styles.installButton} onClick={shareApp}>
+            Chia sẻ gia phả này
+          </button>
+          {shareNote && (
+            <p className={styles.note} role="status">
+              {shareNote}
+            </p>
+          )}
+        </>
+      )}
+      <InstallCard />
       <nav aria-label="Các trang khác">
         <ul className={styles.links}>
           {LINKS.map((l) => (

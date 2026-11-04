@@ -1,0 +1,38 @@
+.banner {
+  position: fixed;
+  z-index: 35;
+  left: calc(var(--rail-w) + var(--gutter-l));
+  right: calc(var(--panel-w) + var(--gutter-r) + 60px);
+  bottom: calc(var(--bottom-bar) + 10px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 14px;
+  border-radius: var(--radius);
+  background: var(--text);
+  color: var(--bg);
+  box-shadow: var(--shadow);
+  font-size: 0.875rem;
+  animation: up 180ms ease-out;
+}
+.banner span {
+  flex: 1;
+  min-width: 0;
+}
+.action {
+  flex: none;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+@keyframes up {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+}

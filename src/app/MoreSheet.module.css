@@ -131,3 +131,26 @@
   font-family: var(--font-ui);
   text-align: center;
 }
+
+.installButton {
+  width: 100%;
+  min-height: 48px;
+  margin: 8px 0 4px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+.install p {
+  margin: 4px 0 8px;
+}
+.note {
+  margin: 4px 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
