@@ -30,9 +30,12 @@ function canUseIndexedDb(): boolean {
   }
 }
 
+/** Set once the browser's offline cache (IndexedDB) has failed; then only memory is used. */
+let memoryOnly = false;
+
 export function getDb(): Firestore {
   if (db) return db;
-  const localCache = canUseIndexedDb()
+  const localCache = !memoryOnly && canUseIndexedDb()
     ? persistentLocalCache({ tabManager: persistentMultipleTabManager() })
     : memoryLocalCache();
   db = initializeFirestore(getFirebaseApp(), { localCache });
@@ -54,6 +57,30 @@ export async function getStorageLazy() {
   const storage = getStorage(getFirebaseApp());
   if (env.useEmulator) connectStorageEmulator(storage, '127.0.0.1', 9199);
   return storage;
+}
+
+/** True for the errors a broken or blocked IndexedDB cache produces. */
+export function isOfflineCacheError(e: unknown): boolean {
+  const text = `${(e as { name?: string })?.name ?? ''} ${(e as { message?: string })?.message ?? ''}`;
+  return /IndexedDb|IndexedDB|indexeddb/.test(text);
+}
+
+/**
+ * Drops the broken offline cache and switches to an in-memory one: the page keeps
+ * working online, without offline viewing, until the browser's site data is cleared.
+ */
+export async function fallBackToMemoryCache(): Promise<void> {
+  memoryOnly = true;
+  const old = db;
+  db = null;
+  if (!old) return;
+  const { terminate, clearIndexedDbPersistence } = await import('firebase/firestore');
+  try {
+    await terminate(old);
+    await clearIndexedDbPersistence(old);
+  } catch {
+    /* the cache is already unusable; memory mode works regardless */
+  }
 }
 
 /** Firestore path helpers — all data lives under clans/{clanId}. */
