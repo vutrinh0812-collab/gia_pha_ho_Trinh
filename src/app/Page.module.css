@@ -1,0 +1,32 @@
+.page {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: calc(16px + var(--safe-top)) calc(16px + var(--safe-right)) calc(24px + var(--safe-bottom))
+    calc(16px + var(--safe-left));
+}
+.page h1 { font-size: 1.5rem; line-height: 1.25; margin: 0.5rem 0 1rem; }
+.muted { color: var(--text-2); }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin: 12px 0;
+}
+.list { margin: 0; padding-left: 1.2rem; }
+.list li { margin: 4px 0; }
+.ok { color: var(--ok); font-weight: 600; }
+.warn { color: var(--warn); font-weight: 600; }
+.err { color: var(--err); font-weight: 600; }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--text);
+}
+code { font-size: 0.9em; overflow-wrap: anywhere; }

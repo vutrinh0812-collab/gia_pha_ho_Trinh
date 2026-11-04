@@ -1,0 +1,10 @@
+rules_version = '2';
+// PHASE 1 PLACEHOLDER: public read, no uploads. Admin upload rules arrive in phase 2.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /clans/{clanId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

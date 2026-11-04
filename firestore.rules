@@ -1,0 +1,11 @@
+rules_version = '2';
+// PHASE 1 PLACEHOLDER: public read of clan data, no writes at all.
+// Full admin rules with validation arrive in phase 2.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /clans/{clanId}/{collection}/{docId} {
+      allow read: if collection in ['persons', 'unions', 'settings'];
+      allow write: if false;
+    }
+  }
+}

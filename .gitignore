@@ -1,0 +1,14 @@
+node_modules
+dist
+*.local
+.env
+.env.production
+.emulator-data
+firebase-debug.log*
+firestore-debug.log*
+storage-debug.log*
+ui-debug.log*
+coverage
+test-results
+playwright-report
+.DS_Store
