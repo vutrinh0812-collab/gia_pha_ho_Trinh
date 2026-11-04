@@ -151,6 +151,23 @@ main > .view {
   font-weight: 600;
   fill: var(--name, var(--text));
 }
+.vWord {
+  font-size: 14px;
+  font-weight: 600;
+  fill: var(--name, var(--text));
+  text-anchor: middle;
+}
+.vCaption {
+  font-size: 11px;
+  fill: var(--text-2);
+  text-anchor: middle;
+}
+.vYear {
+  font-size: 10.5px;
+  fill: var(--text-2);
+  text-anchor: middle;
+  font-variant-numeric: tabular-nums;
+}
 .nameL1 {
   font-size: 17px;
   font-weight: 600;

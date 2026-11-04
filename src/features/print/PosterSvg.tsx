@@ -7,7 +7,7 @@ import { useId } from 'react';
 import type { ClanModel } from '@/lib/clanModel';
 import { lifeSpan } from '@/lib/format';
 import type { Theme } from '@/themes/types';
-import { VGAP, type TreeLayout } from '../tree/layout';
+import { V, VGAP, verticalContent, type TreeLayout } from '../tree/layout';
 
 export const A1 = { landscape: { w: 841, h: 594 }, portrait: { w: 594, h: 841 } } as const;
 const SAFE = 15; // mm, printer-safe margin
@@ -324,6 +324,38 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
         </g>
         {layout.nodes.map((n) => {
           const p = n.person;
+          if (n.vertical) {
+            // Lower generations: narrow card, name written top to bottom (one word per line).
+            const vc = verticalContent(p);
+            const yrs = o.showYears ? vc.years : [];
+            const vh = n.h - (vc.years.length - yrs.length) * V.year;
+            let vy = V.padTop + (vc.caption ? V.caption : 0);
+            return (
+              <g key={n.id} transform={`translate(${n.x} ${mapY(n.y)})`}>
+                <rect width={n.w} height={vh} rx={u(theme.node.radius)} fill={theme.node.fill} stroke={theme.colors.frame} strokeWidth={u(theme.node.borderWidth)} />
+                {vc.caption && (
+                  <text x={n.w / 2} y={V.padTop + 10} textAnchor="middle" fontFamily={t.body.family} fontSize={10} fill={c.textSecondary}>
+                    {vc.caption}
+                  </text>
+                )}
+                {vc.words.map((word, i) => (
+                  <text key={i} x={n.w / 2} y={(vy += V.word) - 4} textAnchor="middle" fontFamily={t.name.family} fontWeight={t.name.weight} fontSize={14} fill={nameColor(p.gender === 'male', p.isBloodline)}>
+                    {word}
+                  </text>
+                ))}
+                {yrs.map((year, i) => (
+                  <text key={`y${i}`} x={n.w / 2} y={(vy += V.year) - 2} textAnchor="middle" fontFamily={t.body.family} fontSize={10} fill={c.textSecondary}>
+                    {year}
+                  </text>
+                ))}
+                {n.collapsed && n.hiddenCount > 0 && (
+                  <text x={n.w / 2} y={vh + 14} textAnchor="middle" fontFamily={t.body.family} fontStyle="italic" fontSize={10} fill={c.accent}>
+                    +{n.hiddenCount}
+                  </text>
+                )}
+              </g>
+            );
+          }
           const years = o.showYears ? lifeSpan(p) : '';
           const other = o.showOtherNames && p.otherNames?.huy ? `Húy ${p.otherNames.huy}` : '';
           const spouses = o.showSpouses ? n.spouses : [];

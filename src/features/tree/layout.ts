@@ -12,6 +12,15 @@ import type { ClanModel, PersonRec } from '@/lib/clanModel';
 import { spouseRole, toRoman } from '@/lib/format';
 
 export const NODE_W = 176;
+/**
+ * From this generation down, each person is a narrow vertical card with the name
+ * written top to bottom, one word per line (as in a traditional family book), so the
+ * crowded lower generations take far less width.
+ */
+export const VERTICAL_FROM_GEN = 4;
+export const VNODE_W = 56;
+/** Line heights inside a vertical card (tree units). */
+export const V = { padTop: 10, caption: 15, word: 18, year: 14, padBottom: 10 } as const;
 /** Vertical gap between generations; L3/L4 cards expand into it. */
 export const VGAP = 76;
 /** Default number of generation rows on a full tree (the app starts with 4 generations). */
@@ -53,6 +62,8 @@ export interface TreeNode {
   spouses: TreeSpouse[];
   /** "II · bà hai". */
   caption: string | null;
+  /** Narrow card with the name written top to bottom (generation ≥ VERTICAL_FROM_GEN). */
+  vertical: boolean;
   /** Top-left corner and size, in tree units. */
   x: number;
   y: number;
@@ -113,11 +124,32 @@ export interface TreeLayout {
 interface Datum {
   id: string;
   gen: number;
+  w: number;
   h: number;
   children: Datum[];
 }
 
 const VIRTUAL_ROOT = '__root__';
+
+export function isVerticalGen(gen: number): boolean {
+  return gen >= VERTICAL_FROM_GEN;
+}
+
+/** What a vertical card shows, top to bottom: birth order, the name word by word, the years. */
+export function verticalContent(p: PersonRec): { caption: string | null; words: string[]; years: string[] } {
+  const words = p.fullName.trim().split(/\s+/).filter(Boolean);
+  const years: string[] = [];
+  const b = p.birth?.solar?.slice(0, 4) ?? (p.birth?.lunar?.year ? String(p.birth.lunar.year) : null);
+  const d = p.death?.solar?.slice(0, 4) ?? (p.death?.lunar?.year ? String(p.death.lunar.year) : null);
+  if (b) years.push(b);
+  if (p.death?.isDeceased) years.push(d ?? '?');
+  return { caption: p.birthOrder ? toRoman(p.birthOrder) : null, words, years };
+}
+
+function verticalHeight(p: PersonRec): number {
+  const c = verticalContent(p);
+  return V.padTop + (c.caption ? V.caption : 0) + c.words.length * V.word + c.years.length * V.year + V.padBottom;
+}
 
 function isShown(model: ClanModel, p: PersonRec, f: TreeFilters): boolean {
   if (!p.isBloodline) return false;
@@ -227,13 +259,14 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
     const spouses = f.showSpouses ? spousesOf(model, p) : [];
     const kids = shownChildren(model, p.id, f);
     info.set(p.id, { spouses, shownKids: kids });
-    const h = BASE_H + spouses.length * SPOUSE_LINE;
+    const vertical = isVerticalGen(gen);
+    const h = vertical ? verticalHeight(p) : BASE_H + spouses.length * SPOUSE_LINE;
     rowH.set(gen, Math.max(rowH.get(gen) ?? 0, h));
-    return { id: p.id, gen, h, children: isCollapsed(p.id) ? [] : kids.map(build) };
+    return { id: p.id, gen, w: vertical ? VNODE_W : NODE_W, h, children: isCollapsed(p.id) ? [] : kids.map(build) };
   };
 
   const starts = startingPersons(model, f);
-  const virtual: Datum = { id: VIRTUAL_ROOT, gen: 0, h: 0, children: starts.map(build) };
+  const virtual: Datum = { id: VIRTUAL_ROOT, gen: 0, w: 0, h: 0, children: starts.map(build) };
 
   const gens = [...rowH.keys()].sort((a, b) => a - b);
   const rows: TreeRow[] = [];
@@ -252,7 +285,7 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
   }
 
   const layout = flextree<Datum>({
-    nodeSize: (n) => (n.data.id === VIRTUAL_ROOT ? [0, 0] : [NODE_W, (rowH.get(n.data.gen) ?? 0) + VGAP]),
+    nodeSize: (n) => (n.data.id === VIRTUAL_ROOT ? [0, 0] : [n.data.w, (rowH.get(n.data.gen) ?? 0) + VGAP]),
     spacing: (a, b) => (a.parent === b.parent ? SIBLING_GAP : COUSIN_GAP),
   });
   const root = layout.hierarchy(virtual, (d) => d.children);
@@ -260,7 +293,7 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
 
   let minX = Infinity;
   root.each((n) => {
-    if (n.data.id !== VIRTUAL_ROOT) minX = Math.min(minX, n.x - NODE_W / 2);
+    if (n.data.id !== VIRTUAL_ROOT) minX = Math.min(minX, n.x - n.data.w / 2);
   });
   if (!Number.isFinite(minX)) minX = 0;
 
@@ -279,9 +312,10 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
       gen: d.gen,
       spouses: meta.spouses,
       caption: nodeCaption(model, person, f),
-      x: n.x - NODE_W / 2 - minX,
+      x: n.x - d.w / 2 - minX,
       y: rowTop.get(d.gen) ?? 0,
-      w: NODE_W,
+      w: d.w,
+      vertical: isVerticalGen(d.gen),
       h: d.h,
       parentId,
       childIds: (n.children ?? []).map((c) => c.data.id),

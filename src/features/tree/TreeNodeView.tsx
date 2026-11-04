@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { formatDateInfo, lifeSpan } from '@/lib/format';
-import { NODE_W, VGAP, type TreeNode } from './layout';
+import { V, VGAP, verticalContent, type TreeNode } from './layout';
 import type { Lod } from './lod';
 import styles from './Tree.module.css';
 
@@ -24,7 +24,7 @@ function fit(text: string, maxW: number, size: number): string {
 }
 
 function extraLines(node: TreeNode, lod: Lod): string[] {
-  if (lod < 3) return [];
+  if (lod < 3 || node.vertical) return [];
   const p = node.person;
   const lines: string[] = [];
   const o = p.otherNames;
@@ -42,13 +42,42 @@ function extraLines(node: TreeNode, lod: Lod): string[] {
   return lines;
 }
 
+/** Narrow card: birth order, then the name one word per line, then the years. */
+function VerticalContent({ node, lod }: { node: TreeNode; lod: Lod }) {
+  const c = verticalContent(node.person);
+  const cx = node.w / 2;
+  let y = V.padTop;
+  const caption = lod >= 2 && c.caption;
+  if (c.caption) y += V.caption;
+  return (
+    <>
+      {caption && (
+        <text className={styles.vCaption} x={cx} y={V.padTop + 10}>
+          {c.caption}
+        </text>
+      )}
+      {c.words.map((word, i) => (
+        <text key={i} className={styles.vWord} x={cx} y={y + V.word * (i + 1) - 4}>
+          {word}
+        </text>
+      ))}
+      {lod >= 2 &&
+        c.years.map((year, i) => (
+          <text key={`y${i}`} className={styles.vYear} x={cx} y={y + c.words.length * V.word + V.year * (i + 1) - 2}>
+            {year}
+          </text>
+        ))}
+    </>
+  );
+}
+
 /** One family box: bloodline person (+ spouses below), content by level of detail. */
 export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, onSelect, onToggle }: Props) {
   const p = node.person;
   const role = p.gender === 'male' ? 'male' : 'female';
   const deceased = p.death?.isDeceased === true;
   const years = lifeSpan(p) || (deceased ? 'đã mất' : '');
-  const w = NODE_W;
+  const w = node.w;
   const textW = w - 22;
 
   const extraFont = lod >= 4 ? 8 : 10.5;
@@ -81,7 +110,9 @@ export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, o
     >
       <rect className={styles.box} width={w} height={cardH} rx={8} />
       <g key={lod} className={styles.content}>
-        {lod === 0 ? (
+        {node.vertical ? (
+          lod >= 1 && <VerticalContent node={node} lod={lod} />
+        ) : lod === 0 ? (
           node.gen <= 2 && (
             <text className={styles.farName} x={w / 2} y={node.h / 2}>
               {p.fullName}

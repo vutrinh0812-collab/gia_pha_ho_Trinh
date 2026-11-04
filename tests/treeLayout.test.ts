@@ -1,7 +1,7 @@
 import { buildClanModel } from '@/lib/clanModel';
 import { loadDemoSnapshot } from '@/lib/data/demoSource';
 import { generateSampleData } from '@/lib/sampleData';
-import { collapseAllIds, computeTreeLayout, NODE_W, type TreeFilters, type TreeLayout } from '@/features/tree/layout';
+import { collapseAllIds, computeTreeLayout, NODE_W, VERTICAL_FROM_GEN, VNODE_W, type TreeFilters, type TreeLayout } from '@/features/tree/layout';
 import { lodFor, minScaleFor } from '@/features/tree/lod';
 
 const model = buildClanModel(loadDemoSnapshot())!;
@@ -20,7 +20,7 @@ function assertNoOverlap(layout: TreeLayout) {
   for (const row of byRow.values()) {
     const sorted = [...row].sort((a, b) => a.x - b.x);
     for (let i = 1; i < sorted.length; i++) {
-      expect(sorted[i]!.x).toBeGreaterThanOrEqual(sorted[i - 1]!.x + NODE_W - 0.01);
+      expect(sorted[i]!.x).toBeGreaterThanOrEqual(sorted[i - 1]!.x + sorted[i - 1]!.w - 0.01);
     }
   }
 }
@@ -185,5 +185,24 @@ describe('branch view (in theo chi)', () => {
     const wife = model.get(model.index.unionsOf(focus.id)[0]!.spousePersonId!)!;
     const viaWife = computeTreeLayout(model, { ...base, focusId: wife.id });
     expect(viaWife.nodes.map((n) => n.id).sort()).toEqual(layout.nodes.map((n) => n.id).sort());
+  });
+});
+
+describe('vertical cards for the lower generations', () => {
+  const layout = computeTreeLayout(model, base);
+
+  it('uses narrow vertical cards from generation 4, full cards above', () => {
+    for (const n of layout.nodes) {
+      expect(n.vertical).toBe(n.gen >= VERTICAL_FROM_GEN);
+      expect(n.w).toBe(n.gen >= VERTICAL_FROM_GEN ? VNODE_W : NODE_W);
+    }
+    expect(layout.nodes.some((n) => n.vertical)).toBe(true);
+  });
+
+  it('makes a vertical card tall enough for one word per line', () => {
+    for (const n of layout.nodes.filter((x) => x.vertical)) {
+      const words = n.person.fullName.trim().split(/\s+/).length;
+      expect(n.h).toBeGreaterThanOrEqual(words * 18);
+    }
   });
 });
