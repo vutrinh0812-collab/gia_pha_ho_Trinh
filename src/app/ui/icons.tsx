@@ -87,3 +87,47 @@ export const ChevronIcon = (p: IconProps) => (
     <path d="M9 5l7 7-7 7" />
   </Icon>
 );
+export const PlusIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 5v14M5 12h14" />
+  </Icon>
+);
+export const MinusIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M5 12h14" />
+  </Icon>
+);
+export const FitIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+  </Icon>
+);
+export const HomeIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 11l8-7 8 7" />
+    <path d="M6 10v10h12V10" />
+  </Icon>
+);
+export const FilterIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M4 5h16l-6 7.5V19l-4-2v-4.5z" />
+  </Icon>
+);
+export const CollapseIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M7 4l5 5 5-5M7 20l5-5 5 5" />
+  </Icon>
+);
+export const ExpandIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M7 9l5-5 5 5M7 15l5 5 5-5" />
+  </Icon>
+);
+export const LineageIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="4.5" r="2" />
+    <circle cx="12" cy="12" r="2" />
+    <circle cx="12" cy="19.5" r="2" />
+    <path d="M12 6.5v3.5M12 14v3.5" />
+  </Icon>
+);

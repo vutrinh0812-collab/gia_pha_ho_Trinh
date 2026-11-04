@@ -10,6 +10,8 @@ import { PlaceholderPage } from './PlaceholderPage';
 // Heavy, rarely-used areas are code-split (SPEC 5A.3 bundle budget).
 const PrintPage = lazy(() => import('@/features/print/PrintPage'));
 const AdminPage = lazy(() => import('@/features/admin/AdminPage'));
+// The full tree (d3) is only downloaded when the "Sơ đồ" tab is opened (SPEC 5A.3).
+const TreeView = lazy(() => import('@/features/tree/TreeView'));
 
 // Embedded previews (claude.ai artifact) cannot use path routing, so they keep routes in memory.
 const Router = env.router === 'memory' ? MemoryRouter : BrowserRouter;
@@ -40,9 +42,9 @@ export function AppRoutes() {
         <Route
           path="so-do"
           element={
-            <PlaceholderPage title="Sơ đồ cây" phase="3b">
-              Sơ đồ toàn bộ dòng họ, phóng to thu nhỏ bằng hai ngón tay, đang được làm ở bước tiếp theo.
-            </PlaceholderPage>
+            <Suspense fallback={<p className="page-loading">Đang tải sơ đồ…</p>}>
+              <TreeView />
+            </Suspense>
           }
         />
         <Route path="person/:id" element={<PersonLink />} />

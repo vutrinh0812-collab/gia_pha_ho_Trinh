@@ -1,0 +1,502 @@
+/* ---------- Page ---------- */
+.view {
+  position: fixed;
+  inset: 0 0 calc(var(--nav-h) + var(--safe-bottom)) 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+.canvas {
+  position: absolute;
+  inset: 0;
+}
+.svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+.svg:active {
+  cursor: grabbing;
+}
+
+/* ---------- Generation bands and rail ---------- */
+.band {
+  fill: transparent;
+}
+.bandAlt {
+  fill: var(--band);
+}
+.rail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(38px + var(--safe-left));
+  padding-left: var(--safe-left);
+  pointer-events: none;
+  background: linear-gradient(to right, var(--bg) 60%, transparent);
+  transition: opacity 150ms ease;
+}
+.railLabel {
+  position: absolute;
+  top: 0;
+  left: var(--safe-left);
+  width: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+  color: var(--text-2);
+  will-change: transform;
+}
+.railLabel span {
+  font-size: 0.6875rem;
+}
+.railLabel strong {
+  font-size: 1.125rem;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Connectors ---------- */
+.links path {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+.links[data-dimmed] path {
+  opacity: 0.35;
+}
+.pathLink {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3px;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ---------- Nodes ---------- */
+.node {
+  --role: var(--male);
+  --role-soft: var(--male-soft);
+  cursor: pointer;
+  outline: none;
+}
+.node[data-role='female'] {
+  --role: var(--female);
+  --role-soft: var(--female-soft);
+}
+.box {
+  fill: var(--surface);
+  stroke: var(--role);
+  stroke-width: 1.2px;
+  vector-effect: non-scaling-stroke;
+}
+.node[data-deceased] .box {
+  fill: var(--deceased-fill);
+}
+.svg[data-lod='0'] .box {
+  fill: var(--role-soft);
+  stroke-width: 1px;
+}
+.node[data-raised] .box {
+  filter: drop-shadow(0 2px 6px rgb(0 0 0 / 18%));
+}
+.svg[data-moving] .node[data-raised] .box {
+  filter: none;
+}
+.bar {
+  fill: var(--role);
+}
+.node[data-dim] {
+  opacity: 0.28;
+}
+.node[data-mark='path'] .box,
+.node[data-mark='selected'] .box {
+  stroke: var(--accent);
+  stroke-width: 3px;
+}
+.node[data-mark='flash'] .box {
+  stroke: var(--accent);
+  stroke-width: 4px;
+  animation: flash 0.65s ease-in-out 4;
+}
+.node:focus-visible .box {
+  stroke: var(--accent);
+  stroke-width: 3px;
+}
+.content {
+  animation: fadeIn 140ms ease-out;
+}
+.node text {
+  font-family: var(--font-ui);
+}
+.caption {
+  font-size: 10.5px;
+  fill: var(--text-2);
+}
+.name {
+  font-size: 14px;
+  font-weight: 700;
+  fill: var(--role);
+}
+.nameL1 {
+  font-size: 17px;
+  font-weight: 700;
+  fill: var(--role);
+  text-anchor: middle;
+}
+.years {
+  font-size: 11.5px;
+  fill: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+.spouse {
+  font-size: 11.5px;
+  fill: var(--spouse);
+}
+.extra {
+  fill: var(--text);
+}
+/* L0: names of the first generations keep a readable on-screen size. */
+.farName {
+  font-size: calc(13px * var(--ik, 1));
+  font-weight: 700;
+  fill: var(--text);
+  text-anchor: middle;
+  dominant-baseline: middle;
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: calc(4px * var(--ik, 1));
+}
+.svg[data-far-names='off'] .farName {
+  display: none;
+}
+.branchLabel {
+  font-family: var(--font-ui);
+  font-size: calc(18px * var(--ik, 1));
+  font-weight: 700;
+  fill: var(--accent);
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: calc(5px * var(--ik, 1));
+}
+
+/* Collapse toggle under a node */
+.toggle {
+  cursor: pointer;
+  outline: none;
+}
+.hit {
+  fill: transparent;
+}
+.knob {
+  fill: var(--surface);
+  stroke: var(--line);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+.knobMark {
+  stroke: var(--text-2);
+  stroke-width: 1.6px;
+}
+.badge {
+  fill: var(--accent);
+}
+.badgeText {
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--on-accent);
+  text-anchor: middle;
+}
+.toggle:focus-visible .knob,
+.toggle:focus-visible .badge {
+  stroke: var(--accent);
+  stroke-width: 3px;
+}
+
+/* ---------- Floating controls ---------- */
+.topBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: calc(8px + var(--safe-top)) var(--gutter-r) 0 calc(var(--gutter-l) + 26px);
+  display: grid;
+  gap: 6px;
+  pointer-events: none;
+}
+.topBar > * {
+  pointer-events: auto;
+}
+.topRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  white-space: nowrap;
+  font-size: 1.125rem;
+  line-height: 1.2;
+  display: flex;
+  flex-direction: column;
+  text-shadow: 0 0 6px var(--bg), 0 0 2px var(--bg);
+}
+.titleSub {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--text-2);
+}
+.toolButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--tap);
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-weight: 500;
+  cursor: pointer;
+}
+.toolButton svg {
+  width: 20px;
+  height: 20px;
+}
+.dot {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.75rem;
+  line-height: 18px;
+  text-align: center;
+}
+.chip {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 2px 4px 2px 12px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  font-size: 0.875rem;
+}
+.chip strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hint {
+  position: absolute;
+  left: calc(var(--gutter-l) + 30px);
+  right: calc(var(--gutter-r) + 58px);
+  bottom: 108px;
+  border-radius: var(--radius);
+  border-color: var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  padding: 6px 4px 6px 12px;
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .hint {
+    right: calc(var(--gutter-r) + 232px);
+    left: calc(var(--gutter-l) + 170px);
+    bottom: 12px;
+  }
+}
+/* Narrow phones: icon-only tool buttons so the title keeps its line. */
+@media (max-width: 399px) {
+  .toolLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .toolButton {
+    width: var(--tap);
+    padding: 0;
+    justify-content: center;
+  }
+  .toolButton .dot {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+  }
+}
+.chipClose {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+.zoomBar {
+  position: absolute;
+  right: var(--gutter-r);
+  bottom: 12px;
+  display: grid;
+  gap: 8px;
+}
+.roundButton {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.minimap {
+  position: absolute;
+  left: calc(var(--gutter-l) + 26px);
+  bottom: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  touch-action: none;
+  cursor: pointer;
+}
+.minimap canvas {
+  display: block;
+}
+.miniView {
+  position: absolute;
+  border: 1.5px solid var(--accent);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  pointer-events: none;
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .zoomBar {
+    grid-auto-flow: column;
+  }
+}
+
+/* ---------- Filter sheet ---------- */
+.sheetTitle {
+  margin: 4px 0 0;
+  font-size: 1.25rem;
+}
+.form {
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
+}
+.field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.field label {
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+.field select {
+  font: inherit;
+  min-height: 48px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+}
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.switchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 52px;
+  border-bottom: 1px solid var(--line);
+  font-weight: 500;
+}
+.switchRow input {
+  appearance: none;
+  flex: none;
+  width: 52px;
+  height: 32px;
+  margin: 0;
+  border-radius: 16px;
+  background: var(--line);
+  position: relative;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+.switchRow input::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
+  transition: transform 150ms ease;
+}
+.switchRow input:checked {
+  background: var(--accent);
+}
+.switchRow input:checked::after {
+  transform: translateX(20px);
+}
+.formActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.primary,
+.secondary {
+  flex: 1;
+  min-height: 48px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.primary {
+  border: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.secondary {
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes flash {
+  50% {
+    stroke-width: 9px;
+  }
+}

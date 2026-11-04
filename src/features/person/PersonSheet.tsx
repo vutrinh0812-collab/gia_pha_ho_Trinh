@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useOverlays } from '@/app/useOverlays';
-import { FamilyIcon, ShareIcon } from '@/app/ui/icons';
+import { FamilyIcon, LineageIcon, ShareIcon } from '@/app/ui/icons';
 import { Sheet } from '@/app/ui/Sheet';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
 import { formatDateInfo, genderLabel, lifeSpan, spouseRole } from '@/lib/format';
@@ -24,7 +25,10 @@ export function personUrl(id: string): string {
 /** Detail sheet for the person in the `ct` query parameter. */
 export function PersonSheet({ id }: { id: string }) {
   const model = useClanStore((s) => s.model);
-  const { close, showPerson, goToFamily } = useOverlays();
+  const { params, close, showPerson, goToFamily } = useOverlays();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const onTree = pathname === '/so-do';
   const person = model?.get(id);
   const [shareNote, setShareNote] = useState<string | null>(null);
 
@@ -64,8 +68,23 @@ export function PersonSheet({ id }: { id: string }) {
       footer={
         <>
           <button type="button" className={styles.action} onClick={() => goToFamily(person.id)}>
-            <FamilyIcon width={20} height={20} /> Xem gia đình
+            <FamilyIcon width={20} height={20} /> Gia đình
           </button>
+          {onTree && (
+            <button
+              type="button"
+              className={styles.action}
+              onClick={() => {
+                // Highlight the line from the root ancestor to this person (SPEC 5.4).
+                const next = new URLSearchParams(params);
+                next.delete('ct');
+                next.set('dd', person.id);
+                navigate({ pathname, search: `?${next}` }, { replace: true });
+              }}
+            >
+              <LineageIcon width={20} height={20} /> Dòng dõi
+            </button>
+          )}
           <button type="button" className={styles.action} onClick={share}>
             <ShareIcon width={20} height={20} /> Chia sẻ
           </button>

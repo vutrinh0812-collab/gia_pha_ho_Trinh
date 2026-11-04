@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useOverlays } from '@/app/useOverlays';
 import { BackIcon } from '@/app/ui/icons';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
@@ -26,7 +27,20 @@ export function describe(model: ClanModel, p: PersonRec): string {
 /** Full-screen search (SPEC 5A.2): type without diacritics, results show generation and parent. */
 export function SearchOverlay() {
   const model = useClanStore((s) => s.model);
-  const { close, goToFamily } = useOverlays();
+  const { params, close, goToFamily } = useOverlays();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  /** On the tree, a result flies to the node; elsewhere it opens the family view. */
+  const pick = (id: string) => {
+    if (pathname === '/so-do') {
+      const next = new URLSearchParams(params);
+      next.delete('tk');
+      next.set('f', id);
+      navigate({ pathname, search: `?${next}` }, { replace: true });
+    } else {
+      goToFamily(id, { openDetail: true, replace: true });
+    }
+  };
   const [query, setQuery] = useState('');
   const input = useRef<HTMLInputElement>(null);
 
@@ -54,7 +68,7 @@ export function SearchOverlay() {
       <form className={styles.bar} role="search" onSubmit={(e) => {
         e.preventDefault();
         const first = results[0];
-        if (first) goToFamily(first.id, { openDetail: true, replace: true });
+        if (first) pick(first.id);
       }}>
         <button type="button" className={styles.back} onClick={() => close('tk')} aria-label="Đóng tìm kiếm">
           <BackIcon />
@@ -95,7 +109,7 @@ export function SearchOverlay() {
                     type="button"
                     className={styles.item}
                     data-role={roleOf(p)}
-                    onClick={() => goToFamily(p.id, { openDetail: true, replace: true })}
+                    onClick={() => pick(p.id)}
                   >
                     <span className={styles.name}>{p.fullName}</span>
                     <span className={styles.meta}>{[describe(model!, p), lifeSpan(p)].filter(Boolean).join(' · ')}</span>

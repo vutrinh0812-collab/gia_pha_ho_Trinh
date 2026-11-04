@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useOverlays } from '@/app/useOverlays';
-import { ChevronIcon, UpIcon } from '@/app/ui/icons';
+import { ChevronIcon, TreeIcon, UpIcon } from '@/app/ui/icons';
 import type { ClanModel, Partnership, PersonRec } from '@/lib/clanModel';
 import { childrenGroupLabel, givenName, lifeSpan, spouseRole } from '@/lib/format';
 import { useClanStore } from '@/store/clanStore';
@@ -162,6 +163,7 @@ interface CenterProps {
 
 function CenterCard({ model, person, generation, onOpen, onSwipeUp }: CenterProps) {
   const start = useRef<{ x: number; y: number } | null>(null);
+  const navigate = useNavigate();
   const years = lifeSpan(person);
   const deceased = person.death?.isDeceased === true;
   const facts = [
@@ -206,9 +208,18 @@ function CenterCard({ model, person, generation, onOpen, onSwipeUp }: CenterProp
           {deceased && <span className={styles.deceased}>{years ? ' · ' : ''}đã mất</span>}
         </p>
       )}
-      <button type="button" className={styles.detailButton} onClick={onOpen}>
-        Xem chi tiết <ChevronIcon width={18} height={18} />
-      </button>
+      <div className={styles.centerActions}>
+        <button type="button" className={styles.detailButton} onClick={onOpen}>
+          Xem chi tiết <ChevronIcon width={18} height={18} />
+        </button>
+        <button
+          type="button"
+          className={styles.treeButton}
+          onClick={() => navigate(`/so-do?f=${encodeURIComponent(person.id)}`)}
+        >
+          <TreeIcon width={18} height={18} /> Trên sơ đồ
+        </button>
+      </div>
     </section>
   );
 }

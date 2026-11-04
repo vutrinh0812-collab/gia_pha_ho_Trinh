@@ -20,6 +20,10 @@
     "build:preview": "tsc -b && vite build --mode demo && node scripts/build-preview.mjs"
   },
   "dependencies": {
+    "d3-flextree": "^2.1.2",
+    "d3-selection": "^3.0.1",
+    "d3-transition": "^3.0.2",
+    "d3-zoom": "^3.0.1",
     "firebase": "^10.14.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -30,6 +34,9 @@
     "@firebase/rules-unit-testing": "^3.0.4",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
+    "@types/d3-selection": "^3.0.12",
+    "@types/d3-transition": "^3.0.9",
+    "@types/d3-zoom": "^3.0.9",
     "@types/node": "^26.6.6",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",

@@ -30,6 +30,8 @@
   --female-soft: #f8e7ef;
   --spouse-soft: #e5f2ea;
 
+  --band: #eef1f5;
+  --deceased-fill: #f3f4f6;
   --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 2px 8px rgb(16 24 40 / 6%);
   --scrim: rgb(10 14 20 / 45%);
 
@@ -67,6 +69,8 @@
     --male-soft: #1b2a3b;
     --female-soft: #35202b;
     --spouse-soft: #1b3024;
+    --band: #141920;
+    --deceased-fill: #1f2329;
     --shadow: 0 1px 2px rgb(0 0 0 / 40%);
     --scrim: rgb(0 0 0 / 60%);
     color-scheme: dark;
@@ -93,6 +97,8 @@
   --male-soft: #1b2a3b;
   --female-soft: #35202b;
   --spouse-soft: #1b3024;
+  --band: #141920;
+  --deceased-fill: #1f2329;
   --shadow: 0 1px 2px rgb(0 0 0 / 40%);
   --scrim: rgb(0 0 0 / 60%);
   color-scheme: dark;
@@ -153,5 +159,12 @@ button {
   *::after {
     animation-duration: 1ms !important;
     transition-duration: 1ms !important;
+  }
+}
+
+/* Landscape phones: compact bottom bar so the tree gets the height (SPEC 5A.1). */
+@media (orientation: landscape) and (max-height: 500px) {
+  :root {
+    --nav-h: 48px;
   }
 }

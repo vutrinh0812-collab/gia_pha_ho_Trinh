@@ -122,3 +122,32 @@ Màu theo vai trò: nam (xanh dương), nữ (hồng đậm), dâu/rể (xanh l�
 
 ### D22. Tùy chọn trên từng máy
 Theme sáng/tối, "Chữ lớn" và "Hiện con cháu bên ngoại" lưu trong `localStorage` của từng máy. Nếu trình duyệt chặn bộ nhớ thì tùy chọn vẫn chạy nhưng mất khi tải lại trang. "Hiện bên ngoại" mặc định theo `showMaternalDescendants` của dòng họ.
+
+---
+
+## Giai đoạn 3b — Sơ đồ
+
+### D23. Ngưỡng semantic zoom
+- **Máy tính (chuột):** theo đúng `transform.k` của SPEC: 0,35 / 0,7 / 1,3 / 2,2.
+- **Màn hình cảm ứng:** theo cỡ chữ tên hiển thị thật trên màn hình (SPEC 5A.1): 7,5 / 10,5 / 15 / 22 px. Ngưỡng L4 chọn sao cho một ô người vẫn vừa màn hình điện thoại khoảng 360px.
+- Layout luôn tính theo cỡ ô của mức L2. Đổi mức chỉ thay nội dung bên trong ô (mờ dần 140ms), vị trí các ô không đổi.
+
+### D24. Ô mở rộng ở mức L3/L4
+Ở L3/L4, ô người **kéo dài xuống khoảng trống giữa hai đời** (cao 76 đơn vị) và được vẽ đè lên các đường nối, kèm bóng đổ. Đây là cách làm "card mở rộng đè lên" mà không phải dàn lại cây. Thông tin quá dài thì cắt bằng "…"; xem đầy đủ trong bảng chi tiết.
+
+### D25. SVG, chưa dùng Canvas
+Đã đo: dữ liệu mẫu (219 ô) ở mức L0 và khoảng 3.000 người (khoảng 1.400 ô, layout dưới 0,3 giây) vẫn ổn với SVG, vì có các biện pháp sau:
+- **Ảo hóa:** chỉ vẽ ô trong vùng nhìn thấy, cộng thêm vùng đệm 0,5 màn hình trên điện thoại, 1 màn hình trên máy tính.
+- **Transform áp thẳng vào DOM:** React chỉ vẽ lại khi đổi mức chi tiết hoặc khi vùng nhìn ra khỏi vùng đã vẽ.
+- **Không tô bóng khi đang kéo:** tắt bóng đổ trong lúc kéo hoặc phóng to.
+
+Sẽ đo lại trên máy Android yếu ở giai đoạn 7; nếu giật thì đổi riêng mức L0 sang Canvas.
+
+### D26. Trạng thái sơ đồ trên URL
+Các tham số: `chi` (chi), `tu`/`den` (khoảng đời), `dr=0` (ẩn dâu-rể), `dd` (dòng dõi đang tô sáng), `v=x,y,k` (vị trí và mức phóng to, ghi sau khi ngừng kéo 0,4 giây), `f` (bay tới một người). Trạng thái thu gọn nhánh chỉ giữ trong phiên, không đưa lên URL.
+
+### D27. Giữ chỗ nhìn khi cây đổi hình
+Thu gọn nhánh hoặc lọc làm cả cây dịch chuyển. Khi đó app giữ **người gần giữa màn hình nhất** ở nguyên vị trí trên màn hình, để không bị "lạc" sang khoảng trống.
+
+### D28. Tải Sơ đồ khi cần
+Màn hình Sơ đồ và thư viện d3 nằm trong một gói riêng (khoảng 29KB gzip), chỉ tải khi mở tab Sơ đồ. Gói tải lần đầu hiện khoảng 72KB gzip, thấp hơn nhiều so với ngân sách 250KB.
