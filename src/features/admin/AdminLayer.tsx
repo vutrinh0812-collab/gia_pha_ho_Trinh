@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useOverlays } from '@/app/useOverlays';
 import { Sheet } from '@/app/ui/Sheet';
-import { AdminError, deletePerson, reorderChildren, type ChangeSet } from '@/lib/admin/changes';
+import { AdminError, deletePerson, reorderChildren, reorderFounders, type ChangeSet } from '@/lib/admin/changes';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
-import { lifeSpan } from '@/lib/format';
+import { lifeSpan, toRoman } from '@/lib/format';
 import { useAdminStore } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
 import { useClanStore } from '@/store/clanStore';
@@ -37,12 +37,15 @@ function ActionMenu({ model, person }: { model: ClanModel; person: PersonRec }) 
   const parentUnion = model.index.parentUnionOf(person.id);
   const siblings = parentUnion ? model.index.childrenOf(parentUnion.id).length : 0;
   const isRoot = model.founders.some((f) => f.id === person.id);
+  const canReorder = parentUnion ? siblings > 1 : isRoot && model.founders.length > 1;
   const items: Array<[string, () => void, boolean?]> = [
     ['Sửa thông tin', () => open('edit', person.id)],
     ['Thêm con', () => open('addChild', person.id)],
     ...(person.isBloodline ? ([[person.gender === 'male' ? 'Thêm vợ' : 'Thêm chồng', () => open('addSpouse', person.id)]] as Array<[string, () => void]>) : []),
     ...(isRoot ? ([[(model.founders.length > 1 ? 'Thêm cha chung (đời trên đời 1)' : 'Thêm cha (đời trên thủy tổ)'), () => open('addFather', person.id)]] as Array<[string, () => void]>) : []),
-    ...(siblings > 1 ? ([['Đổi thứ tự anh chị em', () => open('reorder', person.id)]] as Array<[string, () => void]>) : []),
+    ...(canReorder
+      ? ([[parentUnion ? 'Đổi thứ tự anh chị em' : 'Đổi thứ tự các gia đình đời 1', () => open('reorder', person.id)]] as Array<[string, () => void]>)
+      : []),
     ['Xóa', () => open('delete', person.id), true],
   ];
   return (
@@ -61,11 +64,14 @@ function ActionMenu({ model, person }: { model: ClanModel; person: PersonRec }) 
 }
 
 function ReorderSheet({ model, person, onDone }: { model: ClanModel; person: PersonRec; onDone(): void }) {
-  const union = model.index.parentUnionOf(person.id)!;
-  const [ids, setIds] = useState(() => model.index.childrenOf(union.id).map((c) => c.id));
+  // Siblings share a parent union; people at generation 1 (no parents in the book) are reordered together.
+  const union = model.index.parentUnionOf(person.id);
+  const [ids, setIds] = useState(() =>
+    union ? model.index.childrenOf(union.id).map((c) => c.id) : model.founders.map((f) => f.id),
+  );
   const [error, setError] = useState<string | null>(null);
   const apply = useAdminStore((s) => s.apply);
-  const parent = model.get(union.bloodlinePersonId);
+  const parent = union ? model.get(union.bloodlinePersonId) : undefined;
   const move = (i: number, d: -1 | 1) =>
     setIds((list) => {
       const next = [...list];
@@ -77,7 +83,7 @@ function ReorderSheet({ model, person, onDone }: { model: ClanModel; person: Per
   const save = async () => {
     let set: ChangeSet;
     try {
-      set = reorderChildren(model, union.id, ids);
+      set = union ? reorderChildren(model, union.id, ids) : reorderFounders(model, ids);
     } catch (e) {
       setError(e instanceof AdminError ? e.message : 'Không đổi được thứ tự.');
       return;
@@ -86,9 +92,11 @@ function ReorderSheet({ model, person, onDone }: { model: ClanModel; person: Per
   };
   return (
     <Sheet
-      label="Đổi thứ tự anh chị em"
+      label={union ? 'Đổi thứ tự anh chị em' : 'Đổi thứ tự các gia đình đời 1'}
       onClose={onDone}
-      header={<h2 className={styles.title}>Thứ tự các con của {parent?.fullName}</h2>}
+      header={
+        <h2 className={styles.title}>{union ? `Thứ tự các con của ${parent?.fullName ?? '…'}` : 'Thứ tự các gia đình ở Đời 1'}</h2>
+      }
       footer={
         <>
           <button type="button" className={styles.secondary} onClick={onDone}>
@@ -105,12 +113,13 @@ function ReorderSheet({ model, person, onDone }: { model: ClanModel; person: Per
           {error}
         </p>
       )}
+      {!union && <p className={styles.orderMeta}>Gia đình đứng đầu danh sách là gốc của sơ đồ (thủy tổ).</p>}
       <ol className={styles.order}>
         {ids.map((id, i) => {
           const c = model.get(id)!;
           return (
             <li key={id}>
-              <span className={styles.orderN}>{i + 1}</span>
+              <span className={styles.orderN}>{toRoman(i + 1)}</span>
               <span className={styles.orderName}>
                 {c.fullName}
                 <span className={styles.orderMeta}>{lifeSpan(c)}</span>

@@ -8,6 +8,7 @@ import {
   editSettings,
   personContent,
   reorderChildren,
+  reorderFounders,
   undoGroup,
   type ChangeSet,
 } from '@/lib/admin/changes';
@@ -145,5 +146,39 @@ describe('admin change sets (demo backend)', () => {
     await apply(set);
     expect(model().settings.title).toBe('Gia Phả Họ Trịnh (đã sửa)');
     expect(model().rootId).toBe(m.rootId);
+  });
+});
+
+describe('reorder the families of generation 1', () => {
+  const twoFounders = (): ClanModel => {
+    const snap = loadDemoSnapshot();
+    const extra = { id: 'f2', fullName: 'Trịnh Văn Hai', gender: 'male' as const, isBloodline: true, parentUnionId: null };
+    return buildClanModel({ ...snap, persons: [...snap.persons, extra] })!;
+  };
+
+  it('puts the chosen family first and makes it the root', () => {
+    const m = twoFounders();
+    const [root, other] = m.founders.map((f) => f.id);
+    expect(m.founders).toHaveLength(2);
+    const set = reorderFounders(m, [other!, root!]);
+    const settings = set.changes.find((c) => c.collection === 'settings');
+    expect(settings?.after).toMatchObject({ rootPersonId: other });
+    const orders = Object.fromEntries(set.changes.filter((c) => c.collection === 'persons').map((c) => [c.id, c.after?.birthOrder]));
+    expect(orders[other!]).toBe(1);
+    expect(orders[root!]).toBe(2);
+  });
+
+  it('refuses an unchanged or stale list', () => {
+    const m = twoFounders();
+    const ids = m.founders.map((f) => f.id);
+    expect(() => reorderFounders(m, ids.slice(0, 1))).toThrow(AdminError);
+  });
+});
+
+describe('toRoman', () => {
+  it('writes birth orders as Roman numerals', async () => {
+    const { toRoman } = await import('@/lib/format');
+    expect([1, 2, 3, 4, 5, 9, 10, 14, 19, 40].map(toRoman)).toEqual(['I', 'II', 'III', 'IV', 'V', 'IX', 'X', 'XIV', 'XIX', 'XL']);
+    expect(toRoman(0)).toBe('0');
   });
 });

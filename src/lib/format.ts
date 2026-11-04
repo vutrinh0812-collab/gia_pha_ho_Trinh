@@ -4,6 +4,18 @@ import type { DateInfo, Gender, PersonFields } from './types';
 
 const ORDINALS = ['cả', 'hai', 'ba', 'tư', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười'];
 
+/** 1 → "I", 4 → "IV", 14 → "XIV" (birth order in the book is written this way). */
+export function toRoman(n: number): string {
+  if (!Number.isInteger(n) || n < 1 || n > 3999) return String(n);
+  const table: Array<[number, string]> = [
+    [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'],
+    [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I'],
+  ];
+  let out = '';
+  for (const [v, s] of table) while (n >= v) { out += s; n -= v; }
+  return out;
+}
+
 /** Year of a date, from the solar part or else the lunar year. */
 export function yearOf(d: DateInfo | undefined): number | null {
   if (!d) return null;

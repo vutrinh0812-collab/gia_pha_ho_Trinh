@@ -4,7 +4,7 @@ import { useOverlays } from '@/app/useOverlays';
 import { FamilyIcon, LineageIcon, ShareIcon } from '@/app/ui/icons';
 import { Sheet } from '@/app/ui/Sheet';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
-import { formatDateInfo, genderLabel, lifeSpan, spouseRole } from '@/lib/format';
+import { formatDateInfo, genderLabel, lifeSpan, spouseRole, toRoman } from '@/lib/format';
 import { daysBetween, nextLunarAnniversary, type SolarDate } from '@/lib/lunar';
 import { shareLink } from '@/lib/share';
 import { useAdminStore } from '@/store/adminStore';
@@ -138,7 +138,7 @@ function Details({ model, person }: { model: ClanModel; person: PersonRec }) {
     ['Tên thường gọi', o?.thuong],
     ['Giới tính', genderLabel(person.gender)],
     ['Quan hệ', person.isBloodline ? (model.isMaternal(person.id) ? 'Con cháu bên ngoại' : 'Huyết thống') : person.gender === 'female' ? 'Dâu' : 'Rể'],
-    ['Thứ tự', person.birthOrder && parent ? `Con thứ ${person.birthOrder} của ${parent.fullName}` : null],
+    ['Thứ tự', person.birthOrder && parent ? `${toRoman(person.birthOrder)} · con của ${parent.fullName}` : null],
     ['Sinh', formatDateInfo(person.birth) || (person.birth ? null : 'Chưa rõ')],
     ['Nơi sinh', person.birth?.place],
     ['Mất', person.death?.isDeceased ? formatDateInfo(person.death) || 'Đã mất, chưa rõ ngày' : null],
@@ -182,7 +182,7 @@ function Relatives({ model, person, onPick }: { model: ClanModel; person: Person
   if (children.length) {
     items.push({
       label: `Con (${children.length})`,
-      people: children.map((c) => ({ p: c, caption: c.birthOrder ? `Con thứ ${c.birthOrder}` : undefined })),
+      people: children.map((c) => ({ p: c, caption: c.birthOrder ? toRoman(c.birthOrder) : undefined })),
     });
   }
   if (fam.siblings.length) items.push({ label: `Anh chị em (${fam.siblings.length})`, people: fam.siblings.map((p) => ({ p })) });

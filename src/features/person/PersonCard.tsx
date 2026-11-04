@@ -14,7 +14,7 @@ export function roleOf(p: PersonRec): PersonRole {
 
 interface Props {
   person: PersonRec;
-  /** Small caption above the name, e.g. "Cha", "Vợ cả", "Con thứ 2". */
+  /** Small caption above the name, e.g. "Cha", "Vợ cả", "II". */
   caption?: string;
   /** Extra line under the years, e.g. "3 con". */
   extra?: string;

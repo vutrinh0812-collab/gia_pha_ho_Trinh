@@ -105,7 +105,7 @@ function AdminHome() {
       <h2 className={styles.h2}>Cách sửa thông tin một người</h2>
       <ul className={styles.howto}>
         <li>Nhấn giữ vào tên người đó (trên điện thoại), hoặc mở “Xem chi tiết” rồi bấm “Sửa” hay “Thao tác”.</li>
-        <li>“Thao tác” có: thêm con, thêm vợ hoặc chồng, thêm cha cho người ở Đời 1, đổi thứ tự anh chị em, xóa.</li>
+        <li>“Thao tác” có: thêm con, thêm vợ hoặc chồng, thêm cha cho người ở Đời 1, đổi thứ tự anh chị em (hoặc các gia đình ở Đời 1), xóa.</li>
         <li>Thêm cả một đời: dùng “Thêm đời trên / dưới” ở trên, hoặc nút cùng tên trên màn Sơ đồ.</li>
         <li>Người còn con không xóa được; hãy xóa hoặc chuyển các con trước.</li>
       </ul>

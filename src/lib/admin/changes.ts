@@ -193,6 +193,36 @@ export function addSpouse(model: ClanModel, personId: string, fields: PersonFiel
 }
 
 /**
+ * Reorders the families of generation 1 (persons with no parents in the book).
+ * The first one becomes the root (settings.rootPersonId), as the tree starts from it.
+ */
+export function reorderFounders(model: ClanModel, orderedIds: string[]): ChangeSet {
+  const founders = model.founders;
+  if (orderedIds.length !== founders.length || !founders.every((f) => orderedIds.includes(f.id))) {
+    throw new AdminError('Danh sách đời 1 đã thay đổi; hãy mở lại.');
+  }
+  const changes: Change[] = [];
+  orderedIds.forEach((id, i) => {
+    const p = requirePerson(model, id);
+    if (p.birthOrder === i + 1) return;
+    const before = personContent(p);
+    changes.push({ collection: 'persons', id, action: 'update', before: before as unknown as Doc, after: { ...before, birthOrder: i + 1 } as Doc });
+  });
+  if (orderedIds[0] !== model.settings.rootPersonId) {
+    const sBefore = settingsContent(model.settings);
+    changes.push({
+      collection: 'settings',
+      id: SETTINGS_ID,
+      action: 'update',
+      before: sBefore as unknown as Doc,
+      after: { ...sBefore, rootPersonId: orderedIds[0] } as unknown as Doc,
+    });
+  }
+  if (!changes.length) throw new AdminError('Thứ tự không thay đổi.');
+  return { groupId: newId(), summary: 'Đổi thứ tự các gia đình ở đời 1', changes };
+}
+
+/**
  * Adds a generation above the root ancestor (SPEC §6 "Thêm cha", root only).
  * When the book starts from several families (founders), the new father becomes
  * the common ancestor of all of them, so every generation number shifts together.

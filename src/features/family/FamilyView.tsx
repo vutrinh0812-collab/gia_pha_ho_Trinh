@@ -5,7 +5,7 @@ import { useOverlays } from '@/app/useOverlays';
 import { TreeIcon, UpIcon } from '@/app/ui/icons';
 import { formatSolarShort, todaySolar, upcomingAnniversaries } from '@/lib/anniversaries';
 import type { ClanModel, Partnership, PersonRec } from '@/lib/clanModel';
-import { childrenGroupLabel, givenName, lifeSpan, spouseRole } from '@/lib/format';
+import { childrenGroupLabel, givenName, lifeSpan, spouseRole, toRoman } from '@/lib/format';
 import { useClanStore } from '@/store/clanStore';
 import { usePrefsStore } from '@/store/prefsStore';
 import { useAdminStore } from '@/store/adminStore';
@@ -154,7 +154,7 @@ export function FamilyView() {
               <PersonCard
                 key={s.id}
                 person={s}
-                caption={s.birthOrder ? `Con thứ ${s.birthOrder}` : undefined}
+                caption={s.birthOrder ? toRoman(s.birthOrder) : undefined}
                 onClick={() => go(s)}
               />
             ))}
@@ -353,7 +353,7 @@ function Children({ model, person, partnerships, showMaternal, onPick }: Childre
                     <PersonCard
                       key={c.id}
                       person={c}
-                      caption={c.birthOrder ? `Con thứ ${c.birthOrder}` : undefined}
+                      caption={c.birthOrder ? toRoman(c.birthOrder) : undefined}
                       extra={kids > 0 ? `${kids} con` : undefined}
                       onClick={() => onPick(c)}
                     />

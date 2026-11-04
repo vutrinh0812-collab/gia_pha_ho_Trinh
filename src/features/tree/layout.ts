@@ -9,7 +9,7 @@
  */
 import { flextree, type FlexHierarchyNode } from 'd3-flextree';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
-import { spouseRole } from '@/lib/format';
+import { spouseRole, toRoman } from '@/lib/format';
 
 export const NODE_W = 176;
 /** Vertical gap between generations; L3/L4 cards expand into it. */
@@ -51,7 +51,7 @@ export interface TreeNode {
   person: PersonRec;
   gen: number;
   spouses: TreeSpouse[];
-  /** "Con thứ 2 · bà hai". */
+  /** "II · bà hai". */
   caption: string | null;
   /** Top-left corner and size, in tree units. */
   x: number;
@@ -176,7 +176,7 @@ function startingPersons(model: ClanModel, f: TreeFilters): PersonRec[] {
 
 function nodeCaption(model: ClanModel, p: PersonRec, f: TreeFilters): string | null {
   const parts: string[] = [];
-  if (p.birthOrder) parts.push(`Con thứ ${p.birthOrder}`);
+  if (p.birthOrder) parts.push(toRoman(p.birthOrder));
   const parentUnion = model.index.parentUnionOf(p.id);
   if (parentUnion) {
     const unionsWithKids = model.index

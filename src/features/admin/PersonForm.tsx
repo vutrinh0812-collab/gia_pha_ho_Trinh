@@ -13,7 +13,7 @@ import {
   type ChangeSet,
 } from '@/lib/admin/changes';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
-import { childrenGroupLabel } from '@/lib/format';
+import { childrenGroupLabel, toRoman } from '@/lib/format';
 import type { Gender, PersonFields } from '@/lib/types';
 import { useAdminStore } from '@/store/adminStore';
 import { DateFields } from './DateFields';
@@ -193,7 +193,9 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
           )}
           {(mode === 'edit' ? person.parentUnionId : mode === 'addChild') && (
             <div className={styles.field}>
-              <label htmlFor="f-order">Con thứ</label>
+              <label htmlFor="f-order">
+                Thứ tự trong anh chị em{draft.birthOrder ? ` (hiển thị: ${toRoman(draft.birthOrder)})` : ''}
+              </label>
               <input
                 id="f-order"
                 inputMode="numeric"
