@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
-import type { Theme } from '@/themes/types';
 import { computeTreeLayout, type TreeLayout } from '../tree/layout';
 
 export interface BranchOption {
