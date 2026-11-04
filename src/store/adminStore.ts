@@ -1,11 +1,32 @@
 import { create } from 'zustand';
 import type { AdminUser } from '@/lib/admin/backend';
 import type { ChangeSet } from '@/lib/admin/changes';
+import { env } from '@/lib/env';
 import { useToastStore } from './toastStore';
 
 /** Sign out after this long without any interaction (SPEC §4). */
 export const IDLE_LIMIT_MS = 30 * 60 * 1000;
 const ACTIVITY_KEY = 'giapha.adminActivity';
+/** Give up on a sign-in that has not answered by then, instead of spinning forever. */
+const SIGN_IN_TIMEOUT_MS = 30_000;
+/** If the saved session has not been restored by then, show the form anyway. */
+const RESTORE_TIMEOUT_MS = 8_000;
+
+function withTimeout<T>(p: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(message)), ms);
+    p.then(
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      (e: unknown) => {
+        clearTimeout(t);
+        reject(e instanceof Error ? e : new Error(String(e)));
+      },
+    );
+  });
+}
 
 export type AdminStatus = 'unknown' | 'signedOut' | 'signingIn' | 'admin';
 
@@ -64,9 +85,28 @@ export const useAdminStore = create<AdminState>((set, get) => {
 
   const becomeAdmin = async (user: AdminUser): Promise<boolean> => {
     const b = await backend();
-    if (!(await b.isAdmin(user))) {
-      await b.signOut();
-      set({ status: 'signedOut', user: null, error: 'Mã đúng nhưng tài khoản này chưa được cấp quyền admin cho gia phả.' });
+    let ok: boolean;
+    try {
+      ok = await b.isAdmin(user);
+    } catch (e) {
+      await b.signOut().catch(() => undefined);
+      set({
+        status: 'signedOut',
+        user: null,
+        error: e instanceof Error ? e.message : 'Không kiểm tra được quyền admin.',
+      });
+      return false;
+    }
+    if (!ok) {
+      await b.signOut().catch(() => undefined);
+      set({
+        status: 'signedOut',
+        user: null,
+        error:
+          `Mã admin đúng, nhưng tài khoản chưa có trong danh sách admin của dòng họ "${env.clanId}". ` +
+          `Trong Firestore, tài liệu clans/${env.clanId}/config/admins cần có trường uids (kiểu array) chứa UID: ${user.uid} ` +
+          '(hoặc chạy lại npm run admin:setup -- --real, xem README mục 3.8).',
+      });
       return false;
     }
     set({ status: 'admin', user, error: null });
@@ -81,21 +121,30 @@ export const useAdminStore = create<AdminState>((set, get) => {
     init() {
       if (started) return;
       started = true;
-      void backend().then((b) =>
-        b.onUserChange((user) => {
-          if (!user) {
-            if (get().status !== 'signingIn') set({ status: 'signedOut', user: null });
-            return;
-          }
-          if (get().status === 'admin' || get().status === 'signingIn') return;
-          // Restored session: it still has to be fresh enough.
-          if (Date.now() - readActivity() >= IDLE_LIMIT_MS) {
-            void get().signOut('Phiên admin đã hết hạn. Hãy nhập lại mã admin.');
-            return;
-          }
-          void becomeAdmin(user);
-        }),
-      );
+      const giveUp = setTimeout(() => {
+        if (get().status === 'unknown') set({ status: 'signedOut', user: null });
+      }, RESTORE_TIMEOUT_MS);
+      void backend()
+        .then((b) =>
+          b.onUserChange((user) => {
+            clearTimeout(giveUp);
+            if (!user) {
+              if (get().status !== 'signingIn') set({ status: 'signedOut', user: null });
+              return;
+            }
+            if (get().status === 'admin' || get().status === 'signingIn') return;
+            // Restored session: it still has to be fresh enough.
+            if (Date.now() - readActivity() >= IDLE_LIMIT_MS) {
+              void get().signOut('Phiên admin đã hết hạn. Hãy nhập lại mã admin.');
+              return;
+            }
+            void becomeAdmin(user);
+          }),
+        )
+        .catch(() => {
+          clearTimeout(giveUp);
+          if (get().status === 'unknown') set({ status: 'signedOut', user: null });
+        });
     },
     async signIn(code) {
       if (!code.trim()) {
@@ -104,10 +153,18 @@ export const useAdminStore = create<AdminState>((set, get) => {
       }
       set({ status: 'signingIn', error: null });
       try {
-        const user = await (await backend()).signIn(code);
+        const user = await withTimeout(
+          backend().then((b) => b.signIn(code)),
+          SIGN_IN_TIMEOUT_MS,
+          'Đăng nhập không phản hồi. Hãy kiểm tra mạng rồi thử lại.',
+        );
         return await becomeAdmin(user);
       } catch (e) {
-        set({ status: 'signedOut', user: null, error: e instanceof Error ? e.message : 'Không đăng nhập được.' });
+        set({
+          status: 'signedOut',
+          user: null,
+          error: e instanceof Error ? e.message : 'Không đăng nhập được.',
+        });
         return false;
       }
     },

@@ -16,7 +16,7 @@ function SignIn() {
   const { status, error, signIn } = useAdminStore();
   const [code, setCode] = useState('');
   const [show, setShow] = useState(false);
-  const busy = status === 'signingIn' || status === 'unknown';
+  const busy = status === 'signingIn';
   return (
     <div className={styles.page}>
       <h1>Chế độ Admin</h1>
@@ -36,6 +36,9 @@ function SignIn() {
             id="admin-code"
             type={show ? 'text' : 'password'}
             autoComplete="current-password"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
             value={code}
             onChange={(e) => setCode(e.target.value)}
             aria-invalid={Boolean(error) || undefined}

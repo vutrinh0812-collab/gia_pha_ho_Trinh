@@ -2,7 +2,7 @@ import {
   collection,
   deleteField,
   doc,
-  getDoc,
+  getDocFromServer,
   getDocs,
   limit as limitTo,
   orderBy,
@@ -63,7 +63,21 @@ const AUTH_MESSAGES: Record<string, string> = {
   'auth/too-many-requests': 'Nhập sai quá nhiều lần. Hãy thử lại sau ít phút.',
   'auth/network-request-failed': 'Không có kết nối mạng. Hãy kiểm tra mạng rồi thử lại.',
   'auth/user-disabled': 'Tài khoản admin đang bị khóa.',
+  'auth/operation-not-allowed':
+    'Firebase chưa bật đăng nhập bằng Email/Mật khẩu. Vào Firebase → Authentication → Sign-in method → bật "Email/Password".',
+  'auth/invalid-email':
+    'Email admin (VITE_ADMIN_EMAIL) trên trang web bị trống hoặc sai. Kiểm tra biến môi trường rồi deploy lại.',
+  'auth/invalid-api-key': 'Khóa Firebase (VITE_FIREBASE_API_KEY) không đúng. Kiểm tra biến môi trường rồi deploy lại.',
+  'auth/api-key-not-valid.-please-pass-a-valid-api-key.':
+    'Khóa Firebase (VITE_FIREBASE_API_KEY) không đúng. Kiểm tra biến môi trường rồi deploy lại.',
+  'auth/unauthorized-domain':
+    'Tên miền này chưa được Firebase cho phép. Vào Firebase → Authentication → Settings → Authorized domains và thêm tên miền của trang.',
+  'auth/requests-from-referer-are-blocked':
+    'Khóa Firebase đang chặn tên miền này. Vào Google Cloud → Credentials, mở khóa API và thêm tên miền của trang.',
 };
+
+/** Thrown by isAdmin when the check itself failed (not a "no"). */
+export class AdminCheckError extends Error {}
 
 export function createFirebaseBackend(): AdminBackend {
   const toUser = (u: { uid: string; email: string | null } | null): AdminUser | null =>
@@ -76,7 +90,10 @@ export function createFirebaseBackend(): AdminBackend {
       void (async () => {
         const [{ onAuthStateChanged }, auth] = await Promise.all([import('firebase/auth'), getAuthLazy()]);
         if (!cancelled) unsub = onAuthStateChanged(auth, (u) => cb(toUser(u)));
-      })();
+      })().catch(() => {
+        // Auth could not start (bad config, blocked script): treat as signed out so the form stays usable.
+        if (!cancelled) cb(null);
+      });
       return () => {
         cancelled = true;
         unsub?.();
@@ -90,11 +107,12 @@ export function createFirebaseBackend(): AdminBackend {
       try {
         // The session ends with the browser tab, on top of the 30-minute idle sign-out.
         await setPersistence(auth, browserSessionPersistence);
-        const cred = await signInWithEmailAndPassword(auth, env.adminEmail, code);
+        // The setup script trims the code it stores; mobile keyboards often add a trailing space.
+        const cred = await signInWithEmailAndPassword(auth, env.adminEmail, code.trim());
         return toUser(cred.user)!;
       } catch (e) {
         const code = (e as { code?: string }).code ?? '';
-        throw new Error(AUTH_MESSAGES[code] ?? 'Không đăng nhập được. Hãy thử lại.');
+        throw new Error(AUTH_MESSAGES[code] ?? `Không đăng nhập được${code ? ` (mã lỗi: ${code})` : ''}. Hãy thử lại.`);
       }
     },
     async signOut() {
@@ -103,11 +121,14 @@ export function createFirebaseBackend(): AdminBackend {
     },
     async isAdmin(user) {
       try {
-        const snap = await getDoc(doc(getDb(), `${paths.clan()}/config/admins`));
-        const uids = (snap.data()?.uids ?? []) as string[];
-        return uids.includes(user.uid);
-      } catch {
-        return false; // the rules deny the read to anyone not listed
+        // Straight from the server: a cached copy could be stale or missing right after sign-in.
+        const snap = await getDocFromServer(doc(getDb(), `${paths.clan()}/config/admins`));
+        const uids = (snap.data()?.uids ?? []) as unknown;
+        return Array.isArray(uids) && uids.includes(user.uid);
+      } catch (e) {
+        // The rules deny the read to anyone not listed (or when the document does not exist).
+        if ((e as { code?: string }).code === 'permission-denied') return false;
+        throw new AdminCheckError('Không kiểm tra được quyền admin vì lỗi mạng. Hãy kiểm tra mạng rồi thử lại.');
       }
     },
     async apply(set, user) {
