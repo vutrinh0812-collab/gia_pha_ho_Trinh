@@ -11,7 +11,7 @@ export function HomePage() {
   return (
     <main className={styles.page}>
       <h1>Gia Phả Dòng Họ</h1>
-      <p className={styles.muted}>Giai đoạn 1 — kiểm tra cấu hình và kết nối Firebase.</p>
+      <p className={styles.muted}>Trang kiểm tra cấu hình, kết nối Firebase và dữ liệu (tạm thời, đến giai đoạn 3).</p>
 
       <section className={styles.card} aria-labelledby="cfg">
         <h2 id="cfg">Cấu hình</h2>

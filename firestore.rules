@@ -1,11 +1,182 @@
 rules_version = '2';
-// PHASE 1 PLACEHOLDER: public read of clan data, no writes at all.
-// Full admin rules with validation arrive in phase 2.
+
+// Security rules for the genealogy app (SPEC §4).
+//
+//  - persons, unions, settings: public read, admin-only write, with schema validation.
+//  - auditLog: admin-only read/create; entries are immutable (no update/delete for anyone).
+//  - config/admins: never writable from clients (Console / Admin SDK only).
+//  - everything else: denied.
+//
+// Field limits mirror src/lib/types.ts LIMITS and src/lib/validators.ts — keep in sync.
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /clans/{clanId}/{collection}/{docId} {
-      allow read: if collection in ['persons', 'unions', 'settings'];
-      allow write: if false;
+
+    // ---------- Auth ----------
+
+    // Single extension point for authorization. Admins are listed by uid in
+    // clans/{clanId}/config/admins { uids: [...] } (see DECISIONS.md D9).
+    // Later per-branch admins can be added here (e.g. custom claims) without
+    // touching the collection rules below.
+    function isAdmin(clanId) {
+      return request.auth != null
+        && request.auth.uid in get(/databases/$(database)/documents/clans/$(clanId)/config/admins).data.uids;
+    }
+
+    // ---------- Generic validators ----------
+
+    function optStr(m, k, max) {
+      return !(k in m) || (m[k] is string && m[k].size() <= max);
+    }
+    function optBool(m, k) {
+      return !(k in m) || m[k] is bool;
+    }
+    function optInt(m, k, lo, hi) {
+      return !(k in m) || (m[k] is int && m[k] >= lo && m[k] <= hi);
+    }
+    function isId(v) {
+      return v is string && v.size() > 0 && v.size() <= 128;
+    }
+    function optIdOrNull(m, k) {
+      return !(k in m) || m[k] == null || isId(m[k]);
+    }
+
+    function validLunar(l) {
+      return l is map
+        && l.keys().hasOnly(['day', 'month', 'year', 'isLeapMonth'])
+        && optInt(l, 'day', 1, 30)
+        && optInt(l, 'month', 1, 12)
+        && optInt(l, 'year', 1, 9999)
+        && optBool(l, 'isLeapMonth');
+    }
+
+    // 'YYYY' | 'YYYY-MM' | 'YYYY-MM-DD'
+    function validDate(d, allowedKeys) {
+      return d is map
+        && d.keys().hasOnly(allowedKeys)
+        && (!('solar' in d) || (d.solar is string
+              && d.solar.matches('[0-9]{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12][0-9]|3[01]))?)?')))
+        && (!('lunar' in d) || validLunar(d.lunar))
+        && optBool(d, 'approximate')
+        && optStr(d, 'place', 200);
+    }
+
+    // createdAt is kept as-is on update; updatedAt/updatedBy are always stamped by the writer.
+    function validMeta(d) {
+      return d.createdAt is timestamp
+        && d.updatedAt == request.time
+        && d.updatedBy == request.auth.uid
+        && (resource == null || d.createdAt == resource.data.createdAt);
+    }
+
+    // ---------- Documents ----------
+
+    function validPerson(d) {
+      return d.keys().hasOnly([
+          'fullName', 'otherNames', 'gender', 'isBloodline', 'parentUnionId', 'birthOrder',
+          'birth', 'death', 'deathAnniversaryLunar', 'burialPlace', 'photoUrl', 'occupation',
+          'notes', 'branchLabel', 'createdAt', 'updatedAt', 'updatedBy'])
+        && d.keys().hasAll(['fullName', 'gender', 'isBloodline', 'createdAt', 'updatedAt', 'updatedBy'])
+        && d.fullName is string && d.fullName.size() >= 1 && d.fullName.size() <= 100
+        && d.gender in ['male', 'female']
+        && d.isBloodline is bool
+        && optIdOrNull(d, 'parentUnionId')
+        && optInt(d, 'birthOrder', 1, 99)
+        && (!('otherNames' in d) || (d.otherNames is map
+              && d.otherNames.keys().hasOnly(['huy', 'tu', 'hieu', 'thuong'])
+              && optStr(d.otherNames, 'huy', 200) && optStr(d.otherNames, 'tu', 200)
+              && optStr(d.otherNames, 'hieu', 200) && optStr(d.otherNames, 'thuong', 200)))
+        && (!('birth' in d) || validDate(d.birth, ['solar', 'lunar', 'approximate', 'place']))
+        && (!('death' in d) || (validDate(d.death, ['solar', 'lunar', 'approximate', 'place', 'isDeceased'])
+              && d.death.isDeceased is bool))
+        && (!('deathAnniversaryLunar' in d) || (d.deathAnniversaryLunar is map
+              && d.deathAnniversaryLunar.keys().hasOnly(['day', 'month'])
+              && d.deathAnniversaryLunar.day is int && d.deathAnniversaryLunar.day >= 1 && d.deathAnniversaryLunar.day <= 30
+              && d.deathAnniversaryLunar.month is int && d.deathAnniversaryLunar.month >= 1 && d.deathAnniversaryLunar.month <= 12))
+        && optStr(d, 'burialPlace', 200)
+        && optStr(d, 'occupation', 200)
+        && optStr(d, 'branchLabel', 200)
+        && optStr(d, 'notes', 5000)
+        && (!('photoUrl' in d) || (d.photoUrl is string && d.photoUrl.size() <= 1000 && d.photoUrl.matches('https://.+')))
+        && validMeta(d);
+    }
+
+    function validUnion(d) {
+      return d.keys().hasOnly(['bloodlinePersonId', 'spousePersonId', 'order', 'status', 'notes',
+                               'createdAt', 'updatedAt', 'updatedBy'])
+        && d.keys().hasAll(['bloodlinePersonId', 'order', 'createdAt', 'updatedAt', 'updatedBy'])
+        && isId(d.bloodlinePersonId)
+        && optIdOrNull(d, 'spousePersonId')
+        && (!('spousePersonId' in d) || d.spousePersonId != d.bloodlinePersonId)
+        && d.order is int && d.order >= 1 && d.order <= 20
+        && (!('status' in d) || d.status in ['married', 'divorced', 'widowed'])
+        && optStr(d, 'notes', 5000)
+        && validMeta(d);
+    }
+
+    function validSettings(d) {
+      return d.keys().hasOnly(['clanName', 'title', 'subtitle', 'rootPersonId', 'coupletLeft', 'coupletRight',
+                               'colophon', 'defaultThemeId', 'showMaternalDescendants',
+                               'createdAt', 'updatedAt', 'updatedBy'])
+        && d.keys().hasAll(['clanName', 'title', 'rootPersonId', 'coupletLeft', 'coupletRight', 'colophon',
+                            'defaultThemeId', 'showMaternalDescendants', 'createdAt', 'updatedAt', 'updatedBy'])
+        && d.clanName is string && d.clanName.size() >= 1 && d.clanName.size() <= 200
+        && d.title is string && d.title.size() >= 1 && d.title.size() <= 200
+        && optStr(d, 'subtitle', 200)
+        && isId(d.rootPersonId)
+        && d.coupletLeft is string && d.coupletLeft.size() <= 200
+        && d.coupletRight is string && d.coupletRight.size() <= 200
+        && d.colophon is string && d.colophon.size() <= 200
+        && d.defaultThemeId is string && d.defaultThemeId.size() >= 1 && d.defaultThemeId.size() <= 64
+        && d.showMaternalDescendants is bool
+        && validMeta(d);
+    }
+
+    function validAudit(d) {
+      return d.keys().hasOnly(['at', 'by', 'action', 'collection', 'docId', 'before', 'after'])
+        && d.keys().hasAll(['at', 'by', 'action', 'collection', 'docId'])
+        && d.at == request.time
+        && d.by == request.auth.uid
+        && d.action in ['create', 'update', 'delete']
+        && d.collection in ['persons', 'unions', 'settings']
+        && isId(d.docId)
+        && (!('before' in d) || d.before is map)
+        && (!('after' in d) || d.after is map);
+    }
+
+    // ---------- Paths ----------
+
+    match /clans/{clanId} {
+
+      match /persons/{personId} {
+        allow read: if true;
+        allow create, update: if isAdmin(clanId) && isId(personId) && validPerson(request.resource.data);
+        allow delete: if isAdmin(clanId);
+      }
+
+      match /unions/{unionId} {
+        allow read: if true;
+        allow create, update: if isAdmin(clanId) && isId(unionId) && validUnion(request.resource.data);
+        allow delete: if isAdmin(clanId);
+      }
+
+      match /settings/{docId} {
+        allow read: if true;
+        allow create, update: if isAdmin(clanId) && docId == 'main' && validSettings(request.resource.data);
+        allow delete: if false;
+      }
+
+      match /auditLog/{logId} {
+        allow read: if isAdmin(clanId);
+        allow create: if isAdmin(clanId) && validAudit(request.resource.data);
+        allow update, delete: if false;
+      }
+
+      // Lets a signed-in user find out whether they are an admin (denied otherwise).
+      match /config/admins {
+        allow get: if request.auth != null && request.auth.uid in resource.data.uids;
+        allow list, write: if false;
+      }
     }
   }
 }

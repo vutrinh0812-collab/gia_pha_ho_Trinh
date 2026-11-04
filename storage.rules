@@ -1,10 +1,23 @@
 rules_version = '2';
-// PHASE 1 PLACEHOLDER: public read, no uploads. Admin upload rules arrive in phase 2.
+
+// Photo storage (SPEC §4): public read, admin-only upload, images only, < 2 MB.
+// Files live under clans/{clanId}/photos/... (e.g. photos/{personId}/800.jpg and 120.jpg thumbnails).
+// Admin check reads the same Firestore document as firestore.rules (cross-service rules).
+
 service firebase.storage {
   match /b/{bucket}/o {
-    match /clans/{clanId}/{allPaths=**} {
+
+    function isAdmin(clanId) {
+      return request.auth != null
+        && request.auth.uid in firestore.get(/databases/(default)/documents/clans/$(clanId)/config/admins).data.uids;
+    }
+
+    match /clans/{clanId}/photos/{allPaths=**} {
       allow read: if true;
-      allow write: if false;
+      allow create, update: if isAdmin(clanId)
+        && request.resource.size < 2 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp|gif|avif)');
+      allow delete: if isAdmin(clanId);
     }
   }
 }
