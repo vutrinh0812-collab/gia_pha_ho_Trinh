@@ -64,6 +64,8 @@ export function SearchOverlay() {
   }, [model, query]);
 
   return (
+    <>
+    <div className={styles.scrim} onClick={() => close('tk')} aria-hidden="true" />
     <div className={styles.overlay} role="dialog" aria-modal="true" aria-label="Tìm kiếm">
       <form className={styles.bar} role="search" onSubmit={(e) => {
         e.preventDefault();
@@ -121,5 +123,6 @@ export function SearchOverlay() {
         )}
       </div>
     </div>
+    </>
   );
 }

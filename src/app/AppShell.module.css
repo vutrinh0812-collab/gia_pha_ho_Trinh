@@ -6,7 +6,24 @@
   margin: 0 auto;
   padding-left: var(--gutter-l);
   padding-right: var(--gutter-r);
-  padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 8px);
+  padding-bottom: calc(var(--bottom-bar) + 8px);
+}
+@media (min-width: 960px) {
+  /* The detail panel sits beside the content instead of covering it. */
+  .shell[data-panel] {
+    --panel-w: var(--panel-size);
+  }
+  .main {
+    max-width: none;
+    margin: 0 var(--panel-w) 0 var(--rail-w);
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+  .main > * {
+    max-width: 46rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 .state {
   padding-block: calc(48px + var(--safe-top)) 24px;

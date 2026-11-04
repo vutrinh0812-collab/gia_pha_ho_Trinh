@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useIsDesktop } from '../useMediaQuery';
 import { CloseIcon } from './icons';
 import styles from './Sheet.module.css';
 
@@ -7,7 +8,7 @@ interface SheetProps {
   label: string;
   onClose(): void;
   children: ReactNode;
-  /** Opening height: half screen or (almost) full screen. */
+  /** Opening height on phones: half screen or (almost) full screen. */
   initialSnap?: 'half' | 'full';
   header?: ReactNode;
   footer?: ReactNode;
@@ -17,10 +18,12 @@ const CLOSE_DRAG = 90;
 const EXPAND_DRAG = -60;
 
 /**
- * Bottom sheet (SPEC 5A.1): drag the handle up for full screen, down to close.
- * Esc and the scrim also close it. Focus moves into the sheet and back on close.
+ * Phones: bottom sheet (SPEC 5A.1) — drag the handle up for full screen, down to close.
+ * Desktop: a right-hand side panel (SPEC 5.4) that leaves the page usable beside it.
+ * Esc closes both; focus moves into the panel and back on close.
  */
 export function Sheet({ label, onClose, children, initialSnap = 'half', header, footer }: SheetProps) {
+  const desktop = useIsDesktop();
   const [snap, setSnap] = useState(initialSnap);
   const [drag, setDrag] = useState(0);
   const startY = useRef<number | null>(null);
@@ -35,14 +38,47 @@ export function Sheet({ label, onClose, children, initialSnap = 'half', header, 
       if (e.key === 'Escape') onCloseRef.current();
     };
     document.addEventListener('keydown', onKey);
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = overflow;
       previous?.focus?.({ preventScroll: true });
     };
   }, []);
+
+  // Phones only: the page behind a modal sheet must not scroll.
+  useEffect(() => {
+    if (desktop) return;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = overflow;
+    };
+  }, [desktop]);
+
+  const closeButton = (
+    <button type="button" className={styles.close} onClick={onClose} aria-label="Đóng">
+      <CloseIcon />
+    </button>
+  );
+
+  if (desktop) {
+    return (
+      <div
+        ref={panel}
+        className={styles.side}
+        role="dialog"
+        aria-modal="false"
+        aria-label={label}
+        tabIndex={-1}
+      >
+        <div className={styles.sideHeader}>
+          <div className={styles.header}>{header}</div>
+          {closeButton}
+        </div>
+        <div className={styles.body}>{children}</div>
+        {footer && <div className={styles.footer}>{footer}</div>}
+      </div>
+    );
+  }
 
   const onPointerDown = (e: React.PointerEvent) => {
     // Taps on buttons in the header (e.g. "Đóng") must stay clicks, not drags:
@@ -93,9 +129,7 @@ export function Sheet({ label, onClose, children, initialSnap = 'half', header, 
           <span className={styles.handle} aria-hidden="true" />
           <div className={styles.headerRow}>
             <div className={styles.header}>{header}</div>
-            <button type="button" className={styles.close} onClick={onClose} aria-label="Đóng">
-              <CloseIcon />
-            </button>
+            {closeButton}
           </div>
         </div>
         <div className={styles.body}>{children}</div>

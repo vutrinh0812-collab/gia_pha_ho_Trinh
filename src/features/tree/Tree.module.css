@@ -1,7 +1,7 @@
 /* ---------- Page ---------- */
 .view {
   position: fixed;
-  inset: 0 0 calc(var(--nav-h) + var(--safe-bottom)) 0;
+  inset: 0 var(--panel-w) var(--bottom-bar) var(--rail-w);
   overflow: hidden;
   background: var(--bg);
 }

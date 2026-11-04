@@ -8,6 +8,14 @@
   padding: 0;
 }
 .link {
+  width: 100%;
+  border-width: 0 0 1px;
+  border-style: solid;
+  border-color: var(--line);
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -112,4 +120,14 @@
 .segmentItem input:focus-visible + span {
   outline: 2px solid var(--accent);
   outline-offset: -4px;
+}
+
+.kbdHint {
+  min-width: 1.8em;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-2);
+  font-family: var(--font-ui);
+  text-align: center;
 }

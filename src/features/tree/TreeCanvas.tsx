@@ -9,6 +9,8 @@ import styles from './Tree.module.css';
 
 export interface TreeCanvasApi {
   zoomBy(factor: number): void;
+  /** Moves the view by screen pixels. */
+  panBy(dx: number, dy: number): void;
   fit(): void;
   goTo(id: string): void;
 }
@@ -268,6 +270,13 @@ export function TreeCanvas(props: Props) {
         const svg = svgRef.current;
         const z = zoomRef.current;
         if (svg && z) select(svg).transition().duration(prefersReducedMotion() ? 0 : 200).call(z.scaleBy, factor);
+      },
+      panBy(dx, dy) {
+        const svg = svgRef.current;
+        const z = zoomRef.current;
+        if (!svg || !z) return;
+        const k = tRef.current.k;
+        select(svg).transition().duration(prefersReducedMotion() ? 0 : 150).call(z.translateBy, dx / k, dy / k);
       },
       fit() {
         const b = layoutRef.current.bounds;

@@ -1,0 +1,128 @@
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { Suspense } from 'react';
+import { AppRoutes } from '@/app/App';
+import { buildClanModel } from '@/lib/clanModel';
+import { loadDemoSnapshot } from '@/lib/data/demoSource';
+import { useClanStore } from '@/store/clanStore';
+
+const model = buildClanModel(loadDemoSnapshot())!;
+const root = model.get(model.rootId)!;
+
+function mockMatchMedia(desktop: boolean) {
+  window.matchMedia = ((query: string) => ({
+    matches: query.includes('min-width: 960px') ? desktop : false,
+    media: query,
+    onchange: null,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    addListener: () => {},
+    removeListener: () => {},
+    dispatchEvent: () => false,
+  })) as unknown as typeof window.matchMedia;
+}
+
+function renderAt(path: string) {
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <Suspense fallback={null}>
+        <AppRoutes />
+      </Suspense>
+    </MemoryRouter>,
+  );
+}
+
+const press = (key: string, opts: KeyboardEventInit = {}) =>
+  act(() => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...opts }));
+  });
+
+beforeEach(() => {
+  useClanStore.setState({ status: 'ready', model, error: null, start: () => {} });
+  document.body.style.overflow = '';
+});
+
+afterEach(() => {
+  // @ts-expect-error reset the mock between tests
+  delete window.matchMedia;
+});
+
+describe('desktop layout', () => {
+  beforeEach(() => mockMatchMedia(true));
+
+  it('shows details in a non-modal side panel and keeps the page usable', () => {
+    const { container } = renderAt('/');
+    fireEvent.click(screen.getByRole('button', { name: /Xem chi tiết/ }));
+    const panel = screen.getByRole('dialog', { name: `Thông tin ${root.fullName}` });
+    expect(panel).toHaveAttribute('aria-modal', 'false');
+    expect(document.body.style.overflow).toBe('');
+    expect(container.querySelector('[data-panel]')).not.toBeNull();
+    // The family view is still there and clickable beside the panel.
+    const child = model.family(model.rootId)!.partnerships[0]!.children[0]!;
+    fireEvent.click(screen.getAllByRole('button', { name: new RegExp(child.fullName) })[0]!);
+    expect(screen.getByRole('heading', { level: 1, name: child.fullName })).toBeInTheDocument();
+  });
+});
+
+describe('phone layout', () => {
+  beforeEach(() => mockMatchMedia(false));
+
+  it('keeps the modal bottom sheet', () => {
+    renderAt('/');
+    fireEvent.click(screen.getByRole('button', { name: /Xem chi tiết/ }));
+    expect(screen.getByRole('dialog', { name: `Thông tin ${root.fullName}` })).toHaveAttribute('aria-modal', 'true');
+    expect(document.body.style.overflow).toBe('hidden');
+  });
+});
+
+describe('keyboard shortcuts', () => {
+  beforeEach(() => mockMatchMedia(true));
+
+  it('/ and Ctrl+K open search; Esc closes it', () => {
+    renderAt('/');
+    press('/');
+    expect(screen.getByRole('searchbox')).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
+    press('k', { ctrlKey: true });
+    expect(screen.getByRole('searchbox')).toBeInTheDocument();
+  });
+
+  it('typing in the search box does not trigger shortcuts', () => {
+    renderAt('/?tk=1');
+    const input = screen.getByRole('searchbox');
+    act(() => {
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: '2', bubbles: true }));
+    });
+    expect(screen.queryByRole('heading', { name: /Sơ đồ/ })).not.toBeInTheDocument();
+  });
+
+  it('number keys switch views and ? shows the shortcut list', async () => {
+    renderAt('/');
+    press('3');
+    expect(screen.getByRole('heading', { name: model.settings.title })).toBeInTheDocument();
+    press('?');
+    expect(screen.getByRole('dialog', { name: 'Phím tắt' })).toBeInTheDocument();
+  });
+
+  it('arrow keys move through the family', () => {
+    renderAt('/');
+    press('ArrowDown');
+    const first = model.family(model.rootId)!.partnerships[0]!.children[0]!;
+    expect(screen.getByRole('heading', { level: 1, name: first.fullName })).toBeInTheDocument();
+    press('ArrowRight');
+    const second = model.family(model.rootId)!.partnerships[0]!.children[1]!;
+    expect(screen.getByRole('heading', { level: 1, name: second.fullName })).toBeInTheDocument();
+    press('ArrowUp');
+    expect(screen.getByRole('heading', { level: 1, name: root.fullName })).toBeInTheDocument();
+  });
+
+  it('tree keys collapse and open the filters', async () => {
+    renderAt('/so-do');
+    await screen.findByRole('group', { name: 'Sơ đồ gia phả' });
+    press('c');
+    expect(screen.getByRole('heading', { name: /Sơ đồ/ })).toHaveTextContent('2 đời');
+    press('l');
+    expect(screen.getByRole('dialog', { name: 'Lọc sơ đồ' })).toBeInTheDocument();
+  });
+});

@@ -44,6 +44,11 @@
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --gutter-l: max(16px, var(--safe-left));
+  /* Shell geometry: phones have a bottom bar; desktop a left rail and a right panel. */
+  --rail-w: 0px;
+  --panel-w: 0px;
+  --panel-size: 400px;
+  --bottom-bar: calc(var(--nav-h) + var(--safe-bottom));
   --gutter-r: max(16px, var(--safe-right));
   color-scheme: light;
 }
@@ -159,6 +164,13 @@ button {
   *::after {
     animation-duration: 1ms !important;
     transition-duration: 1ms !important;
+  }
+}
+
+@media (min-width: 960px) {
+  :root {
+    --rail-w: 88px;
+    --bottom-bar: 0px;
   }
 }
 

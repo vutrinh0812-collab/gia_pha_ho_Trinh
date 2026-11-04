@@ -210,3 +210,16 @@
     transform: translateY(8px);
   }
 }
+
+/* Desktop: plenty of width, so children and siblings wrap instead of scrolling sideways. */
+@media (min-width: 960px) {
+  .row {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    margin: 0;
+    padding: 2px 0 8px;
+  }
+  .lineage {
+    margin: 0;
+  }
+}

@@ -98,3 +98,30 @@
     opacity: 0;
   }
 }
+
+.scrim {
+  display: none;
+}
+/* Desktop: a centred search dialog over a dimmed page. */
+@media (min-width: 960px) {
+  .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 44;
+    background: var(--scrim);
+  }
+  .overlay {
+    inset: 10vh auto auto 50%;
+    transform: translateX(-50%);
+    width: min(640px, 90vw);
+    max-height: 72vh;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    box-shadow: 0 16px 48px rgb(0 0 0 / 22%);
+    overflow: hidden;
+  }
+  .bar {
+    padding-top: 10px;
+  }
+}

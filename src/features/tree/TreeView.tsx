@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { isInDialog, useHotkeys } from '@/app/useHotkeys';
 import { useOverlays } from '@/app/useOverlays';
 import {
   CloseIcon,
@@ -154,6 +155,52 @@ export default function TreeView() {
   const [initialView] = useState(() => params.get('v'));
 
   const anyCollapsed = collapsed.size > 0;
+
+  // Sơ đồ shortcuts (see ShortcutHelp).
+  useHotkeys((e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || isInDialog(e.target)) return;
+    const a = api.current;
+    const step = 120;
+    switch (e.key) {
+      case '+':
+      case '=':
+        a?.zoomBy(1.25);
+        return true;
+      case '-':
+      case '_':
+        a?.zoomBy(0.8);
+        return true;
+      case '0':
+        a?.fit();
+        return true;
+      case 'h':
+      case 'H': {
+        const first = layout.nodes[0];
+        if (first) a?.goTo(first.id);
+        return true;
+      }
+      case 'c':
+      case 'C':
+        setCollapsed(collapsed.size > 0 ? new Set() : collapseAllIds(model, filters));
+        return true;
+      case 'l':
+      case 'L':
+        setFiltersOpen(true);
+        return true;
+      case 'ArrowLeft':
+        a?.panBy(step, 0);
+        return true;
+      case 'ArrowRight':
+        a?.panBy(-step, 0);
+        return true;
+      case 'ArrowUp':
+        a?.panBy(0, step);
+        return true;
+      case 'ArrowDown':
+        a?.panBy(0, -step);
+        return true;
+    }
+  });
   const activeFilters = [branch, fromGen || toGen ? 'đời' : null, showSpouses ? null : 'dâu-rể'].filter(Boolean).length;
   const lineagePerson = lineageId ? model.get(lineageId) : undefined;
   const showHint = coarse && !hintHidden;

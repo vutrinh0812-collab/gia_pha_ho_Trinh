@@ -2,10 +2,12 @@ import { useCallback } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 /**
- * Overlays (detail sheet, search, "Thêm" menu) live in the URL query so the
- * phone's Back button closes them. Keys: ct = person detail, tk = search, them = menu.
+ * Overlays (detail sheet, search, "Thêm" menu, shortcut help) live in the URL
+ * query so the phone's Back button closes them.
+ * Keys: ct = person detail, tk = search, them = menu, phim = keyboard shortcuts.
  */
-export type OverlayKey = 'ct' | 'tk' | 'them';
+export type OverlayKey = 'ct' | 'tk' | 'them' | 'phim';
+const OVERLAY_KEYS: readonly OverlayKey[] = ['ct', 'tk', 'them', 'phim'];
 
 interface NavState {
   overlay?: boolean;
@@ -22,8 +24,8 @@ export function useOverlays() {
       const next = new URLSearchParams(params);
       next.set(key, value);
       // Opening one overlay replaces another one already open (keeps Back simple).
-      const replace = inAppOverlay && (['ct', 'tk', 'them'] as const).some((k) => k !== key && params.has(k));
-      if (replace) for (const k of ['ct', 'tk', 'them'] as const) if (k !== key) next.delete(k);
+      const replace = inAppOverlay && OVERLAY_KEYS.some((k) => k !== key && params.has(k));
+      if (replace) for (const k of OVERLAY_KEYS) if (k !== key) next.delete(k);
       navigate({ pathname: location.pathname, search: `?${next}` }, { state: { overlay: true }, replace });
     },
     [params, location.pathname, navigate, inAppOverlay],

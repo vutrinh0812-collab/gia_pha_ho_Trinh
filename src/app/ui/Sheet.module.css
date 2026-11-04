@@ -93,3 +93,44 @@
     opacity: 0;
   }
 }
+
+/* ---------- Desktop: right-hand side panel ---------- */
+.side {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  width: var(--panel-size);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+  box-shadow: -6px 0 24px rgb(0 0 0 / 8%);
+  animation: slideIn 180ms ease-out;
+  outline: none;
+}
+.sideHeader {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: calc(14px + var(--safe-top)) 16px 8px 20px;
+}
+.side .body {
+  padding: 4px 20px 20px;
+}
+.side .footer {
+  padding: 12px 20px calc(12px + var(--safe-bottom));
+}
+@keyframes slideIn {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+/* The panel itself takes focus for screen readers; no ring around the whole panel. */
+.side:focus-visible,
+.panel:focus-visible {
+  outline: none;
+}

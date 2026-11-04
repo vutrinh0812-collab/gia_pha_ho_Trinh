@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { isInDialog, useHotkeys } from '@/app/useHotkeys';
 import { useOverlays } from '@/app/useOverlays';
 import { ChevronIcon, TreeIcon, UpIcon } from '@/app/ui/icons';
 import type { ClanModel, Partnership, PersonRec } from '@/lib/clanModel';
@@ -32,6 +33,35 @@ export function FamilyView() {
   const parentId = model.index.parentUnionOf(centerId)?.bloodlinePersonId;
   const goUp = parentId ? () => goToFamily(parentId) : undefined;
   const generation = model.generationOf(centerId);
+
+  // Gia đình shortcuts (see ShortcutHelp).
+  useHotkeys((e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || isInDialog(e.target)) return;
+    // Let Enter/arrows act on a focused button (e.g. a person card) as usual.
+    const onControl = (e.target as HTMLElement | null)?.closest?.('button, a');
+    if (e.key === 'ArrowUp' && goUp) {
+      goUp();
+      return true;
+    }
+    if (e.key === 'ArrowDown') {
+      const first = family.partnerships.flatMap((p) => p.children)[0];
+      if (first) goToFamily(first.id);
+      return Boolean(first);
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      const parentUnion = model.index.parentUnionOf(centerId);
+      if (!parentUnion) return;
+      const sibs = model.index.childrenOf(parentUnion.id);
+      const i = sibs.findIndex((s) => s.id === centerId);
+      const next = sibs[i + (e.key === 'ArrowLeft' ? -1 : 1)];
+      if (next) goToFamily(next.id);
+      return Boolean(next);
+    }
+    if (e.key === 'Enter' && !onControl) {
+      open('ct', centerId);
+      return true;
+    }
+  });
 
   return (
     <div className={styles.view} ref={top}>

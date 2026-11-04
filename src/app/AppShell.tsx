@@ -1,22 +1,51 @@
 import { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { PersonSheet } from '@/features/person/PersonSheet';
 import { SearchOverlay } from '@/features/search/SearchOverlay';
 import { useClanStore } from '@/store/clanStore';
 import { BottomNav } from './BottomNav';
 import { MoreSheet } from './MoreSheet';
+import { ShortcutHelp } from './ShortcutHelp';
+import { isInDialog, useHotkeys } from './useHotkeys';
+import { useIsDesktop } from './useMediaQuery';
 import { useOverlays } from './useOverlays';
 import styles from './AppShell.module.css';
 
 /** Mobile-first shell: content, bottom navigation and the overlays driven by the URL. */
 export function AppShell() {
   const { status, error, model, start } = useClanStore();
-  const { params } = useOverlays();
+  const { params, open } = useOverlays();
+  const navigate = useNavigate();
+  const desktop = useIsDesktop();
   useEffect(() => start(), [start]);
 
+  // Global shortcuts (see ShortcutHelp).
+  useHotkeys((e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      open('tk');
+      return true;
+    }
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === '/') {
+      open('tk');
+      return true;
+    }
+    if (e.key === '?') {
+      open('phim');
+      return true;
+    }
+    if (isInDialog(e.target)) return;
+    const tab = { '1': '/', '2': '/so-do', '3': '/danh-sach' }[e.key];
+    if (tab) {
+      navigate(tab);
+      return true;
+    }
+  });
+
   const detail = params.get('ct');
+  const panelOpen = desktop && (Boolean(detail) || params.has('them') || params.has('phim'));
   return (
-    <div className={styles.shell}>
+    <div className={styles.shell} data-panel={panelOpen || undefined}>
       <main className={styles.main}>
         {status === 'ready' && model ? (
           <Outlet />
@@ -44,6 +73,7 @@ export function AppShell() {
       {model && detail && <PersonSheet id={detail} />}
       {model && params.has('tk') && <SearchOverlay />}
       {params.has('them') && <MoreSheet />}
+      {params.has('phim') && <ShortcutHelp />}
     </div>
   );
 }

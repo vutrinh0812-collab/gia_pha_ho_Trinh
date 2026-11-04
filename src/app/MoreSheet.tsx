@@ -6,6 +6,8 @@ import { ChevronIcon } from './ui/icons';
 import { useOverlays } from './useOverlays';
 import styles from './MoreSheet.module.css';
 
+import { useIsDesktop } from './useMediaQuery';
+
 const LINKS = [
   { to: '/anniversaries', label: 'Lịch ngày giỗ' },
   { to: '/themes', label: 'Giao diện in (theme)' },
@@ -22,7 +24,8 @@ const THEMES: Array<{ value: ThemeMode; label: string }> = [
 
 /** "Thêm" menu: secondary pages and viewing preferences. */
 export function MoreSheet() {
-  const { close } = useOverlays();
+  const { close, open } = useOverlays();
+  const desktop = useIsDesktop();
   const model = useClanStore((s) => s.model);
   const { theme, setTheme, largeText, setLargeText, showMaternal, setShowMaternal } = usePrefsStore();
   const maternalOn = showMaternal ?? model?.settings.showMaternalDescendants ?? false;
@@ -39,6 +42,14 @@ export function MoreSheet() {
               </Link>
             </li>
           ))}
+          {desktop && (
+            <li>
+              <button type="button" className={styles.link} onClick={() => open('phim')}>
+                Phím tắt
+                <kbd className={styles.kbdHint}>?</kbd>
+              </button>
+            </li>
+          )}
         </ul>
       </nav>
 

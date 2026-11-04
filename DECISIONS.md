@@ -151,3 +151,22 @@ Thu gọn nhánh hoặc lọc làm cả cây dịch chuyển. Khi đó app giữ
 
 ### D28. Tải Sơ đồ khi cần
 Màn hình Sơ đồ và thư viện d3 nằm trong một gói riêng (khoảng 29KB gzip), chỉ tải khi mở tab Sơ đồ. Gói tải lần đầu hiện khoảng 72KB gzip, thấp hơn nhiều so với ngân sách 250KB.
+
+---
+
+## Giai đoạn 3c — Máy tính
+
+### D29. Mốc chuyển sang bố cục máy tính
+Mốc là **960px**. Từ đó trở lên:
+- thanh điều hướng dưới chuyển thành cột bên trái (88px);
+- bảng chi tiết, menu "Thêm" và bảng phím tắt mở thành **khung bên phải** (400px). Khung này không che trang: không có nền tối, không khóa cuộn, sơ đồ thu hẹp lại để nhường chỗ;
+- tìm kiếm mở thành hộp thoại giữa màn hình.
+
+Điện thoại và máy tính bảng dọc vẫn dùng bảng trượt từ dưới lên. Cùng một component `Sheet`, chỉ khác cách hiển thị; các biến CSS `--rail-w`, `--panel-w` và `--bottom-bar` điều khiển khoảng trống.
+
+### D30. Phím tắt
+- **Chung:** `/` hoặc `Ctrl+K` để tìm kiếm; `1`/`2`/`3` để chuyển Gia đình/Sơ đồ/Danh sách; `?` để xem danh sách phím tắt; `Esc` để đóng bảng đang mở.
+- **Gia đình:** `↑` lên cha mẹ, `↓` xuống con đầu, `←`/`→` sang anh chị em liền kề, `Enter` mở chi tiết.
+- **Sơ đồ:** `+`/`−` phóng to/thu nhỏ, `0` vừa màn hình, `H` về thủy tổ, `C` thu gọn/mở hết, `L` lọc, các phím mũi tên để di chuyển sơ đồ.
+
+Phím tắt không chạy khi đang gõ vào ô nhập liệu. Phím tắt của từng trang cũng không chạy khi đang thao tác trong một bảng đang mở.
