@@ -1,3 +1,4 @@
+import { blobToFirestoreDataUrl } from '@/features/admin/resizeImage';
 import { demoDocs } from '../data/demoStore';
 import type { ClanSettings, PersonFields, UnionFields } from '../types';
 import type { AdminBackend, AdminUser } from './backend';
@@ -62,11 +63,6 @@ export const demoBackend: AdminBackend = {
   },
   async uploadPhoto(_personId, image) {
     // Demo only: the photo lives in this page as a data URL.
-    return await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(new Error('Không đọc được ảnh.'));
-      reader.readAsDataURL(image);
-    });
+    return await blobToFirestoreDataUrl(image);
   },
 };

@@ -98,7 +98,10 @@ service cloud.firestore {
         && optStr(d, 'occupation', 200)
         && optStr(d, 'branchLabel', 200)
         && optStr(d, 'notes', 5000)
-        && (!('photoUrl' in d) || (d.photoUrl is string && d.photoUrl.size() <= 1000 && d.photoUrl.matches('https://.+')))
+        && (!('photoUrl' in d) || (d.photoUrl is string && d.photoUrl.size() >= 10 && d.photoUrl.size() <= 750000 && (
+              (d.photoUrl.size() <= 1000 && d.photoUrl[0:8] == 'https://')
+              || (d.photoUrl.size() >= 12 && d.photoUrl[0:11] == 'data:image/')
+           )))
         && validMeta(d);
     }
 

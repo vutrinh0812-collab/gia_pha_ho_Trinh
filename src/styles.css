@@ -14,25 +14,26 @@
   --burnt-sienna: #bd5f3c;
   --terracotta: #d67a53;
   --amber: #f6a14b;
-  --sandy-cream: #f5e6d3;
-  --charcoal: #333333;
+  --sandy-cream: #f4e4d0;
+  --charcoal: #2b2623;
   --warm-gray: #777777;
+  --seal-red: #b93829;
 
   /* Ground and ink. */
-  --bg: #f5f0e9;
-  --surface: #fffcf8;
-  --surface-2: #f8efe4;
+  --bg: #f5efe6;
+  --surface: #fffcf7;
+  --surface-2: #f6ede0;
   --text: var(--charcoal);
-  --text-2: #6b625b;
-  --line: #ece1d4;
-  --line-strong: #dccbb8;
+  --text-2: #6b6058;
+  --line: #eadcc9;
+  --line-strong: #d7c3ab;
 
   /* Accent: Burnt Sienna, one step deeper for text and white-on-sienna buttons (AA). */
-  --accent: #a9532f;
+  --accent: #b3532d;
   --accent-hover: var(--burnt-sienna);
   --accent-soft: var(--sandy-cream);
   --accent-track: #ecc7ad;
-  --accent-ink: #84391b;
+  --accent-ink: #8c3b1b;
   --on-accent: #ffffff;
   --highlight: var(--amber);
   --ok: #2f7d4f;

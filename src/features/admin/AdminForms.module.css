@@ -159,13 +159,72 @@
 .photoRow {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
 }
 .photo {
-  width: 64px;
-  height: 64px;
+  flex: none;
+  width: 112px;
+  height: 112px;
   border-radius: 50%;
   object-fit: cover;
+  border: 3px solid var(--surface);
+  box-shadow: 0 0 0 2px var(--burnt-sienna, #b3532d), 0 4px 12px rgb(0 0 0 / 15%);
+}
+.photoPlaceholder {
+  flex: none;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  border: 2px dashed var(--line-strong);
+  background: var(--surface-2);
+  color: var(--burnt-sienna, #b3532d);
+  font-size: 2.25rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+.photoControls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+.photoUploadBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink) !important;
+  font-weight: 600;
+  font-size: 0.9375rem !important;
+  cursor: pointer;
+}
+.photoUploadBtn:hover {
+  background: var(--accent);
+  color: var(--on-accent) !important;
+}
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+.photoHint {
+  font-size: 0.8125rem;
+  color: var(--text-2);
+  line-height: 1.35;
 }
 .primary,
 .secondary,

@@ -76,7 +76,7 @@ describe('shared person link', () => {
     renderAt(`/person/${p.id}`);
     expect(await screen.findByRole('heading', { level: 1, name: p.fullName })).toBeInTheDocument();
     expect(screen.getByRole('article', { name: `Trang của ${p.fullName}` })).toBeInTheDocument();
-    expect(screen.getByText('Đời 4')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Giới thiệu & tiểu sử' })).toBeInTheDocument();
   });
 
   it('opens a relative from the profile page', async () => {

@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useCallback, useRef } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import type { ClanModel } from '@/lib/clanModel';
 import { usePrefsStore } from '@/store/prefsStore';
 
@@ -16,6 +16,9 @@ function intParam(v: string | null): number | null {
  */
 export function useTreeParams(model: ClanModel) {
   const [params, setParams] = useSearchParams();
+  const location = useLocation();
+  const stateRef = useRef(location.state);
+  stateRef.current = location.state;
   const prefMaternal = usePrefsStore((s) => s.showMaternal);
   const setShowMaternal = usePrefsStore((s) => s.setShowMaternal);
 
@@ -30,7 +33,7 @@ export function useTreeParams(model: ClanModel) {
           }
           return next;
         },
-        { replace: true },
+        { replace: true, state: stateRef.current },
       );
     },
     [setParams],

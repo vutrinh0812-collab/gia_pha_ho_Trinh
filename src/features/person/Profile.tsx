@@ -10,10 +10,9 @@ import {
   BirthIcon,
   CameraIcon,
   EditIcon,
-  FamilyIcon,
+  HomeIcon,
   MemorialIcon,
   MoreIcon,
-  NoteIcon,
   PersonIcon,
   PlaceIcon,
   ShareIcon,
@@ -58,11 +57,6 @@ function descendantCount(model: ClanModel, id: string): number {
   return n;
 }
 
-function relationLabel(model: ClanModel, p: PersonRec): string {
-  if (!p.isBloodline) return p.gender === 'female' ? 'Dâu' : 'Rể';
-  return model.isMaternal(p.id) ? 'Bên ngoại' : 'Huyết thống';
-}
-
 interface ProfileProps {
   model: ClanModel;
   person: PersonRec;
@@ -79,6 +73,7 @@ export function Profile({ model, person, variant, onPick, extraActions }: Profil
   const openAdmin = useAdminUi((s) => s.open);
   const navigate = useNavigate();
   const [note, setNote] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const edit = () => openAdmin('edit', person.id);
 
   const gen = model.generationOf(person.id);
@@ -102,52 +97,54 @@ export function Profile({ model, person, variant, onPick, extraActions }: Profil
     else if (result.kind === 'manual') setNote(`Sao chép đường link này: ${result.url}`);
   };
 
-  const chips = [
-    gen ? `Đời ${gen}` : null,
-    person.birthOrder ? `Thứ ${toRoman(person.birthOrder)}` : null,
-    person.branchLabel,
-    relationLabel(model, person),
-  ].filter((c): c is string => Boolean(c));
-
   const stats: Array<[number, string]> = [];
   if (partners.length) stats.push([partners.length, person.gender === 'male' ? 'vợ' : 'chồng']);
   if (person.isBloodline) stats.push([children.length, 'con']);
   if (person.isBloodline && descendants > children.length) stats.push([descendants, 'con cháu']);
 
+  const gio = person.deathAnniversaryLunar;
+  const yearsParts = [
+    lifeSpan(person) || 'Chưa rõ năm sinh',
+    person.death?.isDeceased ? 'đã mất' : null,
+    gio ? `giỗ ${gio.day}/${gio.month} âm lịch` : null,
+  ].filter(Boolean);
+
   return (
     <article className={styles.profile} data-variant={variant} aria-label={`Trang của ${person.fullName}`}>
       <header className={styles.top}>
-        <div className={styles.cover} aria-hidden="true">
-          <span className={styles.coverText}>{model.settings.title}</span>
-        </div>
         <div className={styles.identity}>
-          <div className={styles.portrait}>
-            <Avatar person={person} size={variant === 'page' ? 128 : 104} ring />
-            {isAdmin && <PhotoButton model={model} person={person} onError={setNote} />}
+          <div className={styles.portrait} data-has-photo={Boolean(person.photoUrl) || undefined}>
+            {person.photoUrl ? (
+              <Avatar person={person} size={variant === 'page' ? 148 : 116} ring highPriority zoomable />
+            ) : gen ? (
+              <div className={styles.seal} aria-hidden="true">
+                <span className={styles.sealLabel}>Đời</span>
+                <span className={styles.sealNum}>{gen}</span>
+              </div>
+            ) : (
+              <Avatar person={person} size={variant === 'page' ? 120 : 96} ring />
+            )}
+            {isAdmin && (
+              <PhotoButton
+                model={model}
+                person={person}
+                onSuccess={(msg) => {
+                  setPhotoError(null);
+                  setNote(msg);
+                }}
+                onError={(msg) => {
+                  setNote(null);
+                  setPhotoError(msg);
+                }}
+              />
+            )}
           </div>
           <div className={styles.titleBlock}>
             {variant === 'page' ? <h1 className={styles.name}>{person.fullName}</h1> : <h2 className={styles.name}>{person.fullName}</h2>}
             {aka && <p className={styles.aka}>{aka}</p>}
-            <p className={styles.years}>
-              {lifeSpan(person) || 'Chưa rõ năm sinh'}
-              {person.death?.isDeceased && <span className={styles.deceased}>Đã mất</span>}
-            </p>
+            <p className={styles.years}>{yearsParts.join(' · ')}</p>
           </div>
         </div>
-        <ul className={styles.chips} aria-label="Vị trí trong gia phả">
-          {chips.map((c) => (
-            <li key={c}>{c}</li>
-          ))}
-        </ul>
-        {stats.length > 0 && (
-          <ul className={styles.stats}>
-            {stats.map(([n, label]) => (
-              <li key={label}>
-                <strong>{n}</strong> {label}
-              </li>
-            ))}
-          </ul>
-        )}
         <div className={styles.actions}>
           {isAdmin && (
             <>
@@ -161,10 +158,10 @@ export function Profile({ model, person, variant, onPick, extraActions }: Profil
           )}
           <button
             type="button"
-            className={styles.secondary}
+            className={isAdmin ? styles.secondary : styles.primary}
             onClick={() => navigate({ pathname: '/', search: `?${new URLSearchParams({ p: person.id })}` })}
           >
-            <FamilyIcon width={18} height={18} /> Gia đình
+            <HomeIcon width={18} height={18} /> Gia đình
           </button>
           {extraActions}
           {variant === 'sheet' && (
@@ -176,6 +173,22 @@ export function Profile({ model, person, variant, onPick, extraActions }: Profil
             <ShareIcon width={18} height={18} /> Chia sẻ
           </button>
         </div>
+        {stats.length > 0 && (
+          <ul className={styles.stats}>
+            {stats.map(([n, label]) => (
+              <li key={label}>
+                <span>
+                  <strong>{n}</strong> {label}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {photoError && (
+          <p className={styles.errorNote} role="alert">
+            {photoError}
+          </p>
+        )}
         {note && (
           <p className={styles.note} role="status">
             {note}
@@ -186,7 +199,6 @@ export function Profile({ model, person, variant, onPick, extraActions }: Profil
       <div className={styles.body}>
         <Anniversary person={person} />
         <About person={person} parent={parent} isAdmin={isAdmin} onEdit={edit} />
-        <Biography person={person} isAdmin={isAdmin} onEdit={edit} />
         <FamilyCard model={model} person={person} isAdmin={isAdmin} onPick={onPick} />
         {children.length > 0 && (
           <p className={styles.printLink}>
@@ -198,8 +210,18 @@ export function Profile({ model, person, variant, onPick, extraActions }: Profil
   );
 }
 
-/** Admin: change the portrait right from the profile. */
-function PhotoButton({ model, person, onError }: { model: ClanModel; person: PersonRec; onError(msg: string): void }) {
+/** Admin: change the portrait right from the profile or family center card. */
+export function PhotoButton({
+  model,
+  person,
+  onSuccess,
+  onError,
+}: {
+  model: ClanModel;
+  person: PersonRec;
+  onSuccess?(msg: string): void;
+  onError(msg: string): void;
+}) {
   const apply = useAdminStore((s) => s.apply);
   const input = useRef<HTMLInputElement>(null);
   const [can, setCan] = useState(false);
@@ -220,7 +242,8 @@ function PhotoButton({ model, person, onError }: { model: ClanModel; person: Per
       const backend = await getAdminBackend();
       const { image, thumb } = await resizeImage(file);
       const url = await backend.uploadPhoto!(person.id, image, thumb);
-      await apply(editPerson(model, person.id, { ...personContent(person), photoUrl: url }), 'Đã đổi ảnh.');
+      const ok = await apply(editPerson(model, person.id, { ...personContent(person), photoUrl: url }), 'Đã đổi ảnh.');
+      if (ok) onSuccess?.('Đã cập nhật ảnh đại diện.');
     } catch (e) {
       onError(e instanceof Error ? e.message : 'Không tải được ảnh lên.');
     } finally {
@@ -234,10 +257,13 @@ function PhotoButton({ model, person, onError }: { model: ClanModel; person: Per
       <button
         type="button"
         className={styles.photoButton}
-        onClick={() => input.current?.click()}
+        onClick={(e) => {
+          e.stopPropagation();
+          input.current?.click();
+        }}
         disabled={busy}
         aria-label={person.photoUrl ? 'Đổi ảnh đại diện' : 'Thêm ảnh đại diện'}
-        title={person.photoUrl ? 'Đổi ảnh' : 'Thêm ảnh'}
+        title={person.photoUrl ? 'Đổi ảnh đại diện' : 'Thêm ảnh đại diện'}
       >
         {busy ? <span className={styles.spinner} /> : <CameraIcon width={18} height={18} />}
       </button>
@@ -278,7 +304,11 @@ function Card({ title, area, onEdit, children }: { title: string; area: 'about' 
   return (
     <section className={styles.card} data-area={area} aria-label={title}>
       <div className={styles.cardHead}>
-        <h3>{title}</h3>
+        <div className={styles.cardTitleWrap}>
+          <span className={styles.diamond} aria-hidden="true">◆</span>
+          <h3>{title}</h3>
+          <span className={styles.diamond} aria-hidden="true">◆</span>
+        </div>
         {onEdit && (
           <button type="button" className={styles.cardEdit} onClick={onEdit} aria-label={`Sửa: ${title}`}>
             <EditIcon width={16} height={16} /> Sửa
@@ -313,50 +343,48 @@ function About({
       : []),
     { icon: <WorkIcon />, label: 'Nghề nghiệp', value: person.occupation, add: 'Thêm nghề nghiệp' },
     {
-      icon: <FamilyIcon />,
+      icon: <PersonIcon />,
       label: 'Con của',
       value: parent ? `${parent.fullName}${person.birthOrder ? ` (thứ ${toRoman(person.birthOrder)})` : ''}` : null,
     },
   ];
   const shown = rows.filter((r) => r.value);
   const missing = isAdmin ? rows.filter((r) => !r.value && r.add) : [];
+  const hasBio = Boolean(person.notes);
   return (
-    <Card title="Giới thiệu" area="about" onEdit={isAdmin ? onEdit : undefined}>
-      {shown.length === 0 && !isAdmin && <p className={styles.empty}>Chưa có thông tin.</p>}
-      <ul className={styles.facts}>
-        {shown.map((r) => (
-          <li key={r.label}>
-            <span className={styles.factIcon}>{r.icon}</span>
-            <span>
-              <span className={styles.factLabel}>{r.label}</span>
-              <span className={styles.factValue}>{r.value}</span>
-            </span>
-          </li>
-        ))}
-      </ul>
-      {missing.length > 0 && (
+    <Card title="Giới thiệu & tiểu sử" area="about" onEdit={isAdmin ? onEdit : undefined}>
+      {shown.length === 0 && !hasBio && !isAdmin && <p className={styles.empty}>Chưa có thông tin.</p>}
+      {shown.length > 0 && (
+        <ul className={styles.facts}>
+          {shown.map((r) => (
+            <li key={r.label}>
+              <span className={styles.factIcon}>{r.icon}</span>
+              <span>
+                <span className={styles.factLabel}>{r.label}</span>
+                <span className={styles.factValue}>{r.value}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {hasBio && (
+        <div className={shown.length > 0 ? styles.bioSection : undefined}>
+          <p className={styles.bio}>{person.notes}</p>
+        </div>
+      )}
+      {(missing.length > 0 || (isAdmin && !hasBio)) && (
         <div className={styles.addRow}>
           {missing.map((r) => (
             <button key={r.label} type="button" className={styles.addButton} onClick={onEdit}>
               + {r.add}
             </button>
           ))}
+          {isAdmin && !hasBio && (
+            <button type="button" className={styles.addButton} onClick={onEdit}>
+              + Viết tiểu sử, ghi chú
+            </button>
+          )}
         </div>
-      )}
-    </Card>
-  );
-}
-
-function Biography({ person, isAdmin, onEdit }: { person: PersonRec; isAdmin: boolean; onEdit(): void }) {
-  if (!person.notes && !isAdmin) return null;
-  return (
-    <Card title="Tiểu sử, ghi chú" area="bio" onEdit={isAdmin && person.notes ? onEdit : undefined}>
-      {person.notes ? (
-        <p className={styles.bio}>{person.notes}</p>
-      ) : (
-        <button type="button" className={styles.addWide} onClick={onEdit}>
-          <NoteIcon width={18} height={18} /> Viết vài dòng về {person.fullName}
-        </button>
       )}
     </Card>
   );
@@ -398,24 +426,45 @@ function FamilyCard({
 
   return (
     <Card title="Gia đình" area="family">
-      {groups.map((g) => (
-        <div key={g.label} className={styles.group}>
-          <h4 className={styles.groupTitle}>{g.label}</h4>
-          <ul className={styles.people}>
-            {g.people.map(({ p, caption }) => (
-              <li key={p.id}>
-                <button type="button" className={styles.person} onClick={() => onPick(p)}>
-                  <Avatar person={p} size={44} />
-                  <span className={styles.personText}>
-                    <span className={styles.personName}>{p.fullName}</span>
-                    <span className={styles.personMeta}>{[caption, lifeSpan(p)].filter(Boolean).join(' · ') || ' '}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+      {groups.map((g) => {
+        const isNumberedList = g.label.startsWith('Các con') || g.label.startsWith('Anh chị em');
+        return (
+          <div key={g.label} className={styles.group}>
+            <h4 className={styles.groupTitle}>
+              <span>{g.label}</span>
+            </h4>
+            <ul className={isNumberedList ? styles.numberedPeople : styles.people}>
+              {g.people.map(({ p, caption }) => (
+                <li key={p.id}>
+                  <button type="button" className={isNumberedList ? styles.numberedPerson : styles.person} onClick={() => onPick(p)}>
+                    {isNumberedList ? (
+                      <>
+                        <span className={styles.romanCol}>{caption ?? ''}</span>
+                        {p.photoUrl && <Avatar person={p} size={44} />}
+                        <span className={styles.personText}>
+                          <span className={styles.personName}>{p.fullName}</span>
+                          {lifeSpan(p) && <span className={styles.personMeta}>{lifeSpan(p)}</span>}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Avatar person={p} size={52} />
+                        <span className={styles.personText}>
+                          <span className={styles.personName}>
+                            {caption ? <span className={styles.inlineRole}>{caption} </span> : null}
+                            {p.fullName}
+                          </span>
+                          {lifeSpan(p) && <span className={styles.personMeta}>{lifeSpan(p)}</span>}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
       {isAdmin && (
         <div className={styles.addRow}>
           <button type="button" className={styles.addButton} onClick={() => openAdmin('addChild', person.id)}>

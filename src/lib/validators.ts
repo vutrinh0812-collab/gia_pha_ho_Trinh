@@ -85,9 +85,14 @@ export function validatePersonFields(p: PersonFields): ValidationErrors {
   if (!optString(p.occupation, LIMITS.shortText)) errors.push('Nghề nghiệp quá dài.');
   if (!optString(p.branchLabel, LIMITS.shortText)) errors.push('Tên chi quá dài.');
   if (!optString(p.notes, LIMITS.longText)) errors.push('Ghi chú quá dài.');
-  // https:// in Firebase (rules enforce it); the preview build keeps photos as data: URLs.
-  const demoPhoto = typeof p.photoUrl === 'string' && p.photoUrl.startsWith('data:image/') && import.meta.env?.VITE_DATA_SOURCE === 'demo';
-  if (p.photoUrl !== undefined && !demoPhoto && (typeof p.photoUrl !== 'string' || p.photoUrl.length > LIMITS.url || !p.photoUrl.startsWith('https://'))) {
+  // https:// URL (Storage) or inline base64 data:image/ URL when Storage is not enabled / in demo mode.
+  const isHttpsPhoto =
+    typeof p.photoUrl === 'string' && p.photoUrl.length <= LIMITS.url && p.photoUrl.startsWith('https://');
+  const isDataPhoto =
+    typeof p.photoUrl === 'string' &&
+    p.photoUrl.length <= LIMITS.photoDataUrl &&
+    /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(p.photoUrl);
+  if (p.photoUrl !== undefined && !isHttpsPhoto && !isDataPhoto) {
     errors.push('Đường dẫn ảnh không hợp lệ.');
   }
   return errors;

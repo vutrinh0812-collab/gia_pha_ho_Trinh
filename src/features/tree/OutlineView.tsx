@@ -7,6 +7,7 @@ import type { ClanModel } from '@/lib/clanModel';
 import type { TreeLayoutPref } from '@/store/prefsStore';
 import { useAdminStore } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
+import { Avatar } from '../person/Avatar';
 import { allOpenIds, ancestorIds, buildOutline, defaultOpenIds, outlineStats, rowIdFor, type OutlineFilters, type OutlineRow } from './outline';
 import { GenRangeSlider } from './GenRangeSlider';
 import { LayoutToggle } from './LayoutToggle';
@@ -267,26 +268,33 @@ export function OutlineView({ model, tp, onLayout }: { model: ClanModel; tp: Tre
           </button>
         </div>
       ) : (
-        <ol ref={listRef} className={styles.list} aria-label="Cây gia phả">
-          {rows.map((r) => (
-            <Row
-              key={r.id}
-              row={r}
-              mark={
-                r.id === flashId
-                  ? 'flash'
-                  : r.id === selectedRow
-                    ? 'selected'
-                    : pathIds?.has(r.id)
-                      ? 'path'
-                      : null
-              }
-              dim={pathIds !== null && !pathIds.has(r.id)}
-              onToggle={toggle}
-              onSelect={(id) => openOverlay('ct', id)}
-            />
-          ))}
-        </ol>
+        <div className={styles.treeCard}>
+          <div className={styles.cardHeader} aria-hidden="true">
+            <span className={styles.diamond}>◆</span>
+            <span className={styles.cardTitle}>Cây gia phả</span>
+            <span className={styles.diamond}>◆</span>
+          </div>
+          <ol ref={listRef} className={styles.list} aria-label="Cây gia phả">
+            {rows.map((r) => (
+              <Row
+                key={r.id}
+                row={r}
+                mark={
+                  r.id === flashId
+                    ? 'flash'
+                    : r.id === selectedRow
+                      ? 'selected'
+                      : pathIds?.has(r.id)
+                        ? 'path'
+                        : null
+                }
+                dim={pathIds !== null && !pathIds.has(r.id)}
+                onToggle={toggle}
+                onSelect={(id) => openOverlay('ct', id)}
+              />
+            ))}
+          </ol>
+        </div>
       )}
 
     </div>
@@ -305,10 +313,13 @@ function Row({ row: r, mark, dim, onToggle, onSelect }: RowProps) {
   const p = r.person;
   const role = p.gender === 'female' ? 'female' : 'male';
   const spouseText = r.spouses.map((s) => `${s.role}: ${s.person.fullName}`).join(' · ');
+  const isRoot = r.depth === 0;
   return (
     <li
       className={styles.row}
       data-row={r.id}
+      data-root={isRoot || undefined}
+      data-open={r.open && r.hasChildren ? 'true' : undefined}
       data-mark={mark ?? undefined}
       data-dim={dim || undefined}
       data-role={role}
@@ -332,16 +343,28 @@ function Row({ row: r, mark, dim, onToggle, onSelect }: RowProps) {
         <span className={styles.leaf} aria-hidden="true" />
       )}
       <button type="button" className={styles.person} onClick={() => onSelect(r.id)}>
-        <span className={styles.line1}>
-          {r.caption && <span className={styles.caption}>{r.caption}</span>}
-          <span className={styles.name}>{p.fullName}</span>
-        </span>
-        {(r.years || spouseText) && (
-          <span className={styles.line2}>
-            {r.years && <span className={styles.years}>{r.years}</span>}
-            {spouseText && <span className={styles.spouse}>{spouseText}</span>}
-          </span>
+        {p.photoUrl ? (
+          <Avatar person={p} size={isRoot ? 56 : 38} ring={isRoot} />
+        ) : (
+          isRoot && (
+            <span className={styles.rootSeal} aria-hidden="true">
+              <span className={styles.rootSealLabel}>Đời</span>
+              <span className={styles.rootSealNum}>{r.gen}</span>
+            </span>
+          )
         )}
+        <span className={styles.personContent}>
+          <span className={styles.line1}>
+            {r.caption && <span className={styles.caption}>{r.caption}</span>}
+            <span className={styles.name}>{p.fullName}</span>
+          </span>
+          {(r.years || spouseText) && (
+            <span className={styles.line2}>
+              {spouseText && <span className={styles.spouse}>{spouseText}</span>}
+              {r.years && <span className={styles.years}>{spouseText ? ` · ${r.years}` : r.years}</span>}
+            </span>
+          )}
+        </span>
       </button>
       {!r.open && r.hiddenCount > 0 && (
         <span className={styles.count} aria-label={`${r.hiddenCount} người trong nhánh`}>

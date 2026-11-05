@@ -156,6 +156,43 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
 
         <fieldset className={styles.fieldset}>
           <legend className={styles.legend}>Cơ bản</legend>
+          {canUpload && (
+            <div className={styles.field}>
+              <label htmlFor="f-photo">Ảnh đại diện</label>
+              <div className={styles.photoRow}>
+                {draft.photoUrl ? (
+                  <img src={draft.photoUrl} alt="Ảnh đại diện" className={styles.photo} />
+                ) : (
+                  <div className={styles.photoPlaceholder} aria-hidden="true">
+                    <span>{(draft.fullName || person.fullName || '?').trim().charAt(0).toUpperCase()}</span>
+                  </div>
+                )}
+                <div className={styles.photoControls}>
+                  <label htmlFor="f-photo" className={styles.photoUploadBtn}>
+                    {photoBusy ? 'Đang xử lý ảnh…' : draft.photoUrl ? 'Đổi ảnh khác' : 'Chọn ảnh chất lượng cao'}
+                  </label>
+                  <input
+                    id="f-photo"
+                    type="file"
+                    accept="image/*"
+                    className={styles.fileInput}
+                    onChange={(e) => {
+                      void onPhoto(e.target.files?.[0]);
+                      e.target.value = '';
+                    }}
+                    disabled={photoBusy}
+                  />
+                  <span className={styles.photoHint}>Hỗ trợ ảnh độ phân giải cao (tự động tối ưu sắc nét).</span>
+                  {draft.photoUrl && (
+                    <button type="button" className={styles.textButton} onClick={() => set('photoUrl', undefined)}>
+                      Bỏ ảnh
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          {canUpload === false && <p className={styles.note}>Chưa bật lưu ảnh cho gia phả này (xem README, mục 3.6).</p>}
           <div className={styles.field}>
             <label htmlFor="f-name">Họ và tên</label>
             <input id="f-name" required autoComplete="off" value={draft.fullName} onChange={(e) => set('fullName', e.target.value)} />
@@ -317,22 +354,6 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
             <label htmlFor="f-notes">Ghi chú</label>
             <textarea id="f-notes" rows={4} value={draft.notes ?? ''} onChange={(e) => set('notes', e.target.value)} />
           </div>
-          {canUpload && (
-            <div className={styles.field}>
-              <label htmlFor="f-photo">Ảnh</label>
-              <div className={styles.photoRow}>
-                {draft.photoUrl && <img src={draft.photoUrl} alt="" className={styles.photo} />}
-                <input id="f-photo" type="file" accept="image/*" onChange={(e) => onPhoto(e.target.files?.[0])} disabled={photoBusy} />
-              </div>
-              {photoBusy && <p className={styles.note}>Đang thu nhỏ và tải ảnh lên…</p>}
-              {draft.photoUrl && (
-                <button type="button" className={styles.textButton} onClick={() => set('photoUrl', undefined)}>
-                  Bỏ ảnh
-                </button>
-              )}
-            </div>
-          )}
-          {canUpload === false && <p className={styles.note}>Chưa bật lưu ảnh cho gia phả này (xem README, mục 3.6).</p>}
         </fieldset>
       </form>
     </Sheet>

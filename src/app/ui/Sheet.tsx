@@ -96,7 +96,7 @@ export function Sheet({ label, onClose, children, initialSnap = 'half', header, 
     if (startY.current === null) return;
     startY.current = null;
     if (drag > CLOSE_DRAG) {
-      if (snap === 'full') setSnap('half');
+      if (snap === 'full' && initialSnap !== 'full') setSnap('half');
       else onClose();
     } else if (drag < EXPAND_DRAG) {
       setSnap('full');

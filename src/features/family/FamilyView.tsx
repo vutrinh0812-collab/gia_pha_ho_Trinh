@@ -1,8 +1,8 @@
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isInDialog, useHotkeys } from '@/app/useHotkeys';
 import { useOverlays } from '@/app/useOverlays';
-import { TreeIcon, UpIcon } from '@/app/ui/icons';
+import { NoteIcon, TreeIcon, UpIcon } from '@/app/ui/icons';
 import { formatSolarShort, todaySolar, upcomingAnniversaries } from '@/lib/anniversaries';
 import type { ClanModel, Partnership, PersonRec } from '@/lib/clanModel';
 import { childrenGroupLabel, givenName, lifeSpan, spouseRole, toRoman } from '@/lib/format';
@@ -10,8 +10,24 @@ import { useClanStore } from '@/store/clanStore';
 import { usePrefsStore } from '@/store/prefsStore';
 import { useAdminStore } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
+import { Avatar } from '../person/Avatar';
 import { PersonCard, roleOf } from '../person/PersonCard';
+import { PhotoButton } from '../person/Profile';
 import styles from './FamilyView.module.css';
+
+function countDescendants(model: ClanModel, id: string): number {
+  let n = 0;
+  const stack = [id];
+  while (stack.length) {
+    for (const u of model.index.unionsOf(stack.pop()!)) {
+      for (const c of model.index.childrenOf(u.id)) {
+        n++;
+        stack.push(c.id);
+      }
+    }
+  }
+  return n;
+}
 
 /**
  * "Gia đình" — the default view (SPEC 5A.1): one person in focus, then the
@@ -95,9 +111,13 @@ export function FamilyView() {
       <UpcomingStrip model={model} onPick={(id) => open('ct', id)} />
 
       <section className={styles.group} aria-labelledby="fam-parents">
-        <h2 id="fam-parents" className={styles.groupTitle}>
-          Cha mẹ
-        </h2>
+        <div className={styles.titleRow}>
+          <span className={styles.diamond} aria-hidden="true">◆</span>
+          <h2 id="fam-parents" className={styles.groupTitle}>
+            Cha mẹ
+          </h2>
+          <span className={styles.diamond} aria-hidden="true">◆</span>
+        </div>
         {father || mother ? (
           <div className={styles.pair}>
             {father && <PersonCard person={father} caption="Cha" onClick={() => go(father)} />}
@@ -118,9 +138,13 @@ export function FamilyView() {
 
       {partnerships.length > 0 && (
         <section className={styles.group} aria-labelledby="fam-spouses">
-          <h2 id="fam-spouses" className={styles.groupTitle}>
-            {person.gender === 'male' ? 'Vợ' : 'Chồng'}
-          </h2>
+          <div className={styles.titleRow}>
+            <span className={styles.diamond} aria-hidden="true">◆</span>
+            <h2 id="fam-spouses" className={styles.groupTitle}>
+              {person.gender === 'male' ? 'Vợ' : 'Chồng'}
+            </h2>
+            <span className={styles.diamond} aria-hidden="true">◆</span>
+          </div>
           <div className={styles.pair}>
             {partnerships.map(({ union, partner }) =>
               partner ? (
@@ -148,9 +172,13 @@ export function FamilyView() {
 
       {siblings.length > 0 && (
         <section className={styles.group} aria-labelledby="siblings">
-          <h2 id="siblings" className={styles.groupTitle}>
-            Anh chị em <span className={styles.count}>{siblings.length}</span>
-          </h2>
+          <div className={styles.titleRow}>
+            <span className={styles.diamond} aria-hidden="true">◆</span>
+            <h2 id="siblings" className={styles.groupTitle}>
+              Anh chị em <span className={styles.count}>{siblings.length}</span>
+            </h2>
+            <span className={styles.diamond} aria-hidden="true">◆</span>
+          </div>
           <div className={styles.grid}>
             {siblings.map((s) => (
               <PersonCard
@@ -173,9 +201,13 @@ function UpcomingStrip({ model, onPick }: { model: ClanModel; onPick(id: string)
   if (items.length === 0) return null;
   return (
     <section className={styles.group} aria-labelledby="fam-gio">
-      <h2 id="fam-gio" className={styles.groupTitle}>
-        Ngày giỗ sắp tới
-      </h2>
+      <div className={styles.titleRow}>
+        <span className={styles.diamond} aria-hidden="true">◆</span>
+        <h2 id="fam-gio" className={styles.groupTitle}>
+          Ngày giỗ sắp tới
+        </h2>
+        <span className={styles.diamond} aria-hidden="true">◆</span>
+      </div>
       <ul className={styles.gio}>
         {items.map((a) => (
           <li key={a.person.id}>
@@ -235,16 +267,16 @@ interface CenterProps {
   onUp?: () => void;
 }
 
-/** The person in focus, on the pale son tint; swipe up on it to go up a generation. */
+/** The person in focus: circular Đời seal, uppercase name, primary/secondary actions, and stats. */
 function CenterCard({ model, person, generation, otherNames, onOpen, onUp }: CenterProps) {
   const start = useRef<{ x: number; y: number } | null>(null);
   const navigate = useNavigate();
   const isAdmin = useAdminStore((s) => s.status === 'admin');
   const openAdmin = useAdminUi((s) => s.open);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const years = lifeSpan(person);
   const deceased = person.death?.isDeceased === true;
   const facts = [
-    generation ? `Đời ${generation}` : null,
     person.branchLabel ?? null,
     !person.isBloodline ? (person.gender === 'female' ? 'Dâu' : 'Rể') : null,
     model.isMaternal(person.id) ? 'Bên ngoại' : null,
@@ -255,6 +287,15 @@ function CenterCard({ model, person, generation, otherNames, onOpen, onUp }: Cen
     deceased ? 'đã mất' : null,
     gio ? `giỗ ${gio.day}/${gio.month} âm lịch` : null,
   ].filter(Boolean);
+
+  const fam = model.family(person.id);
+  const partners = fam?.partnerships.filter((x) => x.partner) ?? [];
+  const children = fam?.partnerships.flatMap((x) => x.children) ?? [];
+  const descendants = useMemo(() => countDescendants(model, person.id), [model, person.id]);
+  const stats: Array<[number, string]> = [];
+  if (partners.length) stats.push([partners.length, person.gender === 'male' ? 'vợ' : 'chồng']);
+  if (person.isBloodline) stats.push([children.length, 'con']);
+  if (person.isBloodline && descendants > children.length) stats.push([descendants, 'con cháu']);
 
   return (
     <section
@@ -272,15 +313,44 @@ function CenterCard({ model, person, generation, otherNames, onOpen, onUp }: Cen
         if (t.clientY - s.y < -60 && Math.abs(t.clientX - s.x) < 50) onUp();
       }}
     >
-      <p className={styles.facts}>{facts.join(' · ')}</p>
-      <h1 id="fam-name" className={styles.centerName}>
-        {person.fullName}
-      </h1>
-      {otherNames.length > 0 && <p className={styles.otherNames}>{otherNames.join(' · ')}</p>}
-      {yearsLine.length > 0 && <p className={styles.years}>{yearsLine.join(' · ')}</p>}
+      <div className={styles.centerHead}>
+        <div className={styles.centerPortrait}>
+          {person.photoUrl ? (
+            <Avatar person={person} size={112} ring highPriority zoomable />
+          ) : generation ? (
+            <div className={styles.seal} aria-hidden="true">
+              <span className={styles.sealLabel}>Đời</span>
+              <span className={styles.sealNum}>{generation}</span>
+            </div>
+          ) : (
+            <Avatar person={person} size={88} ring />
+          )}
+          {isAdmin && (
+            <PhotoButton
+              model={model}
+              person={person}
+              onSuccess={() => setPhotoError(null)}
+              onError={setPhotoError}
+            />
+          )}
+        </div>
+        <div className={styles.centerTitle}>
+          {facts.length > 0 && <p className={styles.facts}>{facts.join(' · ')}</p>}
+          <h1 id="fam-name" className={styles.centerName}>
+            {person.fullName}
+          </h1>
+          {otherNames.length > 0 && <p className={styles.otherNames}>{otherNames.join(' · ')}</p>}
+          {yearsLine.length > 0 && <p className={styles.years}>{yearsLine.join(' · ')}</p>}
+        </div>
+      </div>
+      {photoError && (
+        <p className={styles.photoError} role="alert">
+          {photoError}
+        </p>
+      )}
       <div className={styles.centerActions}>
         <button type="button" className={styles.primary} onClick={onOpen}>
-          Xem chi tiết
+          <NoteIcon width={18} height={18} /> Xem chi tiết
         </button>
         {onUp && (
           <button type="button" className={styles.secondary} onClick={onUp}>
@@ -300,6 +370,17 @@ function CenterCard({ model, person, generation, otherNames, onOpen, onUp }: Cen
           </button>
         )}
       </div>
+      {stats.length > 0 && (
+        <ul className={styles.stats} aria-label="Thống kê gia đình">
+          {stats.map(([n, label]) => (
+            <li key={label}>
+              <span>
+                <strong>{n}</strong> {label}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }
@@ -318,9 +399,13 @@ function Children({ model, person, partnerships, showMaternal, onPick }: Childre
   if (groups.length === 0) {
     return (
       <section className={styles.group} aria-labelledby="fam-kids">
-        <h2 id="fam-kids" className={styles.groupTitle}>
-          Các con
-        </h2>
+        <div className={styles.titleRow}>
+          <span className={styles.diamond} aria-hidden="true">◆</span>
+          <h2 id="fam-kids" className={styles.groupTitle}>
+            Các con
+          </h2>
+          <span className={styles.diamond} aria-hidden="true">◆</span>
+        </div>
         <p className={styles.note}>Chưa ghi nhận con.</p>
       </section>
     );
@@ -336,10 +421,14 @@ function Children({ model, person, partnerships, showMaternal, onPick }: Childre
         const headingId = `children-${union.id}`;
         return (
           <section key={union.id} className={styles.group} aria-labelledby={headingId}>
-            <h2 id={headingId} className={styles.groupTitle}>
-              {title} <span className={styles.count}>{children.length}</span>
-              {several && partner && <span className={styles.groupSub}>{partner.fullName}</span>}
-            </h2>
+            <div className={styles.titleRow}>
+              <span className={styles.diamond} aria-hidden="true">◆</span>
+              <h2 id={headingId} className={styles.groupTitle}>
+                {title} <span className={styles.count}>{children.length}</span>
+                {several && partner && <span className={styles.groupSub}>{partner.fullName}</span>}
+              </h2>
+              <span className={styles.diamond} aria-hidden="true">◆</span>
+            </div>
             {hidden ? (
               <p className={styles.note}>
                 {children.length} con bên ngoại đang ẩn.{' '}

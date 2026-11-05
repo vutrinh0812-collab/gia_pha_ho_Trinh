@@ -131,11 +131,22 @@ describe('Cây dọc (phone layout of Sơ đồ)', () => {
     expect(nameButtons(list, grandchild.fullName)).toHaveLength(0);
   });
 
-  it('opens the detail sheet when a name is tapped', async () => {
+  it('opens the detail sheet when a name is tapped, and closes in one click after switching people', async () => {
     renderAt('/so-do');
     const list = await outline();
+    const secondChild = model.family(model.rootId)!.partnerships[0]!.children[1]!;
+
+    fireEvent.click(nameButtons(list, root.fullName)[0]!);
+    expect(screen.getByRole('dialog', { name: `Thông tin ${root.fullName}` })).toBeInTheDocument();
+
     fireEvent.click(nameButtons(list, firstChild.fullName)[0]!);
     expect(screen.getByRole('dialog', { name: `Thông tin ${firstChild.fullName}` })).toBeInTheDocument();
+
+    fireEvent.click(nameButtons(list, secondChild.fullName)[0]!);
+    const dialog = screen.getByRole('dialog', { name: `Thông tin ${secondChild.fullName}` });
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Đóng' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('goes to a person picked in search, opening their line', async () => {

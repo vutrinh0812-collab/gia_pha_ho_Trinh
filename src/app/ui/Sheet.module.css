@@ -29,8 +29,13 @@
   outline: none;
 }
 .panel[data-snap='full'] {
-  height: calc(100vh - var(--safe-top) - 12px);
-  height: calc(100dvh - var(--safe-top) - 12px);
+  height: 100vh;
+  height: 100dvh;
+  border-radius: 0;
+  background: var(--bg);
+}
+.panel[data-snap='full'] .grab {
+  padding-top: calc(10px + var(--safe-top));
 }
 .panel[data-dragging] {
   transition: none;
@@ -106,8 +111,8 @@
   width: var(--panel-size);
   display: flex;
   flex-direction: column;
-  background: var(--surface);
-  border-left: 1px solid var(--line);
+  background: var(--bg);
+  border-left: 1px solid var(--line-strong);
   box-shadow: -6px 0 24px rgb(0 0 0 / 8%);
   animation: slideIn 180ms ease-out;
   outline: none;

@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { env } from '../env';
 import { getDb, getStorageLazy, paths } from '../firebase';
+import { blobToFirestoreDataUrl } from '@/features/admin/resizeImage';
 import type { AdminBackend } from './backend';
 import type { AuditRecord, ChangeSet, Doc } from './changes';
 import { checkPassword, createSession, defaultLock, makeLock, WEB_ADMIN, type StoredLock } from './lock';
@@ -132,21 +133,42 @@ export function createFirebaseBackend(): AdminBackend {
         } as AuditRecord;
       });
     },
-    ...(env.firebase.storageBucket
-      ? {
-          async uploadPhoto(personId: string, image: Blob, thumb: Blob) {
+    async uploadPhoto(personId: string, image: Blob, thumb: Blob) {
+      if (env.firebase.storageBucket && !storageBucketUnavailable) {
+        try {
+          if (!env.useEmulator && storageBucketReachable === null) {
+            const probeUrl = `https://firebasestorage.googleapis.com/v0/b/${encodeURIComponent(env.firebase.storageBucket)}/o?maxResults=1`;
+            const res = await fetch(probeUrl, { method: 'GET' }).catch(() => null);
+            if (!res || res.status === 404) {
+              storageBucketUnavailable = true;
+              storageBucketReachable = false;
+            } else {
+              storageBucketReachable = true;
+            }
+          }
+          if (!storageBucketUnavailable) {
             const [{ ref, uploadBytes, getDownloadURL }, storage] = await Promise.all([
               import('firebase/storage'),
               getStorageLazy(),
             ]);
+            storage.maxUploadRetryTime = 3500;
             const base = `${paths.clan()}/photos/${personId}`;
             const meta = { contentType: 'image/jpeg', cacheControl: 'public, max-age=31536000' };
             await uploadBytes(ref(storage, `${base}/120.jpg`), thumb, meta);
             const big = ref(storage, `${base}/800.jpg`);
             await uploadBytes(big, image, meta);
-            return getDownloadURL(big);
-          },
+            return await getDownloadURL(big);
+          }
+        } catch {
+          // Firebase Storage is not enabled on this project (e.g. Spark plan) or unreachable;
+          // fall back to storing a high-quality compressed Data URL directly in Firestore.
+          storageBucketUnavailable = true;
         }
-      : {}),
+      }
+      return await blobToFirestoreDataUrl(image);
+    },
   };
 }
+
+let storageBucketUnavailable = false;
+let storageBucketReachable: boolean | null = null;

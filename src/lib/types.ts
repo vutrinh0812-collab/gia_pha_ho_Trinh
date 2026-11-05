@@ -157,6 +157,7 @@ export const LIMITS = {
   shortText: 200,
   longText: 5000,
   url: 1000,
+  photoDataUrl: 400000,
   maxBirthOrder: 99,
   maxUnionOrder: 20,
 } as const;

@@ -22,11 +22,13 @@ export function useOverlays() {
   const open = useCallback(
     (key: OverlayKey, value = '1') => {
       const next = new URLSearchParams(params);
+      // Opening an overlay when one is already open (including switching to another
+      // person in `ct`) replaces the current history entry so closing takes one step.
+      const replace = OVERLAY_KEYS.some((k) => params.has(k));
+      for (const k of OVERLAY_KEYS) if (k !== key) next.delete(k);
       next.set(key, value);
-      // Opening one overlay replaces another one already open (keeps Back simple).
-      const replace = inAppOverlay && OVERLAY_KEYS.some((k) => k !== key && params.has(k));
-      if (replace) for (const k of OVERLAY_KEYS) if (k !== key) next.delete(k);
-      navigate({ pathname: location.pathname, search: `?${next}` }, { state: { overlay: true }, replace });
+      const state: NavState = { overlay: replace ? inAppOverlay : true };
+      navigate({ pathname: location.pathname, search: `?${next}` }, { state, replace });
     },
     [params, location.pathname, navigate, inAppOverlay],
   );

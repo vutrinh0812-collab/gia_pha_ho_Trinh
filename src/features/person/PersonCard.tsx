@@ -3,6 +3,7 @@ import { lifeSpan } from '@/lib/format';
 import { useAdminStore } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
 import type { PersonRec } from '@/lib/clanModel';
+import { Avatar } from './Avatar';
 import styles from './PersonCard.module.css';
 
 export type PersonRole = 'male' | 'female' | 'spouse';
@@ -22,7 +23,7 @@ interface Props {
   onClick?: () => void;
 }
 
-/** A tappable person: colour stripe by role (nam / nữ / dâu-rể), name, years. */
+/** A tappable person: portrait avatar when present, role styling, name, years. */
 export function PersonCard({ person, caption, extra, size = 'chip', onClick }: Props) {
   const years = lifeSpan(person);
   const deceased = person.death?.isDeceased === true;
@@ -31,16 +32,27 @@ export function PersonCard({ person, caption, extra, size = 'chip', onClick }: P
   // Admins press and hold a person for the action menu (SPEC 5A.2).
   const press = useLongPress(isAdmin ? () => openAdmin('menu', person.id) : null);
   return (
-    <button type="button" className={styles.card} data-size={size} data-role={roleOf(person)} onClick={onClick} {...press}>
-      {caption && <span className={styles.caption}>{caption}</span>}
-      <span className={styles.name}>{person.fullName}</span>
-      {(years || deceased) && (
-        <span className={styles.meta}>
-          {years}
-          {deceased && <span className={styles.deceased}>{years ? ' · ' : ''}đã mất</span>}
-        </span>
-      )}
-      {extra && <span className={styles.extra}>{extra}</span>}
+    <button
+      type="button"
+      className={styles.card}
+      data-size={size}
+      data-role={roleOf(person)}
+      data-has-photo={Boolean(person.photoUrl) || undefined}
+      onClick={onClick}
+      {...press}
+    >
+      {person.photoUrl && <Avatar person={person} size={52} />}
+      <span className={styles.body}>
+        {caption && <span className={styles.caption}>{caption}</span>}
+        <span className={styles.name}>{person.fullName}</span>
+        {(years || deceased) && (
+          <span className={styles.meta}>
+            {years}
+            {deceased && <span className={styles.deceased}>{years ? ' · ' : ''}đã mất</span>}
+          </span>
+        )}
+        {extra && <span className={styles.extra}>{extra}</span>}
+      </span>
     </button>
   );
 }

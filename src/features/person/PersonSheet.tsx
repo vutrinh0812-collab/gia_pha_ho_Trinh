@@ -19,7 +19,7 @@ export function PersonSheet({ id }: { id: string }) {
 
   if (!model || !person) {
     return (
-      <Sheet label="Không tìm thấy" onClose={() => close('ct')}>
+      <Sheet label="Không tìm thấy" initialSnap="full" onClose={() => close('ct')}>
         <p>Không tìm thấy người này trong gia phả. Có thể dữ liệu đã thay đổi.</p>
       </Sheet>
     );
@@ -29,6 +29,7 @@ export function PersonSheet({ id }: { id: string }) {
     <Sheet
       key={person.id}
       label={`Thông tin ${person.fullName}`}
+      initialSnap="full"
       onClose={() => close('ct')}
       header={<p className={styles.sheetTitle}>Hồ sơ</p>}
     >

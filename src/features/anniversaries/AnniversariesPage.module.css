@@ -1,60 +1,118 @@
 .page {
-  padding-block: 16px 24px;
+  display: grid;
+  gap: 18px;
+  padding-block: 16px 28px;
 }
 @media (min-width: 960px) {
   .page {
     padding-block: 32px 48px;
   }
 }
+
+.head {
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid var(--line-strong);
+}
 .head h1 {
   margin: 0;
-  font-size: 1.5rem;
-  line-height: 1.25;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--text);
 }
-.head p {
-  margin: 6px 0 20px;
+.subLead {
+  margin: 6px 0 0;
   color: var(--text-2);
-  max-width: 60ch;
+  font-size: 0.9375rem;
+  font-weight: 500;
 }
+
+/* Signature spine-bordered section card */
+.card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 6px solid var(--burnt-sienna);
+  border-radius: 14px;
+  padding: 14px 16px 16px;
+  box-shadow: var(--shadow);
+}
+.cardTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.diamond {
+  color: var(--burnt-sienna);
+  font-size: 0.65rem;
+  line-height: 1;
+}
+.cardTitle {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
 .empty {
+  margin: 0;
   color: var(--text-2);
+  text-align: center;
+  padding: 8px 0;
 }
+
+/* Sắp tới list */
 .list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 8px;
+  gap: 12px;
+}
+.list > li + li {
+  border-top: 1px dashed var(--line-strong);
+  padding-top: 12px;
 }
 .item {
   width: 100%;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: 14px;
-  row-gap: 2px;
-  align-items: baseline;
-  min-height: 64px;
-  padding: 12px 14px;
-  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 6px 4px;
+  border: 0;
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: transparent;
   text-align: left;
   cursor: pointer;
 }
 .item:hover {
   background: var(--surface-2);
 }
+.itemMain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
 .when {
-  grid-row: span 3;
-  align-self: center;
-  width: 7.2em;
-  padding: 6px 8px;
-  border-radius: 6px;
-  background: var(--surface-2);
-  color: var(--text-2);
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-align: center;
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 0.84rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 .when[data-soon] {
@@ -62,12 +120,129 @@
   color: var(--accent-ink);
 }
 .name {
-  font-size: 1.125rem;
-  font-weight: 500;
+  margin-top: 4px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.25;
 }
-.meta,
 .date {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.meta {
+  display: block;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  font-size: 0.84rem;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tear-off calendar page box */
+.calBox {
+  flex: none;
+  width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1.5px solid var(--burnt-sienna);
+  border-radius: 10px;
+  background: var(--surface);
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+}
+.calDow {
+  width: 100%;
+  padding: 3px 4px;
+  background: var(--burnt-sienna);
+  color: var(--on-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+.calDay {
+  padding-top: 4px;
+  font-size: 1.625rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--accent);
+}
+.calMonth {
+  padding-bottom: 5px;
+  font-size: 0.72rem;
+  color: var(--text-2);
+}
+
+/* Cả năm list */
+.yearList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.yearList > li + li {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+.yearItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.yearItem:hover {
+  background: var(--surface-2);
+}
+
+/* Traditional circular Đời seal */
+.seal {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--seal-red, #b93829);
+  box-shadow: inset 0 0 0 2px var(--surface), inset 0 0 0 3px rgb(185 56 41 / 45%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--seal-red, #b93829);
+  line-height: 1;
+}
+.sealLabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+.sealNum {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-top: 1px;
+}
+
+.yearText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.yearName {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.yearMeta {
+  font-size: 0.84rem;
+  font-weight: 600;
   color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
