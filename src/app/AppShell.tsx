@@ -10,7 +10,7 @@ import { MoreSheet } from './MoreSheet';
 import { ShortcutHelp } from './ShortcutHelp';
 import { StatusBanner } from './StatusBanner';
 import { Toast } from './Toast';
-import { useAdminStore } from '@/store/adminStore';
+import { useAdminStore, useCanEdit } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
 
 // Admin panels are only downloaded once an admin opens one.
@@ -31,7 +31,8 @@ export function AppShell() {
   const showTopBar = !desktop && pathname !== '/so-do';
   useEffect(() => start(), [start]);
   useEffect(() => useAdminStore.getState().init(), []);
-  const isAdmin = useAdminStore((s) => s.status === 'admin');
+  // Edit panels open for the admin, or for everyone while editing is open (D62).
+  const isAdmin = useCanEdit();
   const adminAction = useAdminUi((s) => s.action);
 
   // Global shortcuts (see ShortcutHelp).

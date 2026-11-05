@@ -86,9 +86,12 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
   const s = model.settings;
   const T = theme.frame.enabled ? theme.frame.thicknessMm : 0;
 
-  // Content box inside the frame.
+  // Content box inside the frame, or the area a frame package's picture leaves free (D62).
   const inset = SAFE + T + 8;
-  const box = { x: inset, y: inset, w: W - 2 * inset, h: H - 2 * inset };
+  const ci = theme.contentInsetMm;
+  const box = ci
+    ? { x: ci.left, y: ci.top, w: Math.max(100, W - ci.left - ci.right), h: Math.max(100, H - ci.top - ci.bottom) }
+    : { x: inset, y: inset, w: W - 2 * inset, h: H - 2 * inset };
 
   // ---- Header: banner + title, subtitle, root ancestor ----
   const bannerW = Math.min(box.w * 0.52, 430);
@@ -191,6 +194,18 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
 
       {/* Sheet and paper */}
       <rect width={W} height={H} fill={c.background} />
+      {theme.backgroundImage && (
+        <image
+          href={theme.backgroundImage.href}
+          x={0}
+          y={0}
+          width={W}
+          height={H}
+          preserveAspectRatio={
+            theme.backgroundImage.fit === 'stretch' ? 'none' : theme.backgroundImage.fit === 'contain' ? 'xMidYMid meet' : 'xMidYMid slice'
+          }
+        />
+      )}
       {theme.backgroundTexture && <rect width={W} height={H} fill={`url(#${uid}-tex)`} />}
       {theme.ornaments.decorations
         ?.filter((d) => d.position === 'background')

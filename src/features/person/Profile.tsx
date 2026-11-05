@@ -5,26 +5,23 @@
  * Admins edit from here: the portrait, every section, and empty fields.
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   BirthIcon,
   CameraIcon,
   EditIcon,
-  HomeIcon,
   MemorialIcon,
-  MoreIcon,
   PersonIcon,
   PlaceIcon,
-  ShareIcon,
+  PlusIcon,
   WorkIcon,
 } from '@/app/ui/icons';
 import { getAdminBackend } from '@/lib/admin/backend';
 import { editPerson, personContent } from '@/lib/admin/changes';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
-import { formatDateInfo, lifeSpan, spouseRole, toRoman } from '@/lib/format';
+import { formatDateInfo, lifeSpan, spouseRole, toRoman, visibleNotes } from '@/lib/format';
 import { daysBetween, nextLunarAnniversary, type SolarDate } from '@/lib/lunar';
-import { shareLink } from '@/lib/share';
-import { useAdminStore } from '@/store/adminStore';
+import { useAdminStore, useCanEdit } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
 import { resizeImage } from '../admin/resizeImage';
 import { Avatar } from './Avatar';
@@ -42,21 +39,6 @@ export function personUrl(id: string): string {
   return `${window.location.origin}/nguoi/${encodeURIComponent(id)}`;
 }
 
-/** Everyone below a person in the book (children, grandchildren…), bloodline only. */
-function descendantCount(model: ClanModel, id: string): number {
-  let n = 0;
-  const stack = [id];
-  while (stack.length) {
-    for (const u of model.index.unionsOf(stack.pop()!)) {
-      for (const c of model.index.childrenOf(u.id)) {
-        n++;
-        stack.push(c.id);
-      }
-    }
-  }
-  return n;
-}
-
 interface ProfileProps {
   model: ClanModel;
   person: PersonRec;
@@ -64,47 +46,26 @@ interface ProfileProps {
   variant: 'page' | 'sheet';
   /** Opens another person (in the sheet, or as a page). */
   onPick(p: PersonRec): void;
-  /** Extra buttons for the action row (e.g. "Dòng dõi" on the tree). */
-  extraActions?: ReactNode;
 }
 
-export function Profile({ model, person, variant, onPick, extraActions }: ProfileProps) {
-  const isAdmin = useAdminStore((s) => s.status === 'admin');
+export function Profile({ model, person, variant, onPick }: ProfileProps) {
+  const isAdmin = useCanEdit();
   const openAdmin = useAdminUi((s) => s.open);
-  const navigate = useNavigate();
   const [note, setNote] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const edit = () => openAdmin('edit', person.id);
 
-  const gen = model.generationOf(person.id);
   const fam = model.family(person.id);
   const children = fam?.partnerships.flatMap((x) => x.children) ?? [];
-  const partners = fam?.partnerships.filter((x) => x.partner) ?? [];
-  const descendants = useMemo(() => descendantCount(model, person.id), [model, person.id]);
   const parent = model.bloodlineParent(person.id);
   const o = person.otherNames;
   const aka = [o?.huy && `Húy ${o.huy}`, o?.tu && `Tự ${o.tu}`, o?.hieu && `Hiệu ${o.hieu}`, o?.thuong && `Thường gọi ${o.thuong}`]
     .filter(Boolean)
     .join(' · ');
 
-  const share = async () => {
-    const result = await shareLink({
-      title: `${person.fullName} — ${model.settings.title}`,
-      text: `${person.fullName} trong ${model.settings.title}`,
-      url: personUrl(person.id),
-    });
-    if (result.kind === 'copied') setNote('Đã sao chép đường link.');
-    else if (result.kind === 'manual') setNote(`Sao chép đường link này: ${result.url}`);
-  };
-
-  const stats: Array<[number, string]> = [];
-  if (partners.length) stats.push([partners.length, person.gender === 'male' ? 'vợ' : 'chồng']);
-  if (person.isBloodline) stats.push([children.length, 'con']);
-  if (person.isBloodline && descendants > children.length) stats.push([descendants, 'con cháu']);
-
   const gio = person.deathAnniversaryLunar;
   const yearsParts = [
-    lifeSpan(person) || 'Chưa rõ năm sinh',
+    lifeSpan(person) || null,
     person.death?.isDeceased ? 'đã mất' : null,
     gio ? `giỗ ${gio.day}/${gio.month} âm lịch` : null,
   ].filter(Boolean);
@@ -114,13 +75,9 @@ export function Profile({ model, person, variant, onPick, extraActions }: Profil
       <header className={styles.top}>
         <div className={styles.identity}>
           <div className={styles.portrait} data-has-photo={Boolean(person.photoUrl) || undefined}>
+            {/* No photo: the grey silhouette (D60). */}
             {person.photoUrl ? (
               <Avatar person={person} size={variant === 'page' ? 148 : 116} ring highPriority zoomable />
-            ) : gen ? (
-              <div className={styles.seal} aria-hidden="true">
-                <span className={styles.sealLabel}>Đời</span>
-                <span className={styles.sealNum}>{gen}</span>
-              </div>
             ) : (
               <Avatar person={person} size={variant === 'page' ? 120 : 96} ring />
             )}
@@ -142,47 +99,19 @@ export function Profile({ model, person, variant, onPick, extraActions }: Profil
           <div className={styles.titleBlock}>
             {variant === 'page' ? <h1 className={styles.name}>{person.fullName}</h1> : <h2 className={styles.name}>{person.fullName}</h2>}
             {aka && <p className={styles.aka}>{aka}</p>}
-            <p className={styles.years}>{yearsParts.join(' · ')}</p>
+            {yearsParts.length > 0 && <p className={styles.years}>{yearsParts.join(' · ')}</p>}
           </div>
         </div>
-        <div className={styles.actions}>
-          {isAdmin && (
-            <>
-              <button type="button" className={styles.primary} onClick={edit}>
-                <EditIcon width={18} height={18} /> Sửa hồ sơ
-              </button>
-              <button type="button" className={styles.secondary} onClick={() => openAdmin('menu', person.id)}>
-                <MoreIcon width={18} height={18} /> Thêm con, vợ/chồng…
-              </button>
-            </>
-          )}
-          <button
-            type="button"
-            className={isAdmin ? styles.secondary : styles.primary}
-            onClick={() => navigate({ pathname: '/', search: `?${new URLSearchParams({ p: person.id })}` })}
-          >
-            <HomeIcon width={18} height={18} /> Gia đình
-          </button>
-          {extraActions}
-          {variant === 'sheet' && (
-            <Link className={styles.secondary} to={`/nguoi/${encodeURIComponent(person.id)}`}>
-              <PersonIcon width={18} height={18} /> Trang cá nhân
-            </Link>
-          )}
-          <button type="button" className={styles.secondary} onClick={share}>
-            <ShareIcon width={18} height={18} /> Chia sẻ
-          </button>
-        </div>
-        {stats.length > 0 && (
-          <ul className={styles.stats}>
-            {stats.map(([n, label]) => (
-              <li key={label}>
-                <span>
-                  <strong>{n}</strong> {label}
-                </span>
-              </li>
-            ))}
-          </ul>
+        {/* Only admins act on a profile; family links are in the "Gia đình" card below (D57). */}
+        {isAdmin && (
+          <div className={styles.actions}>
+            <button type="button" className={styles.primary} onClick={edit}>
+              <EditIcon width={18} height={18} /> Sửa hồ sơ
+            </button>
+            <button type="button" className={styles.secondary} onClick={() => openAdmin('menu', person.id)}>
+              <PlusIcon width={18} height={18} /> Thêm người thân
+            </button>
+          </div>
         )}
         {photoError && (
           <p className={styles.errorNote} role="alert">
@@ -300,6 +229,23 @@ function Anniversary({ person }: { person: PersonRec }) {
   );
 }
 
+/** Admin: a compact row of "+ …" chips for what can be added, with a short label in front. */
+function AddRow({ label, items }: { label: string; items: Array<{ key: string; text: string; name: string; onClick(): void }> }) {
+  return (
+    <div className={styles.addRow} role="group" aria-label={label}>
+      <span className={styles.addLabel} aria-hidden="true">
+        {label}:
+      </span>
+      {items.map((it) => (
+        <button key={it.key} type="button" className={styles.addButton} onClick={it.onClick} aria-label={it.name}>
+          <PlusIcon width={14} height={14} aria-hidden="true" />
+          {it.text}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function Card({ title, area, onEdit, children }: { title: string; area: 'about' | 'bio' | 'family'; onEdit?: () => void; children: ReactNode }) {
   return (
     <section className={styles.card} data-area={area} aria-label={title}>
@@ -310,8 +256,8 @@ function Card({ title, area, onEdit, children }: { title: string; area: 'about' 
           <span className={styles.diamond} aria-hidden="true">◆</span>
         </div>
         {onEdit && (
-          <button type="button" className={styles.cardEdit} onClick={onEdit} aria-label={`Sửa: ${title}`}>
-            <EditIcon width={16} height={16} /> Sửa
+          <button type="button" className={styles.cardEdit} onClick={onEdit} aria-label={`Sửa: ${title}`} title="Sửa">
+            <EditIcon width={16} height={16} />
           </button>
         )}
       </div>
@@ -332,16 +278,17 @@ function About({
   onEdit(): void;
 }) {
   const deceased = person.death?.isDeceased === true;
-  const rows: Array<{ icon: ReactNode; label: string; value: string | null | undefined; add?: string }> = [
-    { icon: <BirthIcon />, label: 'Sinh', value: formatDateInfo(person.birth), add: 'Thêm ngày sinh' },
-    { icon: <PlaceIcon />, label: 'Quê quán, nơi sinh', value: person.birth?.place, add: 'Thêm nơi sinh' },
+  // `add` is the full name of the admin's button, `short` the text on its chip.
+  const rows: Array<{ icon: ReactNode; label: string; value: string | null | undefined; add?: string; short?: string }> = [
+    { icon: <BirthIcon />, label: 'Sinh', value: formatDateInfo(person.birth), add: 'Thêm ngày sinh', short: 'Ngày sinh' },
+    { icon: <PlaceIcon />, label: 'Quê quán, nơi sinh', value: person.birth?.place, add: 'Thêm nơi sinh', short: 'Nơi sinh' },
     ...(deceased
       ? [
           { icon: <MemorialIcon />, label: 'Mất', value: formatDateInfo(person.death) || 'Đã mất, chưa rõ ngày' },
-          { icon: <PlaceIcon />, label: 'An táng', value: person.burialPlace, add: 'Thêm nơi an táng' },
+          { icon: <PlaceIcon />, label: 'An táng', value: person.burialPlace, add: 'Thêm nơi an táng', short: 'Nơi an táng' },
         ]
       : []),
-    { icon: <WorkIcon />, label: 'Nghề nghiệp', value: person.occupation, add: 'Thêm nghề nghiệp' },
+    { icon: <WorkIcon />, label: 'Nghề nghiệp', value: person.occupation, add: 'Thêm nghề nghiệp', short: 'Nghề nghiệp' },
     {
       icon: <PersonIcon />,
       label: 'Con của',
@@ -350,7 +297,8 @@ function About({
   ];
   const shown = rows.filter((r) => r.value);
   const missing = isAdmin ? rows.filter((r) => !r.value && r.add) : [];
-  const hasBio = Boolean(person.notes);
+  const bio = visibleNotes(person.notes);
+  const hasBio = Boolean(bio);
   return (
     <Card title="Giới thiệu & tiểu sử" area="about" onEdit={isAdmin ? onEdit : undefined}>
       {shown.length === 0 && !hasBio && !isAdmin && <p className={styles.empty}>Chưa có thông tin.</p>}
@@ -369,22 +317,17 @@ function About({
       )}
       {hasBio && (
         <div className={shown.length > 0 ? styles.bioSection : undefined}>
-          <p className={styles.bio}>{person.notes}</p>
+          <p className={styles.bio}>{bio}</p>
         </div>
       )}
       {(missing.length > 0 || (isAdmin && !hasBio)) && (
-        <div className={styles.addRow}>
-          {missing.map((r) => (
-            <button key={r.label} type="button" className={styles.addButton} onClick={onEdit}>
-              + {r.add}
-            </button>
-          ))}
-          {isAdmin && !hasBio && (
-            <button type="button" className={styles.addButton} onClick={onEdit}>
-              + Viết tiểu sử, ghi chú
-            </button>
-          )}
-        </div>
+        <AddRow
+          label="Bổ sung"
+          items={[
+            ...missing.map((r) => ({ key: r.label, text: r.short!, name: r.add!, onClick: onEdit })),
+            ...(isAdmin && !hasBio ? [{ key: 'bio', text: 'Tiểu sử', name: 'Viết tiểu sử, ghi chú', onClick: onEdit }] : []),
+          ]}
+        />
       )}
     </Card>
   );
@@ -466,16 +409,22 @@ function FamilyCard({
         );
       })}
       {isAdmin && (
-        <div className={styles.addRow}>
-          <button type="button" className={styles.addButton} onClick={() => openAdmin('addChild', person.id)}>
-            + Thêm con
-          </button>
-          {person.isBloodline && (
-            <button type="button" className={styles.addButton} onClick={() => openAdmin('addSpouse', person.id)}>
-              + {person.gender === 'male' ? 'Thêm vợ' : 'Thêm chồng'}
-            </button>
-          )}
-        </div>
+        <AddRow
+          label="Thêm"
+          items={[
+            { key: 'child', text: 'Con', name: 'Thêm con', onClick: () => openAdmin('addChild', person.id) },
+            ...(person.isBloodline
+              ? [
+                  {
+                    key: 'spouse',
+                    text: person.gender === 'male' ? 'Vợ' : 'Chồng',
+                    name: person.gender === 'male' ? 'Thêm vợ' : 'Thêm chồng',
+                    onClick: () => openAdmin('addSpouse', person.id),
+                  },
+                ]
+              : []),
+          ]}
+        />
       )}
     </Card>
   );

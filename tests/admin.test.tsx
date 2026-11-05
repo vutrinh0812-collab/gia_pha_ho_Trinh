@@ -88,7 +88,7 @@ describe('admin editing (demo backend)', () => {
 
   it('suggests the lunar date for a full solar date', async () => {
     await signIn();
-    renderAt('/?p=p0007');
+    renderAt('/nguoi/p0007');
     await screen.findByRole('heading', { level: 1 });
     act(() => useAdminUi.getState().open('addChild', 'p0007'));
     const form = await screen.findByRole('dialog', { name: /Thêm con/ });
@@ -103,9 +103,11 @@ describe('admin editing (demo backend)', () => {
 
   it('adds a child from the action menu', async () => {
     await signIn();
-    renderAt('/?p=p0007');
-    fireEvent.click(await screen.findByRole('button', { name: 'Thao tác (Admin)' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Thêm con' }));
+    renderAt('/nguoi/p0007');
+    fireEvent.click(await screen.findByRole('button', { name: 'Thêm người thân' }));
+    // The action menu (the profile also has a "+ Con" chip with the same name).
+    const menu = await screen.findByRole('dialog', { name: /Thao tác|Thêm|Trịnh/ });
+    fireEvent.click(within(menu).getByRole('button', { name: 'Thêm con' }));
     const form = await screen.findByRole('dialog', { name: /Thêm con/ });
     fireEvent.change(within(form).getByLabelText('Họ và tên'), { target: { value: 'Trịnh Văn Thử Nghiệm' } });
     fireEvent.click(within(form).getByRole('button', { name: 'Lưu' }));
@@ -125,7 +127,7 @@ describe('admin editing (demo backend)', () => {
     await signIn();
     const model = buildClanModel(loadDemoSnapshot())!;
     const leaf = model.persons.find((p) => p.isBloodline && model.index.unionsOf(p.id).length === 0 && model.generationOf(p.id) === 7)!;
-    const { unmount } = renderAt(`/?p=${leaf.id}`);
+    const { unmount } = renderAt(`/nguoi/${leaf.id}`);
     await screen.findByRole('heading', { level: 1, name: leaf.fullName });
     act(() => useAdminUi.getState().open('delete', leaf.id));
     const dialog = await screen.findByRole('dialog', { name: `Xóa ${leaf.fullName}` });
@@ -221,5 +223,56 @@ describe('password lock', () => {
     const lock = await makeLock('mat-khau-moi');
     expect(lock.hash).not.toContain('mat-khau-moi');
     expect(await checkPassword('mat-khau-moi', lock)).toBe(true);
+  });
+});
+
+describe('editing open to everyone (D62)', () => {
+  afterEach(async () => {
+    // Put the shared demo clan back to "locked" for the other tests.
+    const { demoDocs } = await import('@/lib/data/demoStore');
+    const s = useClanStore.getState().model!.settings;
+    const { openEditing: _drop, ...rest } = s as typeof s & { openEditing?: boolean };
+    demoDocs.setSettings(rest);
+  });
+
+  it('the admin opens editing; then a viewer without the password can add a child, but not change the clan settings', async () => {
+    await signIn();
+    const { unmount } = renderAt('/admin');
+    const choice = await screen.findByRole('radio', { name: /Mọi người được chỉnh sửa/ });
+    expect(screen.getByRole('radio', { name: /Khóa/ })).toHaveAttribute('aria-checked', 'true');
+    fireEvent.click(choice);
+    await waitFor(() => expect(useClanStore.getState().model?.settings.openEditing).toBe(true));
+    unmount();
+    await act(async () => {
+      await useAdminStore.getState().signOut();
+    });
+
+    // A viewer: no password, but the edit buttons are there and saving works.
+    renderAt('/nguoi/p0007');
+    fireEvent.click(await screen.findByRole('button', { name: 'Thêm người thân' }));
+    const menu = await screen.findByRole('dialog', { name: /Thao tác/ });
+    fireEvent.click(within(menu).getByRole('button', { name: 'Thêm con' }));
+    const form = await screen.findByRole('dialog', { name: /Thêm con/ });
+    fireEvent.change(within(form).getByLabelText('Họ và tên'), { target: { value: 'Trịnh Văn Khách Thêm' } });
+    fireEvent.click(within(form).getByRole('button', { name: 'Lưu' }));
+    expect(await screen.findByText('Đã thêm.')).toBeInTheDocument();
+    expect(screen.queryAllByText('Mọi người đang được chỉnh sửa').length + screen.queryAllByText('Được sửa').length).toBeGreaterThan(0);
+
+    // Clan settings stay admin-only.
+    const { editSettings, settingsContent } = await import('@/lib/admin/changes');
+    const model = useClanStore.getState().model!;
+    let ok = true;
+    await act(async () => {
+      ok = await useAdminStore.getState().apply(editSettings(model, { ...settingsContent(model.settings), title: 'Đổi bởi khách' }));
+    });
+    expect(ok).toBe(false);
+    expect(useClanStore.getState().model?.settings.title).not.toBe('Đổi bởi khách');
+  });
+
+  it('when locked, a viewer sees no edit buttons', async () => {
+    renderAt('/nguoi/p0007');
+    expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Sửa hồ sơ' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Thêm người thân' })).not.toBeInTheDocument();
   });
 });

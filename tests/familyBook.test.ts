@@ -38,9 +38,9 @@ describe('family book import', () => {
     expect(model.isMaternal(byName(model, 'Lê Thị Bảy').id)).toBe(false);
   });
 
-  it('keeps aliases, page numbers and the doubts from the book as notes', () => {
+  it('keeps aliases and the doubts from the book as notes, without the page numbers (D61)', () => {
     expect(byName(model, 'Lê Văn Mười Một').otherNames?.thuong).toBe('Tí, Tèo');
-    expect(byName(model, 'Lê Văn Mười Một').notes).toContain('trang 7');
+    expect(byName(model, 'Lê Văn Mười Một').notes ?? '').not.toContain('trang 7');
     expect(byName(model, 'Lê Thu Sáu').notes).toContain('Sáu / Sấu');
     expect(byName(model, 'Lê Văn Một').notes).toContain('làm mờ');
     expect(byName(model, 'Hoàng Lê Chi').notes).toContain('giới tính');

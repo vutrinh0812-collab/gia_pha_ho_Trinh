@@ -16,15 +16,6 @@ export const SHORTCUTS: Array<{ title: string; keys: Array<[string[], string]> }
     ],
   },
   {
-    title: 'Trang đầu',
-    keys: [
-      [['↑'], 'Lên đời trước (cha/mẹ)'],
-      [['←', '→'], 'Anh chị em liền trước / liền sau'],
-      [['↓'], 'Người con đầu'],
-      [['Enter'], 'Xem chi tiết'],
-    ],
-  },
-  {
     title: 'Sơ đồ',
     keys: [
       [['+'], 'Phóng to'],

@@ -33,3 +33,14 @@ describe('labels', () => {
     expect(givenName('Trịnh Văn An')).toBe('An');
   });
 });
+
+describe('visibleNotes', () => {
+  it('hides the book reference added by the import (D61)', async () => {
+    const { visibleNotes } = await import('@/lib/format');
+    expect(visibleNotes('Sổ gia phả, trang 38.')).toBeNull();
+    expect(visibleNotes('Sổ gia phả, trang 38. Làm nghề dạy học.')).toBe('Làm nghề dạy học.');
+    expect(visibleNotes('Làm ruộng. Sổ gia phả, trang 7.')).toBe('Làm ruộng.');
+    expect(visibleNotes('Ghi trong sổ của chi Giáp.')).toBe('Ghi trong sổ của chi Giáp.');
+    expect(visibleNotes(undefined)).toBeNull();
+  });
+});

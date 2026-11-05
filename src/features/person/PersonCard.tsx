@@ -1,6 +1,6 @@
 import { useLongPress } from '@/app/useLongPress';
 import { lifeSpan } from '@/lib/format';
-import { useAdminStore } from '@/store/adminStore';
+import { useCanEdit } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
 import type { PersonRec } from '@/lib/clanModel';
 import { Avatar } from './Avatar';
@@ -27,7 +27,7 @@ interface Props {
 export function PersonCard({ person, caption, extra, size = 'chip', onClick }: Props) {
   const years = lifeSpan(person);
   const deceased = person.death?.isDeceased === true;
-  const isAdmin = useAdminStore((s) => s.status === 'admin');
+  const isAdmin = useCanEdit();
   const openAdmin = useAdminUi((s) => s.open);
   // Admins press and hold a person for the action menu (SPEC 5A.2).
   const press = useLongPress(isAdmin ? () => openAdmin('menu', person.id) : null);

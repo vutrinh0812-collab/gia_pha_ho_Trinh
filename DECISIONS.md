@@ -475,3 +475,66 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - Thanh trượt rộng tối đa 420px.
   - Tiêu đề "Sơ đồ" chỉ còn cho trình đọc màn hình, vì thanh dưới đã ghi tên tab. Số "48 người · 4 đời" nằm ở dòng nhỏ dưới hàng điều khiển; khi cuộn xuống, dòng này thành thanh dòng dõi. Trên điện thoại, dòng chữ Admin cũng nằm ở dòng này.
   - Sơ đồ ngang chừa 84px phía trên (`TOP_SPACE`).
+
+### D57. Bỏ màn "Gia đình"; hồ sơ gọn lại
+- **Bỏ màn Gia đình** (một người ở giữa, cha mẹ ở trên, các con ở dưới). Thông tin này trùng nhiều với Cây dọc và với thẻ "Gia đình" trong hồ sơ.
+  - Trang đầu `/` mở **Sơ đồ**.
+  - Link cũ `/?p=id` (và `ct`) chuyển sang `/so-do?f=id`: nhánh của người đó tự mở và cây cuộn tới họ.
+  - **Tìm kiếm** ở bất kỳ màn nào cũng chuyển sang Sơ đồ và đi tới người được chọn (`useOverlays().goToPerson`). Xóa một người đang xem thì chuyển tới cha/mẹ của họ trên Sơ đồ.
+  - Bỏ các phím mũi tên của màn Gia đình.
+- **Hồ sơ** (bảng chi tiết và trang `/nguoi/:id`):
+  - Bỏ các nút "Gia đình", "Trang cá nhân", "Chia sẻ", "Dòng dõi".
+  - Bỏ dòng thống kê "1 vợ · 2 con · 6 con cháu".
+  - Chỉ admin còn nút ("Sửa hồ sơ", "Thêm con, vợ/chồng…"). Cha mẹ, vợ/chồng, con và anh chị em vẫn nằm trong thẻ "Gia đình" của hồ sơ.
+  - Chia sẻ cả gia phả vẫn dùng nút "Chia sẻ gia phả này" trong Cài đặt. Link `/nguoi/:id` cũ vẫn mở được trang hồ sơ.
+- Tham số `dd` (tô sáng dòng dõi) vẫn đọc được từ link cũ, nhưng không còn nút để bật.
+
+### D58. Bảng hồ sơ trên máy tính rộng hơn, chữ gọn hơn
+- Bảng bên phải trên máy tính (hồ sơ, Cài đặt, phím tắt) rộng **456px**, tức 380px + 20% (`--panel-size` trong `styles.css`).
+- Hồ sơ trong bảng này (`Profile.module.css`, chỉ áp dụng từ 960px; điện thoại giữ nguyên) dùng chữ nhỏ hơn một bậc, để thông tin nằm trên một dòng thay vì xuống nhiều dòng:
+  - tên 1.375rem; tiêu đề thẻ 1rem;
+  - các mục Sinh / Quê quán / An táng / Nghề nghiệp 0.875rem, xếp bao nhiêu cột vừa thì xếp. Một mục đứng riêng (ví dụ "Con của TRỊNH VĂN CHÍN (thứ I)") chiếm cả chiều rộng.
+  - Mỗi dòng người trong thẻ Gia đình: tên và năm sinh–mất nằm trên một dòng. Tên quá dài thì cắt bằng "…" chứ không xuống dòng.
+
+### D59. Nút và chip của admin trong hồ sơ: gọn, cùng một kiểu
+- **Đầu hồ sơ:** hai nút bằng nhau trên một hàng, không gãy dòng kể cả ở màn 360px: **"Sửa hồ sơ"** (nút chính) và **"Thêm người thân"** (mở menu thêm con / vợ, chồng / cha…). Tên cũ "Thêm con, vợ/chồng…" dài nên bị gãy dòng.
+- **Nút sửa ở góc mỗi thẻ:** một nút tròn 36px chỉ có bút chì (tên cho trình đọc màn hình vẫn là "Sửa: …"), không chen vào tiêu đề thẻ.
+- **Thông tin còn thiếu** gom thành một hàng chip nền nhạt, cách phần trên bằng một đường đứt:
+  - thẻ Giới thiệu: **"Bổ sung: [+ Ngày sinh] [+ Nơi sinh] [+ Nơi an táng] [+ Nghề nghiệp] [+ Tiểu sử]"**, chỉ hiện mục còn trống;
+  - thẻ Gia đình: **"Thêm: [+ Con] [+ Vợ/Chồng]"**.
+  - Chữ trên chip ngắn, nhưng tên cho trình đọc màn hình vẫn đủ ("Thêm nơi an táng", "Thêm con"…). Thành phần `AddRow` trong `Profile.tsx`.
+
+### D60. Ảnh đại diện trống: hình người màu xám
+- Người chưa có ảnh hiện **hình người màu xám** (đầu và vai, nền #E4E6E9, hình #B0B5BB), như trên các mạng xã hội. Trước đây là chữ cái đầu của tên trên nền màu.
+- Dùng chung cho mọi nơi có ảnh đại diện: dòng cha/mẹ/vợ chồng trong hồ sơ, trang Ngày giỗ, đầu hồ sơ người ngoài họ. Ai cũng cùng một màu, không phân biệt giới tính hay dâu/rể.
+- **Đầu hồ sơ** cũng dùng hình người xám khi chưa có ảnh (trước là dấu tròn "Đời N"). Đầu hồ sơ không hiện số đời nữa, cũng không ghi "Chưa rõ năm sinh": khi không biết năm sinh–mất thì bỏ trống dòng đó.
+- Dòng thủy tổ ở gốc Cây dọc vẫn giữ dấu "Đời 1" (`OutlineView.tsx`).
+
+### D61. Không hiện "Sổ gia phả, trang N" trong hồ sơ
+- Lúc nhập từ sổ gia phả (`src/lib/import/giaPhaSo.ts`), mỗi người được ghi thêm câu "Sổ gia phả, trang N." vào **Ghi chú**. Câu này hiện ra ở mục Tiểu sử của hồ sơ và không có ích cho người xem.
+- **Hiển thị:** `visibleNotes()` (`src/lib/format.ts`) bỏ câu đó khi hiện ghi chú, ở cả hồ sơ và thẻ người trên sơ đồ ngang. Nếu ghi chú chỉ có mỗi câu đó thì coi như chưa có tiểu sử. Admin sẽ thấy chip "+ Tiểu sử".
+- **Nhập dữ liệu:** lần nhập sau không ghi số trang vào ghi chú nữa.
+- **Dữ liệu cũ trên Firebase vẫn giữ nguyên câu này.** Admin vẫn thấy nó trong ô Ghi chú khi sửa hồ sơ, và có thể tự xoá nếu muốn.
+
+### D62. Cài đặt gọn lại; trang "In ấn" với gói khung tranh; mở hoặc khóa quyền chỉnh sửa
+- **Cài đặt** chỉ còn: **In ấn**, **Chế độ Admin**, Chữ lớn, Hiện con cháu bên ngoại, và thẻ cài app khi cần.
+  - Bỏ nút "Chia sẻ gia phả này" và mục "Ngày giỗ" (Ngày giỗ đã có trên thanh điều hướng).
+  - Bỏ trang "Kiểm tra dữ liệu" (`/kiem-tra` chuyển về Sơ đồ).
+- **In ấn** (`/print`) gộp "Giao diện in" và "In khổ A1":
+  - lưới thẻ chọn giao diện có ảnh xem trước (gồm cả gói đã nhập);
+  - phạm vi in, hướng giấy, các tùy chọn hiển thị, bản xem trước A1.
+  - Link cũ `/themes` chuyển sang `/print`.
+- **Gói giao diện khung tranh** (`src/features/print/packs.ts`):
+  - Mỗi gói gồm **một ảnh khung khổ A1** và **một file JSON preset**, khoá tiếng Việt cho dễ sửa: `ten`, `moTa`, `nen` (giao diện gốc để lấy màu và chữ còn thiếu), `hinhNen.tep` / `hinhNen.cachPhu`, `huongGiay`, `vungNoiDungMm` (vùng trống trong khung để đặt tiêu đề và cây), `mau`, `chu`, `oNguoi`, `duongNoi`, `hienCauDoi`, `mauConTrien`.
+  - Nút **"Tải JSON mẫu"** tải về `goi-giao-dien-mau.json`, trong đó có phần hướng dẫn `_huongDan`.
+  - **"Nhập gói giao diện"**: chọn cùng lúc file JSON và ảnh. Ảnh cũng có thể nhúng sẵn trong JSON dưới dạng `data:image/...`.
+  - Lỗi trong JSON được báo bằng tiếng Việt, nói rõ trường nào sai.
+  - Gói được **lưu trên máy đang dùng** (IndexedDB), không đưa lên cơ sở dữ liệu.
+  - Trên bản in, ảnh phủ cả tờ giấy và thay cho khung vẽ sẵn; tiêu đề và cây đặt trong `vungNoiDungMm` (`Theme.backgroundImage`, `contentInsetMm`, `preferredOrientation`).
+- **Quyền chỉnh sửa** (Admin → "Quyền chỉnh sửa"):
+  - **Khóa**: chỉ admin có mật khẩu được sửa. Đây là mặc định.
+  - **Mọi người được chỉnh sửa**: ai mở app cũng thêm, sửa người và đổi ảnh được, không cần mật khẩu. Lịch sử ghi người sửa là `khach`, hoàn tác được. Trên app hiện dòng nhỏ "Mọi người đang được chỉnh sửa".
+  - Cài đặt dòng họ, lịch sử, mật khẩu và chính quyền này vẫn chỉ admin đổi được.
+  - Lưu trong `settings.openEditing` (`useCanEdit()` trong `adminStore.ts`).
+  - **Cần deploy lại `firestore.rules`**, vì luật kiểm tra cài đặt phải nhận thêm trường `openEditing`. Nếu chưa deploy, admin sẽ không lưu được lựa chọn này.
+  - Lưu ý bảo mật: như ghi chú đầu file `firestore.rules`, máy chủ vốn đã cho mọi người ghi (khoá admin chỉ nằm trên trang web). Quyền này chỉ hiện hoặc ẩn các nút sửa trong app.

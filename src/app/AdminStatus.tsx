@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAdminStore } from '@/store/adminStore';
+import { useClanStore } from '@/store/clanStore';
 import styles from './AdminStatus.module.css';
 
 /**
@@ -9,7 +10,17 @@ import styles from './AdminStatus.module.css';
 export function AdminStatus({ variant = 'side' }: { variant?: 'side' | 'header' }) {
   const status = useAdminStore((s) => s.status);
   const signOut = useAdminStore((s) => s.signOut);
-  if (status !== 'admin') return null;
+  const openEditing = useClanStore((s) => s.model?.settings.openEditing === true);
+  if (status !== 'admin') {
+    // D62: everyone may edit; say so, quietly.
+    if (!openEditing) return null;
+    return (
+      <div className={styles.status} data-variant={variant} role="status">
+        <span className={styles.dot} aria-hidden="true" />
+        <span className={styles.label}>{variant === 'header' ? 'Được sửa' : 'Mọi người đang được chỉnh sửa'}</span>
+      </div>
+    );
+  }
   return (
     <div className={styles.status} data-variant={variant} role="status">
       <span className={styles.dot} aria-hidden="true" />

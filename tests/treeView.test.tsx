@@ -51,13 +51,11 @@ describe('Sơ đồ view', () => {
     expect(screen.getByRole('heading', { name: /Sơ đồ/ })).toHaveTextContent('7 đời');
   });
 
-  it('opens the detail sheet when a node is tapped, with a lineage action', async () => {
+  it('opens the detail sheet when a node is tapped', async () => {
     const svg = await renderTree();
     fireEvent.click(within(svg).getByRole('button', { name: new RegExp(`^${root.fullName}`) }));
     const dialog = screen.getByRole('dialog', { name: `Thông tin ${root.fullName}` });
-    fireEvent.click(within(dialog).getByRole('button', { name: /Dòng dõi/ }));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent(`Dòng dõi: ${root.fullName}`);
+    expect(within(dialog).queryByRole('button', { name: /Dòng dõi/ })).not.toBeInTheDocument();
   });
 
   it('collapses everything to two generations and expands again', async () => {

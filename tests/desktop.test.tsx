@@ -50,27 +50,23 @@ afterEach(() => {
 describe('desktop layout', () => {
   beforeEach(() => mockMatchMedia(true));
 
-  it('shows details in a non-modal side panel and keeps the page usable', () => {
-    const { container } = renderAt('/');
-    fireEvent.click(screen.getByRole('button', { name: /Xem chi tiết/ }));
-    const panel = screen.getByRole('dialog', { name: `Thông tin ${root.fullName}` });
+  it('shows details in a non-modal side panel and keeps the tree usable', async () => {
+    const { container } = renderAt(`/so-do?ct=${root.id}`);
+    const panel = await screen.findByRole('dialog', { name: `Thông tin ${root.fullName}` });
     expect(panel).toHaveAttribute('aria-modal', 'false');
     expect(document.body.style.overflow).toBe('');
     expect(container.querySelector('[data-panel]')).not.toBeNull();
-    // The family view is still there and clickable beside the panel.
-    const child = model.family(model.rootId)!.partnerships[0]!.children[0]!;
-    fireEvent.click(screen.getAllByRole('button', { name: new RegExp(child.fullName) })[0]!);
-    expect(screen.getByRole('heading', { level: 1, name: child.fullName })).toBeInTheDocument();
+    // The tree is still there beside the panel.
+    expect(await screen.findByRole('group', { name: 'Sơ đồ gia phả' }, { timeout: 5000 })).toBeInTheDocument();
   });
 });
 
 describe('phone layout', () => {
   beforeEach(() => mockMatchMedia(false));
 
-  it('keeps the modal bottom sheet', () => {
-    renderAt('/');
-    fireEvent.click(screen.getByRole('button', { name: /Xem chi tiết/ }));
-    expect(screen.getByRole('dialog', { name: `Thông tin ${root.fullName}` })).toHaveAttribute('aria-modal', 'true');
+  it('keeps the modal bottom sheet', async () => {
+    renderAt(`/so-do?ct=${root.id}`);
+    expect(await screen.findByRole('dialog', { name: `Thông tin ${root.fullName}` })).toHaveAttribute('aria-modal', 'true');
     expect(document.body.style.overflow).toBe('hidden');
   });
 });
@@ -89,10 +85,10 @@ describe('keyboard shortcuts', () => {
   });
 
   it('typing in the search box does not trigger shortcuts', () => {
-    renderAt('/?tk=1');
+    renderAt('/anniversaries?tk=1');
     const input = screen.getByRole('searchbox');
     act(() => {
-      input.dispatchEvent(new KeyboardEvent('keydown', { key: '2', bubbles: true }));
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: '1', bubbles: true }));
     });
     expect(screen.queryByRole('heading', { name: /Sơ đồ/ })).not.toBeInTheDocument();
   });
@@ -103,18 +99,6 @@ describe('keyboard shortcuts', () => {
     expect(screen.getByRole('heading', { name: 'Ngày giỗ' })).toBeInTheDocument();
     press('?');
     expect(screen.getByRole('dialog', { name: 'Phím tắt' })).toBeInTheDocument();
-  });
-
-  it('arrow keys move through the family', () => {
-    renderAt('/');
-    press('ArrowDown');
-    const first = model.family(model.rootId)!.partnerships[0]!.children[0]!;
-    expect(screen.getByRole('heading', { level: 1, name: first.fullName })).toBeInTheDocument();
-    press('ArrowRight');
-    const second = model.family(model.rootId)!.partnerships[0]!.children[1]!;
-    expect(screen.getByRole('heading', { level: 1, name: second.fullName })).toBeInTheDocument();
-    press('ArrowUp');
-    expect(screen.getByRole('heading', { level: 1, name: root.fullName })).toBeInTheDocument();
   });
 
   it('tree keys collapse the chart', async () => {

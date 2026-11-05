@@ -58,18 +58,19 @@ export function useOverlays() {
   );
 
   /**
-   * Centers the "Gia đình" view on a person (closes other overlays).
-   * `openDetail` also opens their detail sheet; `replace` swaps the current
-   * history entry (used from search, so Back does not reopen the search).
+   * Shows a person on "Sơ đồ": their branch opens and the tree goes to them
+   * (closes other overlays). On the tree its other settings are kept. `replace`
+   * swaps the current history entry (used from search, so Back does not reopen it).
    */
-  const goToFamily = useCallback(
-    (id: string, opts: { openDetail?: boolean; replace?: boolean } = {}) => {
-      const next = new URLSearchParams({ p: id });
-      if (opts.openDetail) next.set('ct', id);
-      navigate({ pathname: '/', search: `?${next}` }, { replace: opts.replace ?? false });
+  const goToPerson = useCallback(
+    (id: string, opts: { replace?: boolean } = {}) => {
+      const next = new URLSearchParams(location.pathname === '/so-do' ? params : undefined);
+      for (const k of OVERLAY_KEYS) next.delete(k);
+      next.set('f', id);
+      navigate({ pathname: '/so-do', search: `?${next}` }, { replace: opts.replace ?? false });
     },
-    [navigate],
+    [params, location.pathname, navigate],
   );
 
-  return { params, open, close, showPerson, goToFamily };
+  return { params, open, close, showPerson, goToPerson };
 }

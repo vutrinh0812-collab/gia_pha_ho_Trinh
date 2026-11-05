@@ -14,7 +14,7 @@ import {
 import { useIsDesktop } from '@/app/useMediaQuery';
 import type { ClanModel } from '@/lib/clanModel';
 import { useClanStore } from '@/store/clanStore';
-import { useAdminStore } from '@/store/adminStore';
+import { useCanEdit } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
 import { usePrefsStore, type TreeLayoutPref } from '@/store/prefsStore';
 import { collapseAllIds, computeTreeLayout, type TreeFilters } from './layout';
@@ -71,7 +71,7 @@ function ChartView({ model, tp, onLayout }: { model: ClanModel; tp: TreeParams; 
   const desktop = useIsDesktop();
   const api = useRef<TreeCanvasApi>(null);
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
-  const isAdmin = useAdminStore((s) => s.status === 'admin');
+  const isAdmin = useCanEdit();
   const openAdmin = useAdminUi((s) => s.open);
   const [flashId, setFlashId] = useState<string | null>(null);
   const [hintHidden, setHintHidden] = useState(() => readFlag(HINT_KEY));

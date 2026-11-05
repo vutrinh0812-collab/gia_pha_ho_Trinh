@@ -116,6 +116,11 @@ export interface ClanSettings {
   defaultThemeId: string;
   /** Show daughters' children on the tree (default false). */
   showMaternalDescendants: boolean;
+  /**
+   * D62: true = everyone who opens the app may add and edit people without the admin
+   * password; false/absent = locked, only the admin edits.
+   */
+  openEditing?: boolean;
 }
 
 export type SettingsDoc<T extends TimestampLike = TimestampLike> = ClanSettings & DocMeta<T>;

@@ -21,6 +21,18 @@
   background: var(--spouse-soft);
   color: var(--spouse);
 }
+/* No photo: the same grey silhouette for everyone (no colour by gender or role). */
+.avatar[data-empty] {
+  background: #e4e6e9;
+  color: #b0b5bb;
+  align-items: end;
+}
+.silhouette {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
 .avatar[data-ring] {
   border: 3.5px solid var(--surface);
   box-shadow: 0 0 0 2px var(--burnt-sienna, #b3532d), 0 4px 14px rgb(58 35 20 / 16%);

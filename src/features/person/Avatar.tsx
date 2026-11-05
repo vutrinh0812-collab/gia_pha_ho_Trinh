@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CloseIcon } from '@/app/ui/icons';
 import type { PersonRec } from '@/lib/clanModel';
-import { givenName } from '@/lib/format';
 import { roleOf } from './PersonCard';
 import styles from './Avatar.module.css';
 
@@ -18,10 +17,19 @@ interface Props {
   zoomable?: boolean;
 }
 
-/** Round portrait: the photo when there is one, otherwise the first letter of the given name. */
+/** The usual grey "no photo" silhouette (head and shoulders), as on social networks. */
+function Silhouette() {
+  return (
+    <svg className={styles.silhouette} viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+      <circle cx="20" cy="15.5" r="7.5" />
+      <path d="M5.5 40c0-8.6 6.5-14.5 14.5-14.5S34.5 31.4 34.5 40z" />
+    </svg>
+  );
+}
+
+/** Round portrait: the photo when there is one, otherwise a grey person silhouette (D60). */
 export function Avatar({ person, size, ring, highPriority, zoomable }: Props) {
   const deceased = person.death?.isDeceased === true;
-  const letter = givenName(person.fullName).charAt(0).toUpperCase();
   const [openLightbox, setOpenLightbox] = useState(false);
 
   useEffect(() => {
@@ -44,8 +52,9 @@ export function Avatar({ person, size, ring, highPriority, zoomable }: Props) {
       data-role={roleOf(person)}
       data-deceased={deceased || undefined}
       data-ring={ring || undefined}
+      data-empty={person.photoUrl ? undefined : ''}
       data-zoomable={canZoom || undefined}
-      style={{ width: size, height: size, fontSize: Math.round(size * 0.42) }}
+      style={{ width: size, height: size }}
       aria-hidden={canZoom ? undefined : 'true'}
       role={canZoom ? 'button' : undefined}
       tabIndex={canZoom ? 0 : undefined}
@@ -79,7 +88,7 @@ export function Avatar({ person, size, ring, highPriority, zoomable }: Props) {
           decoding="async"
         />
       ) : (
-        letter
+        <Silhouette />
       )}
     </span>
   );

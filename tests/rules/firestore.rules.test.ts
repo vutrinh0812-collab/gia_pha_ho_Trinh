@@ -246,6 +246,10 @@ describe('admin writes', () => {
     const main = doc(db, `${base}/settings/main`);
     await assertSucceeds(updateDoc(main, { subtitle: 'Từ đời 1 đến đời 7', ...stamp }));
     await assertFails(updateDoc(main, { showMaternalDescendants: 'no', ...stamp }));
+    // D62: open editing to everyone, or lock it.
+    await assertSucceeds(updateDoc(main, { openEditing: true, ...stamp }));
+    await assertSucceeds(updateDoc(main, { openEditing: false, ...stamp }));
+    await assertFails(updateDoc(main, { openEditing: 'yes', ...stamp }));
     await assertFails(updateDoc(main, { title: '', ...stamp }));
     await assertFails(updateDoc(main, { theme: 'x', ...stamp }));
     await assertFails(setDoc(doc(db, `${base}/settings/other`), settings()));

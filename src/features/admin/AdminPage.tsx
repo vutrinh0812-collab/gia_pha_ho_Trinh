@@ -1,3 +1,4 @@
+import { editSettings, settingsContent } from '@/lib/admin/changes';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { env } from '@/lib/env';
@@ -109,11 +110,54 @@ function AdminHome() {
         <li>Thêm cả một đời: dùng “Thêm đời trên / dưới” ở trên, hoặc nút cùng tên trên màn Sơ đồ.</li>
         <li>Người còn con không xóa được; hãy xóa hoặc chuyển các con trước.</li>
       </ul>
+      <EditPermission />
       <ChangePassword />
       <button type="button" className={styles.secondary} onClick={() => void signOut()}>
         Thoát chế độ Admin
       </button>
     </div>
+  );
+}
+
+/**
+ * D62: the admin opens editing to everyone (no password needed to add and edit people)
+ * or locks it (only the admin edits). Saved in the clan settings.
+ */
+function EditPermission() {
+  const model = useClanStore((s) => s.model);
+  const apply = useAdminStore((s) => s.apply);
+  const [busy, setBusy] = useState(false);
+  if (!model) return null;
+  const open = model.settings.openEditing === true;
+  const choose = async (next: boolean) => {
+    if (next === open || busy) return;
+    setBusy(true);
+    try {
+      await apply(
+        editSettings(model, { ...settingsContent(model.settings), openEditing: next }),
+        next ? 'Đã mở quyền chỉnh sửa cho mọi người.' : 'Đã khóa: chỉ admin được chỉnh sửa.',
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <section className={styles.permission} aria-labelledby="perm-title">
+      <h2 id="perm-title" className={styles.h2}>
+        Quyền chỉnh sửa
+      </h2>
+      <div className={styles.permChoices} role="radiogroup" aria-labelledby="perm-title">
+        <button type="button" role="radio" aria-checked={!open} className={styles.permChoice} disabled={busy} onClick={() => void choose(false)}>
+          <span className={styles.permTitle}>Khóa</span>
+          <span className={styles.permText}>Chỉ admin (có mật khẩu) được thêm, sửa, xóa.</span>
+        </button>
+        <button type="button" role="radio" aria-checked={open} className={styles.permChoice} disabled={busy} onClick={() => void choose(true)}>
+          <span className={styles.permTitle}>Mọi người được chỉnh sửa</span>
+          <span className={styles.permText}>Ai mở gia phả cũng thêm, sửa thông tin được, không cần mật khẩu. Cài đặt dòng họ vẫn chỉ admin sửa.</span>
+        </button>
+      </div>
+      {open && <p className={styles.permWarn}>Mọi thay đổi vẫn được ghi trong Lịch sử thay đổi (người sửa: “khách”) và hoàn tác được.</p>}
+    </section>
   );
 }
 

@@ -6,18 +6,14 @@ import { ChevronIcon } from './ui/icons';
 import { useOverlays } from './useOverlays';
 import styles from './MoreSheet.module.css';
 
-import { useState } from 'react';
-import { env } from '@/lib/env';
-import { shareLink } from '@/lib/share';
 import { InstallCard } from './InstallCard';
 import { useIsDesktop } from './useMediaQuery';
 
+// D62: Ngày giỗ is in the navigation; "Giao diện in" and "In khổ A1" are one page;
+// sharing and the data check were removed.
 const LINKS = [
-  { to: '/anniversaries', label: 'Ngày giỗ' },
-  { to: '/themes', label: 'Giao diện in (theme)' },
-  { to: '/print', label: 'In khổ A1' },
+  { to: '/print', label: 'In ấn' },
   { to: '/admin', label: 'Chế độ Admin' },
-  { to: '/kiem-tra', label: 'Kiểm tra dữ liệu' },
 ];
 
 /** "Cài đặt" menu: secondary pages and viewing preferences. */
@@ -27,28 +23,9 @@ export function MoreSheet() {
   const model = useClanStore((s) => s.model);
   const { largeText, setLargeText, showMaternal, setShowMaternal } = usePrefsStore();
   const maternalOn = showMaternal ?? model?.settings.showMaternalDescendants ?? false;
-  const [shareNote, setShareNote] = useState<string | null>(null);
-  const shareApp = async () => {
-    const title = model?.settings.title ?? document.title;
-    const result = await shareLink({ title, text: `Xem ${title}`, url: `${window.location.origin}/` });
-    if (result.kind === 'copied') setShareNote('Đã sao chép đường link.');
-    else if (result.kind === 'manual') setShareNote(`Sao chép đường link này: ${result.url}`);
-  };
 
   return (
     <Sheet label="Cài đặt" onClose={() => close('them')} header={<h2 className={styles.title}>Cài đặt</h2>}>
-      {env.router === 'browser' && (
-        <>
-          <button type="button" className={styles.installButton} onClick={shareApp}>
-            Chia sẻ gia phả này
-          </button>
-          {shareNote && (
-            <p className={styles.note} role="status">
-              {shareNote}
-            </p>
-          )}
-        </>
-      )}
       <InstallCard />
       <nav aria-label="Các trang khác">
         <ul className={styles.links}>

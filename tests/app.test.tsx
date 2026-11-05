@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { Suspense } from 'react';
 import { AppRoutes } from '@/app/App';
@@ -24,11 +24,12 @@ beforeEach(() => {
   document.body.style.overflow = '';
 });
 
-describe('Gia đình view', () => {
-  it('opens on the root ancestor with children and bottom navigation', () => {
+describe('home', () => {
+  const outline = () => screen.findByRole('list', { name: 'Cây gia phả' }, { timeout: 5000 });
+
+  it('opens Sơ đồ (the family view was removed), with the bottom navigation', async () => {
     renderAt('/');
-    expect(screen.getByRole('heading', { level: 1, name: root.fullName })).toBeInTheDocument();
-    expect(screen.getByText(/Thủy tổ, đời đầu tiên/)).toBeInTheDocument();
+    expect(await outline()).toBeInTheDocument();
     const nav = screen.getByRole('navigation', { name: 'Điều hướng chính' });
     for (const label of ['Sơ đồ', 'Ngày giỗ', 'Tìm kiếm', 'Cài đặt']) {
       expect(within(nav).getByText(label)).toBeInTheDocument();
@@ -36,37 +37,27 @@ describe('Gia đình view', () => {
     expect(within(nav).queryByText('Gia đình')).not.toBeInTheDocument();
   });
 
-  it('makes a tapped child the new centre, with parents above', () => {
-    renderAt('/');
-    const child = model.family(model.rootId)!.partnerships[0]!.children[0]!;
-    fireEvent.click(screen.getAllByRole('button', { name: new RegExp(child.fullName) })[0]!);
-    expect(screen.getByRole('heading', { level: 1, name: child.fullName })).toBeInTheDocument();
-    const parents = screen.getByRole('region', { name: 'Cha mẹ' });
-    expect(within(parents).getByText(root.fullName)).toBeInTheDocument();
-    // Breadcrumb shows the lineage.
-    const lineage = screen.getByRole('navigation', { name: 'Dòng dõi' });
-    expect(within(lineage).getByText('Đời 2')).toBeInTheDocument();
+  it('old family links (/?p=id) go to that person on the tree', async () => {
+    const target = model.persons.find((p) => p.isBloodline && model.generationOf(p.id) === 4 && !model.isMaternal(p.id))!;
+    renderAt(`/?p=${target.id}`);
+    const list = await outline();
+    await waitFor(() => expect(within(list).getAllByRole('listitem').some((li) => li.getAttribute('data-row') === target.id)).toBe(true));
   });
 
-  it('opens the detail sheet', () => {
-    renderAt('/');
-    fireEvent.click(screen.getByRole('button', { name: /Xem chi tiết/ }));
-    const dialog = screen.getByRole('dialog', { name: `Thông tin ${root.fullName}` });
+  it('the detail sheet shows the profile without the old action buttons or totals', async () => {
+    renderAt(`/so-do?ct=${root.id}`);
+    const dialog = await screen.findByRole('dialog', { name: `Thông tin ${root.fullName}` });
     expect(within(dialog).getByRole('heading', { name: root.fullName })).toBeInTheDocument();
     expect(within(dialog).getByText(/^Giỗ ngày/)).toBeInTheDocument();
     expect(within(dialog).getByText(/Húy/)).toBeInTheDocument();
     expect(within(dialog).getByRole('region', { name: 'Gia đình' })).toBeInTheDocument();
-    expect(within(dialog).getByRole('link', { name: /Trang cá nhân/ })).toHaveAttribute('href', `/nguoi/${root.id}`);
+    for (const name of [/^Gia đình$/, /Trang cá nhân/, /Chia sẻ/, /Dòng dõi/]) {
+      expect(within(dialog).queryByRole('button', { name })).not.toBeInTheDocument();
+      expect(within(dialog).queryByRole('link', { name })).not.toBeInTheDocument();
+    }
+    expect(within(dialog).queryByText(/con cháu/)).not.toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('button', { name: 'Đóng' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  });
-
-  it('groups children by wife for a man with two wives', () => {
-    const union = [...model.index.unions.values()].find((u) => u.order === 2)!;
-    renderAt(`/?p=${union.bloodlinePersonId}`);
-    expect(screen.getByText(/Con bà cả/)).toBeInTheDocument();
-    expect(screen.getByText(/Con bà hai/)).toBeInTheDocument();
-    expect(screen.getByText('Vợ cả')).toBeInTheDocument();
   });
 });
 
@@ -89,20 +80,20 @@ describe('shared person link', () => {
 });
 
 describe('search', () => {
-  it('finds people without diacritics and shows who they are', () => {
-    renderAt('/');
+  it('finds people without diacritics and goes to them on the tree', async () => {
+    const target = model.persons.find((p) => p.isBloodline && model.generationOf(p.id) === 3 && !model.isMaternal(p.id))!;
+    renderAt('/anniversaries');
     fireEvent.click(within(screen.getByRole('navigation', { name: 'Điều hướng chính' })).getByRole('button', { name: 'Tìm kiếm' }));
     const input = screen.getByRole('searchbox');
-    const plain = root.fullName.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[đĐ]/g, 'd').toLowerCase();
+    const plain = target.fullName.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[đĐ]/g, 'd').toLowerCase();
     fireEvent.change(input, { target: { value: plain } });
-    const hit = screen.getAllByRole('button', { name: new RegExp(root.fullName) })[0]!;
-    expect(hit).toHaveTextContent('Đời 1');
+    const searchDialog = screen.getByRole('dialog', { name: 'Tìm kiếm' });
+    const hit = within(searchDialog).getAllByRole('button', { name: new RegExp(target.fullName) })[0]!;
+    expect(hit).toHaveTextContent('Đời 3');
     fireEvent.click(hit);
-    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
-    const dialog = screen.getByRole('dialog', { name: `Thông tin ${root.fullName}` });
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Đóng' }));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 1, name: root.fullName })).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Tìm kiếm' })).not.toBeInTheDocument();
+    const list = await screen.findByRole('list', { name: 'Cây gia phả' }, { timeout: 5000 });
+    await waitFor(() => expect(within(list).getAllByRole('listitem').find((li) => li.getAttribute('data-row') === target.id)).toHaveAttribute('data-mark', 'flash'));
   });
 
   it('says when nothing matches', () => {
@@ -126,16 +117,23 @@ describe('other pages', () => {
     expect(screen.getAllByText(/âm lịch/).length).toBeGreaterThan(0);
   });
 
-  it('previews every print theme', async () => {
-    renderAt('/themes');
-    expect(await screen.findByRole('heading', { name: 'Giao diện in' })).toBeInTheDocument();
-    expect(screen.getAllByRole('img', { name: /Bản in/ }).length).toBe(4);
+  it('"In ấn" shows every print theme to pick, and the A1 preview (D62)', async () => {
+    renderAt('/print');
+    expect(await screen.findByRole('heading', { level: 1, name: 'In ấn' }, { timeout: 5000 })).toBeInTheDocument();
+    const picker = screen.getByRole('heading', { name: 'Giao diện khung' }).parentElement!;
+    const options = within(picker).getAllByRole('button', { name: /^Giao diện / });
+    expect(options).toHaveLength(4);
+    expect(options.filter((b) => b.getAttribute('aria-pressed') === 'true')).toHaveLength(1);
+    fireEvent.click(options[1]!);
+    expect(options[1]).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByLabelText('Phạm vi in')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Nhập gói giao diện/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Tải JSON mẫu' })).toBeInTheDocument();
   });
 
-  it('lazy-loads the print page', async () => {
-    renderAt('/print');
-    expect(await screen.findByRole('heading', { name: 'In khổ A1' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Phạm vi in')).toBeInTheDocument();
+  it('old /themes links open "In ấn"', async () => {
+    renderAt('/themes');
+    expect(await screen.findByRole('heading', { level: 1, name: 'In ấn' }, { timeout: 5000 })).toBeInTheDocument();
   });
 
   it('shows a not-found page for unknown routes', () => {

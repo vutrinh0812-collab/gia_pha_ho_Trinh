@@ -120,7 +120,7 @@ service cloud.firestore {
 
     function validSettings(d) {
       return d.keys().hasOnly(['clanName', 'title', 'subtitle', 'rootPersonId', 'coupletLeft', 'coupletRight',
-                               'colophon', 'defaultThemeId', 'showMaternalDescendants',
+                               'colophon', 'defaultThemeId', 'showMaternalDescendants', 'openEditing',
                                'createdAt', 'updatedAt', 'updatedBy'])
         && d.keys().hasAll(['clanName', 'title', 'rootPersonId', 'coupletLeft', 'coupletRight', 'colophon',
                             'defaultThemeId', 'showMaternalDescendants', 'createdAt', 'updatedAt', 'updatedBy'])
@@ -133,6 +133,7 @@ service cloud.firestore {
         && d.colophon is string && d.colophon.size() <= 200
         && d.defaultThemeId is string && d.defaultThemeId.size() >= 1 && d.defaultThemeId.size() <= 64
         && d.showMaternalDescendants is bool
+        && optBool(d, 'openEditing')
         && validMeta(d);
     }
 

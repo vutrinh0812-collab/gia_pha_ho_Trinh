@@ -91,7 +91,6 @@ export function convertBook(book: Book, options: ConvertOptions): ConvertedClan 
   ): string => {
     const id = `p${pad(persons.length + 1)}`;
     const notes = noteOf(fullName, [
-      extra.page ? `Sổ gia phả, trang ${extra.page}.` : undefined,
       extra.ghiChu ? `${extra.ghiChu}.` : undefined,
       extra.canKiemTra ? `Cần xác nhận: ${extra.canKiemTra}.` : undefined,
     ]);

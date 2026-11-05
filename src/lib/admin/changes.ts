@@ -37,7 +37,7 @@ export class AdminError extends Error {
 export const SETTINGS_ID = 'main';
 const SETTINGS_KEYS = [
   'clanName', 'title', 'subtitle', 'rootPersonId', 'coupletLeft', 'coupletRight', 'colophon',
-  'defaultThemeId', 'showMaternalDescendants',
+  'defaultThemeId', 'showMaternalDescendants', 'openEditing',
 ] as const;
 
 /** Random Firestore-style id. */

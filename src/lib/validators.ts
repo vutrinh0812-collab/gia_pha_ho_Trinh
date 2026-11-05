@@ -115,7 +115,7 @@ export function validateUnionFields(u: UnionFields): ValidationErrors {
 export function validateSettings(s: ClanSettings): ValidationErrors {
   const errors: ValidationErrors = [];
   const required = ['clanName', 'title', 'rootPersonId', 'coupletLeft', 'coupletRight', 'colophon', 'defaultThemeId'] as const;
-  checkUnknownKeys(s, [...required, 'subtitle', 'showMaternalDescendants'], errors, 'Cài đặt');
+  checkUnknownKeys(s, [...required, 'subtitle', 'showMaternalDescendants', 'openEditing'], errors, 'Cài đặt');
   for (const k of required) {
     const v = s[k];
     if (typeof v !== 'string' || v.length > LIMITS.shortText || (k !== 'coupletLeft' && k !== 'coupletRight' && k !== 'colophon' && v === '')) {
@@ -124,5 +124,6 @@ export function validateSettings(s: ClanSettings): ValidationErrors {
   }
   if (!optString(s.subtitle, LIMITS.shortText)) errors.push('Phụ đề quá dài.');
   if (typeof s.showMaternalDescendants !== 'boolean') errors.push('Thiếu tùy chọn hiển thị bên ngoại.');
+  if (s.openEditing !== undefined && typeof s.openEditing !== 'boolean') errors.push('Tùy chọn quyền chỉnh sửa không hợp lệ.');
   return errors;
 }

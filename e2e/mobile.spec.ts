@@ -23,7 +23,7 @@ async function noHorizontalScroll(page: Page) {
   expect(scroll).toBeLessThanOrEqual(inner);
 }
 
-test('shared link → family → search → details → share', async ({ page }) => {
+test('shared link → tree → search → details', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await stubShare(page);
@@ -33,33 +33,34 @@ test('shared link → family → search → details → share', async ({ page })
   await expect(page).toHaveURL(new RegExp(`/nguoi/${ROOT_ID}$`));
   const profile = page.getByRole('article', { name: `Trang của ${ROOT_NAME}` });
   await expect(profile.getByRole('heading', { level: 1, name: ROOT_NAME })).toBeVisible();
-  await profile.getByRole('button', { name: 'Gia đình' }).click();
+  await page.getByRole('navigation', { name: 'Điều hướng chính' }).getByRole('link', { name: 'Sơ đồ' }).click();
 
-  // 2. Family view, readable without zooming.
-  const centre = page.getByRole('heading', { level: 1, name: ROOT_NAME });
-  await expect(centre).toBeVisible();
-  const nameSize = await centre.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
-  expect(nameSize).toBeGreaterThanOrEqual(17);
+  // 2. On a phone, Sơ đồ is the vertical tree: readable without zooming, no sideways scroll.
+  const tree = page.getByRole('list', { name: 'Cây gia phả' });
+  await expect(tree).toBeVisible();
+  const rootName = tree.getByText(ROOT_NAME, { exact: true });
+  const nameSize = await rootName.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+  expect(nameSize).toBeGreaterThanOrEqual(15);
   await noHorizontalScroll(page);
 
-  // 3. Search without diacritics.
+  // 3. Search without diacritics: the tree opens that branch and goes to the person.
   await page.getByRole('navigation', { name: 'Điều hướng chính' }).getByRole('button', { name: 'Tìm kiếm' }).click();
   await page.getByRole('searchbox').fill('trinh van viet');
   const search = page.getByRole('dialog', { name: 'Tìm kiếm' });
   const hit = search.getByRole('button', { name: /Trịnh Văn Việt/ }).first();
   await expect(hit).toContainText('Đời 3');
   await hit.click();
+  const row = tree.locator('li[data-mark="flash"]');
+  await expect(row).toContainText('Trịnh Văn Việt');
+  await expect(row).toBeInViewport();
 
-  // 4. Details open.
+  // 4. Tapping the name opens the details.
+  // The name button (the round button next to it opens the branch).
+  await row.locator('button:not([aria-label])').click();
   const details = page.getByRole('dialog', { name: /Thông tin Trịnh Văn Việt/ });
   await expect(details).toBeVisible();
   await expect(details.getByRole('region', { name: 'Ngày giỗ' })).toBeVisible();
-
-  // 5. Share uses the phone's share sheet with the person link.
-  await details.getByRole('button', { name: 'Chia sẻ' }).click();
-  const shared = await page.evaluate(() => (window as unknown as { __shared: Array<{ url: string }> }).__shared);
-  expect(shared).toHaveLength(1);
-  expect(shared[0]!.url).toMatch(/\/nguoi\/p\d{4}$/);
+  await details.getByRole('button', { name: 'Đóng' }).click();
 
   // Touch targets: bottom navigation buttons are at least 44×44.
   for (const box of await page.getByRole('navigation', { name: 'Điều hướng chính' }).locator('a, button').evaluateAll((els) =>
@@ -72,7 +73,7 @@ test('shared link → family → search → details → share', async ({ page })
 });
 
 test('tree view survives rotating to landscape', async ({ page, viewport }) => {
-  await page.goto('/so-do');
+  await page.goto('/so-do?xem=ngang');
   const tree = page.getByRole('group', { name: 'Sơ đồ gia phả' });
   await expect(tree).toBeVisible();
   await expect(tree.getByRole('button', { name: new RegExp(`^${ROOT_NAME}, đời 1`) })).toBeVisible();
@@ -105,9 +106,7 @@ test('works when the in-app browser blocks storage, sharing and the clipboard', 
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(`/person/${ROOT_ID}`);
-  const profile = page.getByRole('article', { name: `Trang của ${ROOT_NAME}` });
-  await profile.getByRole('button', { name: 'Chia sẻ' }).click();
-  await expect(profile.getByRole('status')).toContainText(`/nguoi/${ROOT_ID}`);
+  await expect(page.getByRole('article', { name: `Trang của ${ROOT_NAME}` })).toBeVisible();
   // Preferences still work for this visit.
   await page.getByRole('button', { name: 'Cài đặt' }).click();
   await page.getByRole('switch', { name: /Chữ lớn/ }).check();
@@ -131,21 +130,23 @@ test.describe('offline', () => {
 
   test('opens from the cache without a network', async ({ page, context }, info) => {
     test.skip(info.project.name !== 'pixel-5', 'one device is enough');
-    await page.goto('/');
-    await expect(page.getByRole('heading', { level: 1, name: ROOT_NAME })).toBeVisible();
+    // Start on a page without the tree, so the tree's code is never loaded online.
+    await page.goto('/anniversaries');
+    await expect(page.getByRole('heading', { level: 1, name: 'Ngày giỗ' })).toBeVisible();
     await page.evaluate(async () => {
       await navigator.serviceWorker.ready;
     });
     await page.reload(); // now controlled by the service worker
-    await expect(page.getByRole('heading', { level: 1, name: ROOT_NAME })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Ngày giỗ' })).toBeVisible();
 
     await context.setOffline(true);
     await page.reload();
-    await expect(page.getByRole('heading', { level: 1, name: ROOT_NAME })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Ngày giỗ' })).toBeVisible();
     await expect(page.getByRole('status').filter({ hasText: 'mất mạng' })).toBeVisible();
     // The lazily-loaded tree (never opened online) also comes from the cache.
     await page.getByRole('link', { name: 'Sơ đồ' }).click();
-    await expect(page.getByRole('group', { name: 'Sơ đồ gia phả' })).toBeVisible();
+    await expect(page.getByRole('list', { name: 'Cây gia phả' })).toBeVisible();
+    await expect(page.getByText(ROOT_NAME, { exact: true })).toBeVisible();
     await context.setOffline(false);
   });
 });

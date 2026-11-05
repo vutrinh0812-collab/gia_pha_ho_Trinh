@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { formatDateInfo, lifeSpan } from '@/lib/format';
+import { formatDateInfo, lifeSpan, visibleNotes } from '@/lib/format';
 import { V, VGAP, verticalContent, type TreeNode } from './layout';
 import type { Lod } from './lod';
 import styles from './Tree.module.css';
@@ -37,7 +37,8 @@ function extraLines(node: TreeNode, lod: Lod): string[] {
     if (birth && p.birth?.solar && p.birth.solar.length > 4) lines.push(`Sinh ${birth}`);
     if (p.burialPlace) lines.push(`An táng: ${p.burialPlace}`);
     if (p.occupation) lines.push(`Nghề: ${p.occupation}`);
-    if (p.notes) lines.push(p.notes);
+    const notes = visibleNotes(p.notes);
+    if (notes) lines.push(notes);
   }
   return lines;
 }

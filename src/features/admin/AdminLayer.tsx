@@ -146,7 +146,7 @@ function ReorderSheet({ model, person, onDone }: { model: ClanModel; person: Per
 
 function DeleteSheet({ model, person, onDone }: { model: ClanModel; person: PersonRec; onDone(): void }) {
   const apply = useAdminStore((s) => s.apply);
-  const { params, goToFamily } = useOverlays();
+  const { params, goToPerson } = useOverlays();
   let set: ChangeSet | null = null;
   let blocked: string | null = null;
   try {
@@ -157,12 +157,12 @@ function DeleteSheet({ model, person, onDone }: { model: ClanModel; person: Pers
   const others = set ? set.changes.filter((c) => c.collection === 'persons' && c.id !== person.id).map((c) => model.get(c.id)?.fullName) : [];
   const confirm = async () => {
     if (!set) return;
-    const wasOnScreen = params.get('p') === person.id || params.get('ct') === person.id;
+    const wasOnScreen = params.get('ct') === person.id;
     if (await apply(set, `Đã xóa ${person.fullName}.`)) {
       onDone();
       if (wasOnScreen) {
         const parentId = model.index.parentUnionOf(person.id)?.bloodlinePersonId;
-        goToFamily(parentId ?? model.rootId, { replace: true });
+        goToPerson(parentId ?? model.rootId, { replace: true });
       }
     }
   };

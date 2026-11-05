@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { useOverlays } from '@/app/useOverlays';
 import { BackIcon } from '@/app/ui/icons';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
@@ -27,20 +26,9 @@ export function describe(model: ClanModel, p: PersonRec): string {
 /** Full-screen search (SPEC 5A.2): type without diacritics, results show generation and parent. */
 export function SearchOverlay() {
   const model = useClanStore((s) => s.model);
-  const { params, close, goToFamily } = useOverlays();
-  const { pathname } = useLocation();
-  const navigate = useNavigate();
-  /** On the tree, a result flies to the node; elsewhere it opens the family view. */
-  const pick = (id: string) => {
-    if (pathname === '/so-do') {
-      const next = new URLSearchParams(params);
-      next.delete('tk');
-      next.set('f', id);
-      navigate({ pathname, search: `?${next}` }, { replace: true });
-    } else {
-      goToFamily(id, { openDetail: true, replace: true });
-    }
-  };
+  const { close, goToPerson } = useOverlays();
+  /** A result opens that person's branch on "Sơ đồ" and goes to them. */
+  const pick = (id: string) => goToPerson(id, { replace: true });
   const [query, setQuery] = useState('');
   const input = useRef<HTMLInputElement>(null);
 

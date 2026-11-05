@@ -76,7 +76,7 @@
   /* Shell geometry: phones have a top bar and a bottom bar; desktop a sidebar and a right panel. */
   --rail-w: 0px;
   --panel-w: 0px;
-  --panel-size: 380px;
+  --panel-size: 456px; /* desktop side panel; 380px +20% (D58) */
   --top-bar: calc(56px + var(--safe-top));
   --bottom-bar: calc(var(--nav-h) + var(--safe-bottom));
   accent-color: var(--accent);

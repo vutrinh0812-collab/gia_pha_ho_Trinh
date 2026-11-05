@@ -186,3 +186,113 @@
   color: var(--accent-ink);
   background: var(--accent-soft);
 }
+
+/* ---------- "In ấn" (D62): theme picker, frame packages ---------- */
+.section {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.sectionTitle {
+  margin: 0;
+  font-size: 1.0625rem;
+}
+.themePicker {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (min-width: 700px) {
+  .themePicker {
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  }
+}
+.themeOption {
+  position: relative;
+  min-width: 0;
+}
+.themeButton {
+  width: 100%;
+  display: grid;
+  gap: 6px;
+  padding: 6px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.themeButton[aria-pressed='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.thumb {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.themeLabel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  min-height: 24px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.badge {
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+.removePack {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+}
+.packTools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.primaryAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ok {
+  margin: 0;
+  color: var(--ok);
+}
+.error {
+  margin: 0;
+  color: var(--err);
+}

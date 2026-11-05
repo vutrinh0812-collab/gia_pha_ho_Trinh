@@ -5,7 +5,7 @@ import { useOverlays } from '@/app/useOverlays';
 import { useIsDesktop } from '@/app/useMediaQuery';
 import type { ClanModel } from '@/lib/clanModel';
 import type { TreeLayoutPref } from '@/store/prefsStore';
-import { useAdminStore } from '@/store/adminStore';
+import { useCanEdit } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
 import { Avatar } from '../person/Avatar';
 import { allOpenIds, ancestorIds, buildOutline, defaultOpenIds, outlineStats, rowIdFor, type OutlineFilters, type OutlineRow } from './outline';
@@ -42,7 +42,7 @@ export function OutlineView({ model, tp, onLayout }: { model: ClanModel; tp: Tre
   const { branch, fromGen, toGen, showSpouses, showMaternal, lineageId, focusId, selectedId, setParam, setShowMaternal } = tp;
   const { open: openOverlay } = useOverlays();
   const desktop = useIsDesktop();
-  const isAdmin = useAdminStore((s) => s.status === 'admin');
+  const isAdmin = useCanEdit();
   const openAdmin = useAdminUi((s) => s.open);
   const [flashId, setFlashId] = useState<string | null>(null);
 

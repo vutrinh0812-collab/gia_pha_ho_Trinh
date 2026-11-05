@@ -76,3 +76,17 @@ export function givenName(fullName: string): string {
   const words = fullName.trim().split(/\s+/);
   return words[words.length - 1] ?? fullName;
 }
+
+/**
+ * Notes as shown to readers: without the book reference ("Sổ gia phả, trang 38.")
+ * that the book import used to add (DECISIONS D61). Empty → null.
+ */
+export function visibleNotes(notes: string | undefined | null): string | null {
+  if (!notes) return null;
+  const text = notes
+    .replace(/Sổ gia phả,?\s*trang\s*\d+\.?/gi, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  return text || null;
+}

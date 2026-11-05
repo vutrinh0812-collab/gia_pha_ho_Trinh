@@ -76,4 +76,10 @@ export interface Theme {
   };
   /** A tile repeated over the whole sheet (paper fibre, faint landscape…). */
   backgroundTexture?: string;
+  /** A picture of the whole sheet (an imported frame package, D62), drawn under everything. */
+  backgroundImage?: { href: string; fit: 'cover' | 'stretch' | 'contain' };
+  /** Where title and tree go on the sheet, in mm from each edge (default: inside the frame). */
+  contentInsetMm?: { top: number; right: number; bottom: number; left: number };
+  /** Paper direction the background picture was drawn for. */
+  preferredOrientation?: 'landscape' | 'portrait';
 }

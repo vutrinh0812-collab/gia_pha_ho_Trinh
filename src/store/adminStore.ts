@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { AdminUser } from '@/lib/admin/backend';
 import type { ChangeSet } from '@/lib/admin/changes';
+import { useClanStore } from './clanStore';
 import { useToastStore } from './toastStore';
 
 /** Sign out after this long without any interaction (SPEC §4). */
@@ -28,6 +29,23 @@ function withTimeout<T>(p: Promise<T>, ms: number, message: string): Promise<T> 
 }
 
 export type AdminStatus = 'unknown' | 'signedOut' | 'signingIn' | 'admin';
+
+/** Who is recorded in the history for edits made while editing is open to everyone (D62). */
+export const GUEST_EDITOR: AdminUser = { uid: 'khach', email: null };
+
+/** Editing is open to everyone (clan setting, D62). */
+export const isEditingOpen = () => useClanStore.getState().model?.settings.openEditing === true;
+
+/**
+ * May this viewer add and edit people? The admin always; everyone else only while the
+ * admin has opened editing to everyone. Clan settings, history and the password stay
+ * admin-only.
+ */
+export function useCanEdit(): boolean {
+  const admin = useAdminStore((s) => s.status === 'admin');
+  const open = useClanStore((s) => s.model?.settings.openEditing === true);
+  return admin || open;
+}
 
 interface AdminState {
   status: AdminStatus;
@@ -178,14 +196,17 @@ export const useAdminStore = create<AdminState>((set, get) => {
       touch();
     },
     async apply(changeSet, okText = 'Đã lưu.') {
-      const user = get().user;
-      if (get().status !== 'admin' || !user) {
+      const admin = get().status === 'admin' ? get().user : null;
+      // Settings stay admin-only even when editing is open to everyone.
+      const touchesSettings = changeSet.changes.some((c) => c.collection === 'settings');
+      const user = admin ?? (isEditingOpen() && !touchesSettings ? GUEST_EDITOR : null);
+      if (!user) {
         useToastStore.getState().show('Cần nhập mật khẩu admin trước khi sửa.', 'error');
         return false;
       }
       try {
         await (await backend()).apply(changeSet, user);
-        touch();
+        if (admin) touch();
         useToastStore.getState().show(okText);
         return true;
       } catch (e) {
