@@ -100,7 +100,7 @@ describe('keyboard shortcuts', () => {
   it('number keys switch views and ? shows the shortcut list', async () => {
     renderAt('/');
     press('2');
-    expect(screen.getByRole('heading', { name: model.settings.title })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Ngày giỗ' })).toBeInTheDocument();
     press('?');
     expect(screen.getByRole('dialog', { name: 'Phím tắt' })).toBeInTheDocument();
   });
@@ -117,12 +117,10 @@ describe('keyboard shortcuts', () => {
     expect(screen.getByRole('heading', { level: 1, name: root.fullName })).toBeInTheDocument();
   });
 
-  it('tree keys collapse and open the filters', async () => {
+  it('tree keys collapse the chart', async () => {
     renderAt('/so-do');
     await screen.findByRole('group', { name: 'Sơ đồ gia phả' });
     press('c');
     expect(screen.getByRole('heading', { name: /Sơ đồ/ })).toHaveTextContent('2 đời');
-    press('l');
-    expect(screen.getByRole('dialog', { name: 'Lọc sơ đồ' })).toBeInTheDocument();
   });
 });

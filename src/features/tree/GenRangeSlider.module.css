@@ -1,0 +1,119 @@
+/* One header row as tall as the other header buttons (--tap). */
+.wrap {
+  --thumb: 24px;
+  flex: 1;
+  min-width: 0;
+  /* Wide screens: a comfortable length; the switch moves to the right. */
+  max-width: 420px;
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--tap);
+  padding: 0 6px 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  pointer-events: auto;
+}
+.summary {
+  flex: none;
+  min-width: 4.6em;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.wrap[data-filtered] .summary {
+  color: var(--accent-ink);
+}
+.reset {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin-left: -4px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+/* Both inputs lie on one track; only their thumbs take pointer events. */
+.slider {
+  position: relative;
+  flex: 1;
+  min-width: 80px;
+  height: 100%;
+  margin-right: 8px;
+}
+.track {
+  position: absolute;
+  left: calc(var(--thumb) / 2);
+  right: calc(var(--thumb) / 2);
+  top: 50%;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 2px;
+  background: var(--line);
+}
+.range {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--lo);
+  right: calc(100% - var(--hi));
+  border-radius: 2px;
+  background: var(--accent);
+}
+.slider input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  appearance: none;
+  background: none;
+  pointer-events: none;
+}
+.slider input::-webkit-slider-runnable-track {
+  height: 100%;
+  background: none;
+}
+.slider input::-moz-range-track {
+  background: none;
+}
+/* 24px thumb; the input itself is as tall as the row, so the touch area is 48px high. */
+.slider input::-webkit-slider-thumb {
+  appearance: none;
+  width: var(--thumb);
+  height: var(--thumb);
+  margin-top: calc((var(--tap) - 2px - var(--thumb)) / 2);
+  border: 3px solid var(--accent);
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgb(91 52 30 / 30%);
+  cursor: grab;
+  pointer-events: auto;
+}
+.slider input::-moz-range-thumb {
+  width: var(--thumb);
+  height: var(--thumb);
+  box-sizing: border-box;
+  border: 3px solid var(--accent);
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgb(91 52 30 / 30%);
+  cursor: grab;
+  pointer-events: auto;
+}
+.slider input:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+.slider input:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}

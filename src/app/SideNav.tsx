@@ -4,7 +4,7 @@ import { todaySolar, upcomingAnniversaries } from '@/lib/anniversaries';
 import { useClanStore } from '@/store/clanStore';
 import { AdminStatus } from './AdminStatus';
 import { BrandMark } from './BrandMark';
-import { CalendarIcon, ListIcon, SearchIcon, SettingsIcon, TreeIcon } from './ui/icons';
+import { CalendarIcon, SearchIcon, SettingsIcon, TreeIcon } from './ui/icons';
 import { useOverlays } from './useOverlays';
 import styles from './SideNav.module.css';
 
@@ -39,11 +39,6 @@ export function SideNav() {
           <li>
             <NavLink to="/so-do" className={link}>
               <TreeIcon width={18} height={18} /> <span>Sơ đồ</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/danh-sach" className={link}>
-              <ListIcon width={18} height={18} /> <span>Danh sách</span>
             </NavLink>
           </li>
           <li>

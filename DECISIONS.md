@@ -422,3 +422,56 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
     - app đang chạy nền (người dùng đã rời đi; lần quay lại sẽ thấy bản mới).
   - **Không tự tải lại khi đang mở bảng sửa của admin.** Khi đó thông báo "Cập nhật" vẫn hiện để bấm tay.
 - Vẫn giữ điều D31 đã sửa: lần cài service worker đầu tiên không tải lại trang.
+
+### D54. "Cây dọc": bố cục Sơ đồ cho điện thoại
+- **Vấn đề:** cây gia phả rộng theo chiều ngang, mỗi đời lại đông hơn đời trước. Với dữ liệu thật (48 người, 4 đời), sơ đồ rộng khoảng 14.000px nhưng chỉ cao 640px. Điện thoại dọc thì ngược lại: hẹp và cao. Ở mức đọc được, mỗi hàng chỉ thấy khoảng 1,5 người; bấm "Vừa màn hình" thì chữ chỉ còn khoảng 1px.
+- **Cách làm:** thêm bố cục **Cây dọc** (`src/features/tree/outline.ts`, `OutlineView.tsx`). Mỗi đời thụt vào 20px, anh chị em xếp nối nhau theo chiều dọc, có đường nối như cây thư mục. Chỉ cần cuộn dọc bằng một ngón tay và không cần zoom.
+  - Mỗi dòng gồm thứ tự con (I, II…), họ tên, năm sinh–mất, tên vợ/chồng; cao tối thiểu 52px.
+  - Mặc định mở 2 đời. Nhánh đang đóng có huy hiệu "+N". Mũi tên tròn bên trái để mở/đóng nhánh; chạm tên để mở bảng chi tiết.
+  - Thanh dòng dõi dính trên đầu (ví dụ "Chín › Thị Hai › Phong Phẩm") cho biết đang xem nhánh nào; chạm một mục để cuộn về người đó.
+  - Các nhánh đang mở được nhớ trong phiên (sessionStorage).
+- **Dùng chung với sơ đồ ngang:** cùng tham số URL (`chi`, `tu`, `den`, `dr`, `dd`, `f`, `ct`; xem `useTreeParams.ts`) và cùng quy tắc lọc (`layout.ts`). Nhờ vậy tìm kiếm, "Trên sơ đồ", "Xem dòng dõi" và link chia sẻ đều chạy ở cả hai bố cục. Tìm một người thì nhánh của họ tự mở, rồi cuộn tới và tô sáng.
+- **Chọn bố cục:**
+  - `xem=doc|ngang` trên URL.
+  - Nếu không có, dùng lựa chọn gần nhất trên máy (`treeLayout` trong prefs).
+  - Nếu chưa chọn bao giờ: điện thoại (< 960px) dùng Cây dọc, máy tính dùng sơ đồ ngang.
+  - Nút chuyển nằm trên thanh công cụ của cả hai bố cục.
+- Màn Sơ đồ trên điện thoại không có thanh tiêu đề chung, nên dòng "Admin · Thoát" (D52) được đặt ngay trong đầu của cả hai bố cục.
+- **Chưa làm:** ảo hóa danh sách. Danh sách thường vẫn mượt với vài trăm dòng; khi gia phả lên tới hàng nghìn người thì cần làm.
+
+### D55. Bỏ màn Danh sách; công tắc Dọc/Ngang; bộ lọc thông minh
+*(Phần "bộ lọc thông minh" đã bỏ ở D56.)*
+- **Bỏ "Danh sách":** Cây dọc (D54) đã làm thay việc xem theo đời và nhánh.
+  - Thanh dưới của điện thoại giờ giống sidebar trên máy tính: **Sơ đồ · Ngày giỗ · Tìm kiếm · Cài đặt**. Ngày giỗ có số ngày giỗ trong 7 ngày tới, như trên sidebar.
+  - Link cũ `/danh-sach` mở Cây dọc.
+  - Phím tắt: 1 = Sơ đồ, 2 = Ngày giỗ.
+- **Công tắc Dọc / Ngang** (`LayoutToggle.tsx`): một công tắc 2 nấc ở đầu màn Sơ đồ, có ở cả hai bố cục. Lựa chọn được nhớ trên từng máy (D54).
+- **Bộ lọc thông minh** (`smartFilter.ts`, `FilterBar.tsx`, `TreeFilterSheet.tsx`):
+  - **Ô "Lọc theo tên" ngay trên đầu sơ đồ:** gõ là cây thu hẹp ngay, không cần dấu, khớp cả tên húy/tự/hiệu. Gõ tên vợ/chồng thì hiện dòng của người trong họ.
+  - **Bảng Bộ lọc dùng chip lớn, dễ chạm:**
+    - Ngày giỗ sắp tới (7 / 30 ngày), Tình trạng (còn sống / đã mất), Giới tính;
+    - **Đời:** chạm một số để chọn một đời, chạm số khác để chọn cả khoảng;
+    - Chi; công tắc dâu/rể và bên ngoại.
+    - Bộ lọc áp dụng ngay, cây phía sau đổi theo. Nút cuối bảng báo số người khớp ("Xem 12 người khớp").
+  - **Cách hiện kết quả:** chỉ giữ người khớp và dòng tổ tiên dẫn tới họ, để vẫn thấy họ thuộc nhánh nào.
+    - Người khớp được tô màu; tổ tiên làm mờ.
+    - Cây dọc tự mở hết các nhánh có người khớp. Sơ đồ ngang bỏ thu gọn và tô sáng người khớp.
+  - **Mỗi bộ lọc đang bật hiện thành một chip** dưới ô lọc, bấm ✕ để bỏ từng cái, hoặc bấm "Xóa tất cả".
+  - Tham số URL: `q`, `tt=song|mat`, `gt=nam|nu`, `gio=7|30`. Link chia sẻ giữ nguyên bộ lọc.
+- Sơ đồ ngang chừa 128px phía trên cho thanh đầu 2 hàng (`TOP_SPACE`), để thanh đầu không che thủy tổ khi mới mở.
+
+### D56. Bộ lọc tối giản: chỉ chọn khoảng đời
+- Theo yêu cầu, Sơ đồ chỉ còn **một** bộ lọc: hiện từ đời nào đến đời nào, chọn trên **một thanh trượt hai đầu** (`GenRangeSlider.tsx`). Thanh trượt nằm ngay trên đầu sơ đồ, ở cả Cây dọc lẫn sơ đồ ngang, không cần mở bảng nào.
+  - Đầu trái là "Từ đời", đầu phải là "Đến đời"; hai đầu không vượt qua nhau. Nút tròn 28px, dễ kéo bằng ngón tay.
+  - Phía trên thanh có dòng tóm tắt ("Tất cả 4 đời", "Đời 2 – 4") và nút "Hiện tất cả". Dưới thanh có số thứ tự các đời.
+  - Hai ô `input type="range"` gốc dùng chung một rãnh, nên dùng được bằng chạm, chuột, bàn phím và trình đọc màn hình.
+  - Vẫn dùng tham số URL `tu` / `den`. Chọn hết các đời thì bỏ tham số.
+- **Đã bỏ:** ô "Lọc theo tên", bảng Bộ lọc, lọc theo ngày giỗ / tình trạng / giới tính / chi, công tắc dâu-rể, chip bộ lọc, phím tắt L. Sơ đồ luôn hiện dâu/rể.
+  - "Hiện con cháu bên ngoại" vẫn còn, nhưng là một cài đặt (trong Cài đặt), không phải bộ lọc.
+  - Muốn tìm một người thì dùng nút Tìm kiếm: chọn người là nhánh của họ tự mở ra.
+  - Link cũ có `chi`, `dr`, `q`… vẫn mở được; các tham số đó bị bỏ qua.
+- **Đầu trang chỉ một hàng:** [Đời 1–4 ●━━●] [Dọc | Ngang] [Mở hết], ở cả hai bố cục.
+  - Trên màn hẹp hơn 560px, công tắc chỉ hiện icon (vẫn có nhãn "Dọc"/"Ngang" cho trình đọc màn hình).
+  - Thanh trượt rộng tối đa 420px.
+  - Tiêu đề "Sơ đồ" chỉ còn cho trình đọc màn hình, vì thanh dưới đã ghi tên tab. Số "48 người · 4 đời" nằm ở dòng nhỏ dưới hàng điều khiển; khi cuộn xuống, dòng này thành thanh dòng dõi. Trên điện thoại, dòng chữ Admin cũng nằm ở dòng này.
+  - Sơ đồ ngang chừa 84px phía trên (`TOP_SPACE`).

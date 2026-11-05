@@ -151,7 +151,7 @@ function verticalHeight(p: PersonRec): number {
   return V.padTop + (c.caption ? V.caption : 0) + c.words.length * V.word + c.years.length * V.year + V.padBottom;
 }
 
-function isShown(model: ClanModel, p: PersonRec, f: TreeFilters): boolean {
+export function isShown(model: ClanModel, p: PersonRec, f: TreeFilters): boolean {
   if (!p.isBloodline) return false;
   if (!f.showMaternal && model.isMaternal(p.id)) return false;
   const gen = model.generationOf(p.id);
@@ -161,7 +161,7 @@ function isShown(model: ClanModel, p: PersonRec, f: TreeFilters): boolean {
 }
 
 /** Children shown under a person (all marriages, in order), ignoring collapse. */
-function shownChildren(model: ClanModel, id: string, f: TreeFilters): PersonRec[] {
+export function shownChildren(model: ClanModel, id: string, f: TreeFilters): PersonRec[] {
   const out: PersonRec[] = [];
   for (const u of model.index.unionsOf(id)) {
     for (const c of model.index.childrenOf(u.id)) if (isShown(model, c, f)) out.push(c);
@@ -169,7 +169,7 @@ function shownChildren(model: ClanModel, id: string, f: TreeFilters): PersonRec[
   return out;
 }
 
-function countShownDescendants(model: ClanModel, id: string, f: TreeFilters): number {
+export function countShownDescendants(model: ClanModel, id: string, f: TreeFilters): number {
   let n = 0;
   const stack = [id];
   while (stack.length) {
@@ -182,7 +182,7 @@ function countShownDescendants(model: ClanModel, id: string, f: TreeFilters): nu
 }
 
 /** Persons the layout starts from (forest), according to the branch and from-generation filters. */
-function startingPersons(model: ClanModel, f: TreeFilters): PersonRec[] {
+export function startingPersons(model: ClanModel, f: TreeFilters): PersonRec[] {
   let starts: PersonRec[] = model.founders;
   if (f.branch) {
     starts = model.persons.filter((p) => {
@@ -206,7 +206,7 @@ function startingPersons(model: ClanModel, f: TreeFilters): PersonRec[] {
   return starts;
 }
 
-function nodeCaption(model: ClanModel, p: PersonRec, f: TreeFilters): string | null {
+export function nodeCaption(model: ClanModel, p: PersonRec, f: TreeFilters): string | null {
   const parts: string[] = [];
   if (p.birthOrder) parts.push(toRoman(p.birthOrder));
   const parentUnion = model.index.parentUnionOf(p.id);
@@ -223,7 +223,7 @@ function nodeCaption(model: ClanModel, p: PersonRec, f: TreeFilters): string | n
   return parts.length ? parts.join(' · ') : null;
 }
 
-function spousesOf(model: ClanModel, p: PersonRec): TreeSpouse[] {
+export function spousesOf(model: ClanModel, p: PersonRec): TreeSpouse[] {
   const unions = model.index.unionsOf(p.id);
   return unions
     .map((u) => ({ u, person: model.get(u.spousePersonId) }))

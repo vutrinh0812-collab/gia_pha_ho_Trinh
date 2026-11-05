@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, MemoryRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AnniversariesPage } from '@/features/anniversaries/AnniversariesPage';
 import { FamilyView } from '@/features/family/FamilyView';
-import { ListView } from '@/features/list/ListView';
 import { env } from '@/lib/env';
 import { AppShell } from './AppShell';
 import { HomePage } from './HomePage';
@@ -43,7 +42,8 @@ export function AppRoutes() {
     <Routes>
       <Route element={<AppShell />}>
         <Route index element={<FamilyView />} />
-        <Route path="danh-sach" element={<ListView />} />
+        {/* "Danh sách" was replaced by "Cây dọc" (D55): old links open it. */}
+        <Route path="danh-sach" element={<Navigate to="/so-do?xem=doc" replace />} />
         <Route
           path="so-do"
           element={

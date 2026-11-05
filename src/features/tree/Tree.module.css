@@ -258,6 +258,13 @@ main > .view {
 .topBar > * {
   pointer-events: auto;
 }
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  pointer-events: auto;
+}
 .topRow {
   display: flex;
   align-items: center;

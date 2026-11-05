@@ -42,10 +42,13 @@ export const TreeIcon = (p: IconProps) => (
     <path d="M12 6.5v11M5.5 17.5V12h13v5.5" />
   </Icon>
 );
-export const ListIcon = (p: IconProps) => (
+/** An indented tree: the "Cây dọc" layout. */
+export const OutlineIcon = (p: IconProps) => (
   <Icon {...p}>
-    <path d="M9 6h11M9 12h11M9 18h11" />
-    <path d="M4 6h.01M4 12h.01M4 18h.01" strokeWidth="2.6" />
+    <rect x="3" y="3.5" width="7" height="4" rx="1" />
+    <rect x="10" y="10" width="11" height="4" rx="1" />
+    <rect x="10" y="16.5" width="11" height="4" rx="1" />
+    <path d="M6.5 7.5v11h3.5M6.5 12h3.5" />
   </Icon>
 );
 export const SearchIcon = (p: IconProps) => (

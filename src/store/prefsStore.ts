@@ -9,15 +9,20 @@ interface Prefs {
   largeText: boolean;
   /** null = follow the clan setting `showMaternalDescendants`. */
   showMaternal: boolean | null;
+  /** Layout of "Sơ đồ": the vertical outline or the chart; null = by screen (phone → outline). */
+  treeLayout: TreeLayoutPref | null;
 }
+
+export type TreeLayoutPref = 'doc' | 'ngang';
 
 interface PrefsState extends Prefs {
   setLargeText(on: boolean): void;
   setShowMaternal(on: boolean | null): void;
+  setTreeLayout(layout: TreeLayoutPref): void;
 }
 
 const KEY = 'giapha.prefs.v1';
-const DEFAULTS: Prefs = { largeText: false, showMaternal: null };
+const DEFAULTS: Prefs = { largeText: false, showMaternal: null, treeLayout: null };
 
 function read(): Prefs {
   try {
@@ -27,6 +32,7 @@ function read(): Prefs {
     return {
       largeText: p.largeText === true,
       showMaternal: typeof p.showMaternal === 'boolean' ? p.showMaternal : null,
+      treeLayout: p.treeLayout === 'doc' || p.treeLayout === 'ngang' ? p.treeLayout : null,
     };
   } catch {
     return DEFAULTS;
@@ -51,8 +57,8 @@ export const usePrefsStore = create<PrefsState>((set, get) => {
   apply(initial);
   const update = (patch: Partial<Prefs>) => {
     set(patch);
-    const { largeText, showMaternal } = get();
-    const prefs = { largeText, showMaternal };
+    const { largeText, showMaternal, treeLayout } = get();
+    const prefs = { largeText, showMaternal, treeLayout };
     write(prefs);
     apply(prefs);
   };
@@ -60,5 +66,6 @@ export const usePrefsStore = create<PrefsState>((set, get) => {
     ...initial,
     setLargeText: (largeText) => update({ largeText }),
     setShowMaternal: (showMaternal) => update({ showMaternal }),
+    setTreeLayout: (treeLayout) => update({ treeLayout }),
   };
 });

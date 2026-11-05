@@ -1,0 +1,411 @@
+/*
+ * "Cây dọc" (DECISIONS D54). Each generation is indented by one column (--col);
+ * connectors are borders: a column's line sits on its right edge, which is the
+ * centre of the parent's toggle, so lines meet without any drawing code.
+ */
+.view {
+  --col: 20px;
+  --toggle: 40px;
+  --line-c: var(--line-strong);
+  padding-bottom: 24px;
+}
+
+.head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: 0 calc(-1 * var(--gutter-r)) 0 calc(-1 * var(--gutter-l));
+  padding: calc(8px + var(--safe-top)) var(--gutter-r) 0 var(--gutter-l);
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+@media (min-width: 960px) {
+  .head {
+    margin: 0;
+    padding: 20px 0 0;
+  }
+}
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 52px;
+  pointer-events: auto;
+}
+/* Under the controls: where you are in the tree (or the totals), and the admin note. */
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.infoRow .crumbs {
+  flex: 1;
+  min-width: 0;
+}
+.headRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+}
+.title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 1.125rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.titleSub {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--text-2);
+}
+.tool {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+.tool:hover {
+  background: var(--surface-2);
+}
+.dot {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.75rem;
+  line-height: 18px;
+  text-align: center;
+}
+/* Phones: icon-only tools so the title keeps its line. */
+@media (max-width: 559px) {
+  .tool {
+    padding: 0;
+  }
+  .toolLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .dot {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 0 6px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 2px 4px 2px 12px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  font-size: 0.875rem;
+}
+.chip strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chipClose {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.chipButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Where the top of the list is in the tree: one line, scrolls sideways if long. */
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 36px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  color: var(--text-2);
+}
+.crumbs::-webkit-scrollbar {
+  display: none;
+}
+.crumbItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.crumb {
+  min-height: 36px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--accent-ink);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+.crumb:hover {
+  background: var(--surface-2);
+}
+.crumbHint {
+  padding: 0 2px;
+}
+
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding: 24px 0;
+  color: var(--text-2);
+}
+.empty p {
+  margin: 0;
+}
+
+.list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.row {
+  display: flex;
+  align-items: stretch;
+  min-height: 52px;
+  border-radius: var(--radius-sm);
+}
+.row[data-dim] {
+  opacity: 0.45;
+}
+.row[data-mark='path'] {
+  background: var(--accent-soft);
+}
+.row[data-mark='selected'] .person {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+.row[data-mark='flash'] .person {
+  animation: flash 2.6s ease-out;
+}
+@keyframes flash {
+  0%,
+  40% {
+    background: var(--accent-track);
+  }
+}
+
+/* An ancestor's line running past this row. */
+.guide {
+  flex: none;
+  width: var(--col);
+}
+.guide[data-on] {
+  border-right: 1.5px solid var(--line-c);
+}
+/* The line from the parent into this row: full height, or down to the middle for the last child. */
+.elbow {
+  position: relative;
+  flex: none;
+  width: var(--col);
+}
+.elbow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  border-right: 1.5px solid var(--line-c);
+}
+.elbow[data-last]::before {
+  bottom: 50%;
+}
+.elbow::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  width: 12px;
+  border-top: 1.5px solid var(--line-c);
+}
+
+.toggle,
+.leaf {
+  position: relative;
+  flex: none;
+  width: var(--toggle);
+  display: grid;
+  place-items: center;
+}
+.toggle {
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.toggle:hover {
+  background: var(--surface-2);
+}
+/* An open branch continues from its toggle down to the first child. */
+.toggle[aria-expanded='true']::after {
+  content: '';
+  position: absolute;
+  top: calc(50% + 10px);
+  bottom: 0;
+  left: calc(50% - 0.75px);
+  border-left: 1.5px solid var(--line-c);
+}
+.chevron {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--surface);
+}
+.chevron::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin-left: -2px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+}
+.toggle[aria-expanded='true'] .chevron {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.toggle[aria-expanded='true'] .chevron::before {
+  margin: -3px 0 0;
+  transform: rotate(45deg);
+}
+.leaf::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--line-strong);
+}
+
+.person {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.person:hover {
+  background: var(--surface-2);
+}
+.line1 {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: 6px;
+}
+.caption {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.name {
+  font-weight: 600;
+  line-height: 1.3;
+}
+.row[data-deceased] .name {
+  color: var(--deceased);
+}
+.line2 {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 8px;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--text-2);
+}
+.years {
+  font-variant-numeric: tabular-nums;
+}
+.spouse {
+  color: var(--spouse);
+}
+.count {
+  flex: none;
+  align-self: center;
+  margin-left: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}

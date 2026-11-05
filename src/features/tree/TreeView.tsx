@@ -1,24 +1,28 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { AdminStatus } from '@/app/AdminStatus';
 import { isInDialog, useHotkeys } from '@/app/useHotkeys';
 import { useOverlays } from '@/app/useOverlays';
 import {
   CloseIcon,
   CollapseIcon,
   ExpandIcon,
-  FilterIcon,
   FitIcon,
   HomeIcon,
   MinusIcon,
   PlusIcon,
 } from '@/app/ui/icons';
+import { useIsDesktop } from '@/app/useMediaQuery';
+import type { ClanModel } from '@/lib/clanModel';
 import { useClanStore } from '@/store/clanStore';
 import { useAdminStore } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
-import { usePrefsStore } from '@/store/prefsStore';
+import { usePrefsStore, type TreeLayoutPref } from '@/store/prefsStore';
 import { collapseAllIds, computeTreeLayout, type TreeFilters } from './layout';
 import { TreeCanvas, type TreeCanvasApi } from './TreeCanvas';
-import { TreeFilterSheet } from './TreeFilterSheet';
+import { OutlineView } from './OutlineView';
+import { GenRangeSlider } from './GenRangeSlider';
+import { LayoutToggle } from './LayoutToggle';
+import { useTreeParams, type TreeParams } from './useTreeParams';
 import styles from './Tree.module.css';
 
 const HINT_KEY = 'giapha.rotateHint.v1';
@@ -31,40 +35,49 @@ function readFlag(key: string): boolean {
   }
 }
 
-function intParam(v: string | null): number | null {
-  const n = Number(v);
-  return v && Number.isInteger(n) && n > 0 ? n : null;
-}
-
 /**
- * "Sơ đồ" — the full tree (SPEC 5 and 5A.1 mode 2). Filters, lineage and the
- * view position live in the URL so a link reproduces the same view.
- * URL: chi (branch), tu/den (generation range), dr=0 (hide spouses),
- *      dd (highlighted lineage), f (fly to person), v (x,y,k).
+ * "Sơ đồ" (SPEC 5 and 5A.1 mode 2) in one of two layouts (DECISIONS D54):
+ * "Cây dọc", an indented tree that scrolls up and down (phones), or the chart
+ * (wide screens). `xem=doc|ngang` in the URL picks one; else the last choice on
+ * this device; else by screen size.
  */
 export default function TreeView() {
   const model = useClanStore((s) => s.model)!;
-  const prefMaternal = usePrefsStore((s) => s.showMaternal);
-  const setShowMaternal = usePrefsStore((s) => s.setShowMaternal);
-  const showMaternal = prefMaternal ?? model.settings.showMaternalDescendants;
-  const [params, setParams] = useSearchParams();
+  const tp = useTreeParams(model);
+  const desktop = useIsDesktop();
+  const pref = usePrefsStore((s) => s.treeLayout);
+  const setTreeLayout = usePrefsStore((s) => s.setTreeLayout);
+  const fromUrl = tp.params.get('xem');
+  const layout: TreeLayoutPref = fromUrl === 'doc' || fromUrl === 'ngang' ? fromUrl : (pref ?? (desktop ? 'ngang' : 'doc'));
+  const switchTo = (next: TreeLayoutPref) => {
+    setTreeLayout(next);
+    tp.setParam({ xem: null, v: null });
+  };
+  return layout === 'doc' ? (
+    <OutlineView model={model} tp={tp} onLayout={switchTo} />
+  ) : (
+    <ChartView model={model} tp={tp} onLayout={switchTo} />
+  );
+}
+
+/**
+ * The chart: generations in rows, pan and pinch zoom with semantic zoom. Filters,
+ * lineage and the view position live in the URL so a link reproduces the same view
+ * (see useTreeParams; v = x,y,k).
+ */
+function ChartView({ model, tp, onLayout }: { model: ClanModel; tp: TreeParams; onLayout(next: TreeLayoutPref): void }) {
+  const { params, branch, fromGen, toGen, showSpouses, showMaternal, setParam, setShowMaternal } = tp;
   const { open } = useOverlays();
+  const desktop = useIsDesktop();
   const api = useRef<TreeCanvasApi>(null);
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const isAdmin = useAdminStore((s) => s.status === 'admin');
   const openAdmin = useAdminUi((s) => s.open);
   const [flashId, setFlashId] = useState<string | null>(null);
   const [hintHidden, setHintHidden] = useState(() => readFlag(HINT_KEY));
   const coarse = useMemo(() => window.matchMedia?.('(pointer: coarse)').matches ?? false, []);
 
-  const branch = params.get('chi');
-  const fromGen = intParam(params.get('tu'));
-  const toGen = intParam(params.get('den'));
-  const showSpouses = params.get('dr') !== '0';
-  const lineageId = params.get('dd');
-  const focusId = params.get('f');
-  const selectedId = params.get('ct');
+  const { lineageId, focusId, selectedId } = tp;
 
   const filters: TreeFilters = useMemo(
     () => ({ branch, fromGen, toGen, showSpouses, showMaternal, collapsed }),
@@ -76,23 +89,6 @@ export default function TreeView() {
     if (!lineageId || !model.get(lineageId)) return null;
     return new Set(model.lineage(lineageId).map((p) => p.id));
   }, [lineageId, model]);
-
-  const setParam = useCallback(
-    (patch: Record<string, string | null>) => {
-      setParams(
-        (prev) => {
-          const next = new URLSearchParams(prev);
-          for (const [k, v] of Object.entries(patch)) {
-            if (v === null) next.delete(k);
-            else next.set(k, v);
-          }
-          return next;
-        },
-        { replace: true },
-      );
-    },
-    [setParams],
-  );
 
   // The node that shows a person (spouses are drawn inside their partner's node).
   const nodeIdFor = useCallback(
@@ -187,10 +183,6 @@ export default function TreeView() {
       case 'C':
         setCollapsed(collapsed.size > 0 ? new Set() : collapseAllIds(model, filters));
         return true;
-      case 'l':
-      case 'L':
-        setFiltersOpen(true);
-        return true;
       case 'ArrowLeft':
         a?.panBy(step, 0);
         return true;
@@ -205,7 +197,6 @@ export default function TreeView() {
         return true;
     }
   });
-  const activeFilters = [branch, fromGen || toGen ? 'đời' : null, showSpouses ? null : 'dâu-rể'].filter(Boolean).length;
   const lineagePerson = lineageId ? model.get(lineageId) : undefined;
   const showHint = coarse && !hintHidden;
 
@@ -225,32 +216,23 @@ export default function TreeView() {
       />
 
       <div className={styles.topBar}>
-        <div className={styles.topRow}>
-          <h1 className={styles.title}>
-            Sơ đồ
-            <span className={styles.titleSub}>
-              {layout.nodes.length} người · {layout.rows.filter((r) => !r.empty).length} đời
-            </span>
-          </h1>
-          <button
-            type="button"
-            className={styles.toolButton}
-            onClick={() => setFiltersOpen(true)}
-            aria-label={activeFilters ? `Lọc (đang lọc ${activeFilters})` : 'Lọc'}
-          >
-            <FilterIcon />
-            <span className={styles.toolLabel}>Lọc</span>
-            {activeFilters > 0 && <span className={styles.dot}>{activeFilters}</span>}
-          </button>
+        {/* The bottom bar already says "Sơ đồ"; the heading is for screen readers. */}
+        <h1 className="visually-hidden">
+          Sơ đồ, {layout.nodes.length} người · {layout.rows.filter((r) => !r.empty).length} đời
+        </h1>
+        <div className={styles.filterRow}>
+          <GenRangeSlider max={tp.maxGen} from={fromGen ?? 1} to={toGen ?? tp.maxGen} onChange={tp.setGenRange} />
+          <LayoutToggle value="ngang" onChange={onLayout} />
           <button
             type="button"
             className={styles.toolButton}
             onClick={() => setCollapsed(anyCollapsed ? new Set() : collapseAllIds(model, filters))}
+            aria-label={anyCollapsed ? 'Mở hết' : 'Thu gọn'}
           >
             {anyCollapsed ? <ExpandIcon /> : <CollapseIcon />}
-            <span className={styles.toolLabel}>{anyCollapsed ? 'Mở hết' : 'Thu gọn'}</span>
           </button>
         </div>
+        {!desktop && <AdminStatus variant="header" />}
         {isAdmin && (
           <button type="button" className={styles.chipButton} onClick={() => openAdmin('generations', '')}>
             <PlusIcon width={18} height={18} /> Thêm đời trên / dưới
@@ -309,21 +291,6 @@ export default function TreeView() {
           <HomeIcon />
         </button>
       </div>
-
-      {filtersOpen && (
-        <TreeFilterSheet
-          model={model}
-          branch={branch}
-          fromGen={fromGen}
-          toGen={toGen}
-          showSpouses={showSpouses}
-          showMaternal={showMaternal}
-          onChange={(patch) => setParam(patch)}
-          onMaternal={setShowMaternal}
-          onClose={() => setFiltersOpen(false)}
-          onReset={() => setParam({ chi: null, tu: null, den: null, dr: null })}
-        />
-      )}
     </div>
   );
 }

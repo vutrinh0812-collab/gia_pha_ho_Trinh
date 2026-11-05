@@ -39,7 +39,8 @@ interface Win {
   lod: Lod;
 }
 
-const TOP_SPACE = 76;
+/** Room for the floating header (one row: generations, layout switch, collapse). */
+const TOP_SPACE = 84;
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 

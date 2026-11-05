@@ -30,7 +30,7 @@ describe('Gia đình view', () => {
     expect(screen.getByRole('heading', { level: 1, name: root.fullName })).toBeInTheDocument();
     expect(screen.getByText(/Thủy tổ, đời đầu tiên/)).toBeInTheDocument();
     const nav = screen.getByRole('navigation', { name: 'Điều hướng chính' });
-    for (const label of ['Sơ đồ', 'Danh sách', 'Tìm kiếm', 'Cài đặt']) {
+    for (const label of ['Sơ đồ', 'Ngày giỗ', 'Tìm kiếm', 'Cài đặt']) {
       expect(within(nav).getByText(label)).toBeInTheDocument();
     }
     expect(within(nav).queryByText('Gia đình')).not.toBeInTheDocument();
@@ -112,14 +112,10 @@ describe('search', () => {
   });
 });
 
-describe('Danh sách view', () => {
-  it('lists generations and expands one grouped by branch', () => {
+describe('old Danh sách links', () => {
+  it('open the vertical tree, which replaced the list', async () => {
     renderAt('/danh-sach');
-    const gen3 = screen.getByRole('button', { name: /Đời 3/ });
-    expect(gen3).toHaveAttribute('aria-expanded', 'false');
-    fireEvent.click(gen3);
-    expect(gen3).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByRole('heading', { name: 'Chi Giáp' })).toBeInTheDocument();
+    expect(await screen.findByRole('list', { name: 'Cây gia phả' }, { timeout: 5000 })).toBeInTheDocument();
   });
 });
 
