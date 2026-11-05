@@ -11,7 +11,6 @@ import {
   FitIcon,
   HomeIcon,
   MinusIcon,
-  PaletteIcon,
   PlusIcon,
 } from '@/app/ui/icons';
 import { useClanStore } from '@/store/clanStore';
@@ -21,8 +20,6 @@ import { usePrefsStore } from '@/store/prefsStore';
 import { collapseAllIds, computeTreeLayout, type TreeFilters } from './layout';
 import { TreeCanvas, type TreeCanvasApi } from './TreeCanvas';
 import { TreeFilterSheet } from './TreeFilterSheet';
-import { TreeThemeSheet } from './TreeThemeSheet';
-import { treeThemeVars, useTreeTheme } from './useTreeTheme';
 import styles from './Tree.module.css';
 
 const HINT_KEY = 'giapha.rotateHint.v1';
@@ -56,13 +53,8 @@ export default function TreeView() {
   const api = useRef<TreeCanvasApi>(null);
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [themeOpen, setThemeOpen] = useState(false);
   const isAdmin = useAdminStore((s) => s.status === 'admin');
   const openAdmin = useAdminUi((s) => s.open);
-  const treeThemeId = usePrefsStore((s) => s.treeTheme);
-  const setTreeTheme = usePrefsStore((s) => s.setTreeTheme);
-  const treeTheme = useTreeTheme(treeThemeId);
-  const themeStyle = useMemo(() => (treeTheme ? treeThemeVars(treeTheme) : undefined), [treeTheme]);
   const [flashId, setFlashId] = useState<string | null>(null);
   const [hintHidden, setHintHidden] = useState(() => readFlag(HINT_KEY));
   const coarse = useMemo(() => window.matchMedia?.('(pointer: coarse)').matches ?? false, []);
@@ -231,7 +223,6 @@ export default function TreeView() {
         onSelect={onSelect}
         onToggle={onToggle}
         apiRef={api}
-        themeStyle={themeStyle}
       />
 
       <div className={styles.topBar}>
@@ -251,15 +242,6 @@ export default function TreeView() {
             <FilterIcon />
             <span className={styles.toolLabel}>Lọc</span>
             {activeFilters > 0 && <span className={styles.dot}>{activeFilters}</span>}
-          </button>
-          <button
-            type="button"
-            className={styles.toolButton}
-            onClick={() => setThemeOpen(true)}
-            aria-label={`Giao diện: ${treeTheme?.name ?? 'Ember'}`}
-          >
-            <PaletteIcon />
-            <span className={styles.toolLabel}>Giao diện</span>
           </button>
           <button
             type="button"
@@ -329,8 +311,6 @@ export default function TreeView() {
           <HomeIcon />
         </button>
       </div>
-
-      {themeOpen && <TreeThemeSheet value={treeThemeId} onChange={setTreeTheme} onClose={() => setThemeOpen(false)} />}
 
       {filtersOpen && (
         <TreeFilterSheet

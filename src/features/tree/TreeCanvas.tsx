@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type Ref } from 'react';
+import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type Ref } from 'react';
 import { select } from 'd3-selection';
 import 'd3-transition';
 import { zoom, zoomIdentity, type D3ZoomEvent, type ZoomBehavior, type ZoomTransform } from 'd3-zoom';
@@ -29,7 +29,6 @@ interface Props {
   onToggle(id: string): void;
   apiRef: Ref<TreeCanvasApi>;
   /** CSS custom properties of the chosen tree theme (undefined = screen theme). */
-  themeStyle?: CSSProperties;
 }
 
 interface Win {
@@ -57,7 +56,7 @@ function parseView(v: string | null): ZoomTransform | null {
  * or the viewport leaves the rendered window (virtualization, SPEC 5.3).
  */
 export function TreeCanvas(props: Props) {
-  const { layout, coarse, pathIds, flashId, selectedId, initialView, onViewChange, onSelect, onToggle, apiRef, themeStyle } = props;
+  const { layout, coarse, pathIds, flashId, selectedId, initialView, onViewChange, onSelect, onToggle, apiRef } = props;
   const wrap = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const gRef = useRef<SVGGElement>(null);
@@ -256,7 +255,7 @@ export function TreeCanvas(props: Props) {
       ctx.fillStyle = (n.person.gender === 'male' ? colors.male : colors.female) || '#888';
       ctx.fillRect(mini.ox + n.x * mini.s, mini.oy + n.y * mini.s, Math.max(1, n.w * mini.s), Math.max(1, n.h * mini.s));
     }
-  }, [layout, mini, themeStyle]);
+  }, [layout, mini]);
 
   const transitionTo = useCallback((t: ZoomTransform) => {
     const svg = svgRef.current;
@@ -352,7 +351,7 @@ export function TreeCanvas(props: Props) {
   const ordered = lod >= 3 ? [...visible.nodes].sort((a, z) => a.y - z.y) : visible.nodes;
 
   return (
-    <div ref={wrap} className={styles.canvas} style={themeStyle}>
+    <div ref={wrap} className={styles.canvas}>
       <svg ref={svgRef} className={styles.svg} data-lod={lod} aria-label="Sơ đồ gia phả" role="group">
         <g ref={gRef}>
           <g aria-hidden="true">

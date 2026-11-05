@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useClanStore } from '@/store/clanStore';
-import { usePrefsStore, type ThemeMode } from '@/store/prefsStore';
+import { usePrefsStore } from '@/store/prefsStore';
 import { Sheet } from './ui/Sheet';
 import { ChevronIcon } from './ui/icons';
 import { useOverlays } from './useOverlays';
@@ -20,18 +20,12 @@ const LINKS = [
   { to: '/kiem-tra', label: 'Kiểm tra dữ liệu' },
 ];
 
-const THEMES: Array<{ value: ThemeMode; label: string }> = [
-  { value: 'system', label: 'Theo máy' },
-  { value: 'light', label: 'Sáng' },
-  { value: 'dark', label: 'Tối' },
-];
-
-/** "Thêm" menu: secondary pages and viewing preferences. */
+/** "Cài đặt" menu: secondary pages and viewing preferences. */
 export function MoreSheet() {
   const { close, open } = useOverlays();
   const desktop = useIsDesktop();
   const model = useClanStore((s) => s.model);
-  const { theme, setTheme, largeText, setLargeText, showMaternal, setShowMaternal } = usePrefsStore();
+  const { largeText, setLargeText, showMaternal, setShowMaternal } = usePrefsStore();
   const maternalOn = showMaternal ?? model?.settings.showMaternalDescendants ?? false;
   const [shareNote, setShareNote] = useState<string | null>(null);
   const shareApp = async () => {
@@ -42,7 +36,7 @@ export function MoreSheet() {
   };
 
   return (
-    <Sheet label="Thêm" onClose={() => close('them')} header={<h2 className={styles.title}>Thêm</h2>}>
+    <Sheet label="Cài đặt" onClose={() => close('them')} header={<h2 className={styles.title}>Cài đặt</h2>}>
       {env.router === 'browser' && (
         <>
           <button type="button" className={styles.installButton} onClick={shareApp}>
@@ -106,24 +100,6 @@ export function MoreSheet() {
           onChange={(e) => setShowMaternal(e.target.checked)}
         />
       </div>
-      <fieldset className={styles.themes}>
-        <legend className={styles.settingLabel}>Màu nền</legend>
-        <div className={styles.segment}>
-          {THEMES.map((t) => (
-            <label key={t.value} className={styles.segmentItem}>
-              <input
-                type="radio"
-                name="theme"
-                id={`pref-theme-${t.value}`}
-                value={t.value}
-                checked={theme === t.value}
-                onChange={() => setTheme(t.value)}
-              />
-              <span>{t.label}</span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
     </Sheet>
   );
 }

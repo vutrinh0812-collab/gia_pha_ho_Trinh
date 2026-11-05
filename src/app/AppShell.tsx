@@ -50,7 +50,7 @@ export function AppShell() {
       return true;
     }
     if (isInDialog(e.target)) return;
-    const tab = { '1': '/', '2': '/so-do', '3': '/danh-sach' }[e.key];
+    const tab = { '1': '/so-do', '2': '/danh-sach', '3': '/anniversaries' }[e.key];
     if (tab) {
       navigate(tab);
       return true;

@@ -9,15 +9,15 @@ export const SHORTCUTS: Array<{ title: string; keys: Array<[string[], string]> }
     keys: [
       [['/'], 'Tìm kiếm'],
       [['Ctrl', 'K'], 'Tìm kiếm'],
-      [['1'], 'Gia đình'],
-      [['2'], 'Sơ đồ'],
-      [['3'], 'Danh sách'],
+      [['1'], 'Sơ đồ'],
+      [['2'], 'Danh sách'],
+      [['3'], 'Ngày giỗ'],
       [['Esc'], 'Đóng bảng đang mở'],
       [['?'], 'Xem phím tắt'],
     ],
   },
   {
-    title: 'Gia đình',
+    title: 'Trang đầu',
     keys: [
       [['↑'], 'Lên đời trước (cha/mẹ)'],
       [['←', '→'], 'Anh chị em liền trước / liền sau'],

@@ -2,9 +2,9 @@ import { useCallback } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 /**
- * Overlays (detail sheet, search, "Thêm" menu, shortcut help) live in the URL
+ * Overlays (detail sheet, search, "Cài đặt" menu, shortcut help) live in the URL
  * query so the phone's Back button closes them.
- * Keys: ct = person detail, tk = search, them = menu, phim = keyboard shortcuts.
+ * Keys: ct = person detail, tk = search, them = settings menu, phim = keyboard shortcuts.
  */
 export type OverlayKey = 'ct' | 'tk' | 'them' | 'phim';
 const OVERLAY_KEYS: readonly OverlayKey[] = ['ct', 'tk', 'them', 'phim'];

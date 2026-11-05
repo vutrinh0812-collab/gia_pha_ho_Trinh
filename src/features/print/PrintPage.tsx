@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useClanStore } from '@/store/clanStore';
-import { usePrefsStore } from '@/store/prefsStore';
 import { getTheme, PRINT_THEMES } from '@/themes/registry';
 import { BranchPicker } from './BranchPicker';
 import { DEFAULT_POSTER_OPTIONS, PosterSvg, type PosterOptions } from './PosterSvg';
@@ -27,9 +26,8 @@ export default function PrintPage() {
   const model = useClanStore((s) => s.model)!;
   const [params, setParams] = useSearchParams();
   const focusId = params.get('goc') || null;
-  const treeTheme = usePrefsStore((s) => s.treeTheme);
-  // The theme on the tree, else the clan's default print theme (SPEC §8: truyen-thong-do).
-  const [themeId, setThemeId] = useState(() => defaultPrintTheme(params.get('giaodien') ?? '', treeTheme, model.settings.defaultThemeId));
+  // The theme from the link, else the clan's default print theme (SPEC §8: truyen-thong-do).
+  const [themeId, setThemeId] = useState(() => defaultPrintTheme(params.get('giaodien') ?? '', model.settings.defaultThemeId));
   const [opts, setOpts] = useState<PosterOptions>(DEFAULT_POSTER_OPTIONS);
   const theme = getTheme(themeId) ?? PRINT_THEMES[0]!;
   useThemeFonts(useMemo(() => [theme], [theme]));

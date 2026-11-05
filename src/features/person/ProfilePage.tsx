@@ -24,7 +24,7 @@ export default function ProfilePage() {
       <div className={styles.page}>
         <h1>Không tìm thấy</h1>
         <p>Không có người này trong gia phả. Có thể dữ liệu đã thay đổi.</p>
-        <Link to="/">← Về trang Gia đình</Link>
+        <Link to="/">← Về trang đầu</Link>
       </div>
     );
   }

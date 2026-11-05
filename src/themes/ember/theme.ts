@@ -4,7 +4,7 @@ import type { Theme } from '../types';
 const theme: Theme = {
   id: 'ember',
   name: 'Ember (màn hình)',
-  description: 'Giao diện xem trên điện thoại và máy tính: nâu đất Burnt Sienna trên nền kem ấm, chữ Inter, sáng và tối.',
+  description: 'Giao diện xem trên điện thoại và máy tính: nâu đất Burnt Sienna trên nền kem ấm, chữ Inter.',
   usage: ['screen'],
   fontsCss: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap&subset=vietnamese',
   colors: {

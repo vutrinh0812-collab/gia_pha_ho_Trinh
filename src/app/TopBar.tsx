@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useClanStore } from '@/store/clanStore';
 import { AdminStatus } from './AdminStatus';
 import { BrandMark } from './BrandMark';
@@ -12,9 +13,11 @@ export function TopBar() {
   return (
     <header className={styles.wrap}>
       <div className={styles.bar}>
-        <BrandMark className={styles.mark} size={26} />
-        <span className={styles.name}>{model?.settings.title ?? 'Gia phả'}</span>
-        <button type="button" className={styles.search} onClick={() => open('tk')} aria-label="Tìm người">
+        <Link to="/" className={styles.home} aria-label="Về trang đầu">
+          <BrandMark className={styles.mark} size={26} />
+          <span className={styles.name}>{model?.settings.title ?? 'Gia phả'}</span>
+        </Link>
+        <button type="button" className={styles.search} onClick={() => open('tk')} aria-label="Tìm kiếm">
           <SearchIcon />
         </button>
       </div>

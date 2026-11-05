@@ -15,7 +15,7 @@ export function PlaceholderPage({ title, phase, children }: Props) {
       {children && <p>{children}</p>}
       {phase !== undefined && <p className={styles.muted}>Tính năng này sẽ có ở giai đoạn {phase}.</p>}
       <p>
-        <Link to="/">← Về trang Gia đình</Link>
+        <Link to="/">← Về trang đầu</Link>
       </p>
     </div>
   );

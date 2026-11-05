@@ -43,7 +43,7 @@ test('shared link → family → search → details → share', async ({ page })
   await noHorizontalScroll(page);
 
   // 3. Search without diacritics.
-  await page.getByRole('button', { name: 'Tìm kiếm' }).click();
+  await page.getByRole('navigation', { name: 'Điều hướng chính' }).getByRole('button', { name: 'Tìm kiếm' }).click();
   await page.getByRole('searchbox').fill('trinh van viet');
   const search = page.getByRole('dialog', { name: 'Tìm kiếm' });
   const hit = search.getByRole('button', { name: /Trịnh Văn Việt/ }).first();
@@ -109,7 +109,7 @@ test('works when the in-app browser blocks storage, sharing and the clipboard', 
   await profile.getByRole('button', { name: 'Chia sẻ' }).click();
   await expect(profile.getByRole('status')).toContainText(`/nguoi/${ROOT_ID}`);
   // Preferences still work for this visit.
-  await page.getByRole('button', { name: 'Thêm' }).click();
+  await page.getByRole('button', { name: 'Cài đặt' }).click();
   await page.getByRole('switch', { name: /Chữ lớn/ }).check();
   await expect(page.locator('html')).toHaveAttribute('data-large-text', 'true');
   expect(errors).toEqual([]);

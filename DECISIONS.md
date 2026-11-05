@@ -401,3 +401,14 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - **Chế độ tối:** dựng từ Charcoal, giữ cùng tinh thần (sienna sáng `#F0A47E` cho chữ nhấn).
 - **Theme trên sơ đồ:** tên mới là `ember`. `son-son` và `minimal` vẫn được nhận và tự đổi sang `ember`.
 - Biểu tượng app, favicon và ảnh xem trước khi chia sẻ link đã vẽ lại theo màu Ember.
+
+### D52. Chỉ một giao diện màn hình; gọn thanh điều hướng
+- **Màn hình chỉ dùng Ember sáng.**
+  - Bỏ chế độ tối và lựa chọn "Theo máy / Sáng / Tối". App giữ màu Ember kể cả khi điện thoại hay máy tính đang ở chế độ tối.
+  - Bỏ nút "Giao diện" trên Sơ đồ và nút "Dùng cho sơ đồ" ở trang Giao diện in: sơ đồ trên màn hình luôn là Ember.
+  - Các theme còn lại (Truyền thống đỏ, Sơn mài vàng, Men lam, Giấy dó) chỉ dùng cho bản in, chọn ở `/themes` và `/print`.
+- **Điều hướng:**
+  - Bỏ mục "Gia đình" khỏi thanh bên và thanh dưới. Màn này vẫn là trang đầu: bấm tên dòng họ ở đầu trang, hoặc mở từ kết quả tìm kiếm hay nút "Gia đình" trên hồ sơ.
+  - Mục "Thêm" đổi thành "Cài đặt" (icon bánh răng); trên máy tính nó nằm ngay dưới Ngày giỗ.
+  - Ô "Tìm người" đổi thành "Tìm kiếm".
+  - Phím tắt: 1 Sơ đồ, 2 Danh sách, 3 Ngày giỗ.

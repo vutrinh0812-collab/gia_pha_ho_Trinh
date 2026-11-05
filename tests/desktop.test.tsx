@@ -99,7 +99,7 @@ describe('keyboard shortcuts', () => {
 
   it('number keys switch views and ? shows the shortcut list', async () => {
     renderAt('/');
-    press('3');
+    press('2');
     expect(screen.getByRole('heading', { name: model.settings.title })).toBeInTheDocument();
     press('?');
     expect(screen.getByRole('dialog', { name: 'Phím tắt' })).toBeInTheDocument();

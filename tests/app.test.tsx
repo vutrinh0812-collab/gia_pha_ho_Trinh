@@ -30,9 +30,10 @@ describe('Gia đình view', () => {
     expect(screen.getByRole('heading', { level: 1, name: root.fullName })).toBeInTheDocument();
     expect(screen.getByText(/Thủy tổ, đời đầu tiên/)).toBeInTheDocument();
     const nav = screen.getByRole('navigation', { name: 'Điều hướng chính' });
-    for (const label of ['Gia đình', 'Sơ đồ', 'Danh sách', 'Tìm kiếm', 'Thêm']) {
+    for (const label of ['Sơ đồ', 'Danh sách', 'Tìm kiếm', 'Cài đặt']) {
       expect(within(nav).getByText(label)).toBeInTheDocument();
     }
+    expect(within(nav).queryByText('Gia đình')).not.toBeInTheDocument();
   });
 
   it('makes a tapped child the new centre, with parents above', () => {
@@ -90,7 +91,7 @@ describe('shared person link', () => {
 describe('search', () => {
   it('finds people without diacritics and shows who they are', () => {
     renderAt('/');
-    fireEvent.click(screen.getByRole('button', { name: 'Tìm kiếm' }));
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Điều hướng chính' })).getByRole('button', { name: 'Tìm kiếm' }));
     const input = screen.getByRole('searchbox');
     const plain = root.fullName.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[đĐ]/g, 'd').toLowerCase();
     fireEvent.change(input, { target: { value: plain } });

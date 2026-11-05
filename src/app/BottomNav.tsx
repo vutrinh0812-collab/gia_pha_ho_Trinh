@@ -1,9 +1,9 @@
 import { NavLink } from 'react-router-dom';
-import { FamilyIcon, ListIcon, MoreIcon, SearchIcon, TreeIcon } from './ui/icons';
+import { ListIcon, SearchIcon, SettingsIcon, TreeIcon } from './ui/icons';
 import { useOverlays } from './useOverlays';
 import styles from './BottomNav.module.css';
 
-/** Bottom navigation in the thumb zone (SPEC 5A.2): Gia đình · Sơ đồ · Danh sách · Tìm kiếm · Thêm. */
+/** Bottom navigation in the thumb zone (SPEC 5A.2): Sơ đồ · Danh sách · Tìm kiếm · Cài đặt. */
 export function BottomNav() {
   const { params, open } = useOverlays();
   const searching = params.has('tk');
@@ -13,10 +13,6 @@ export function BottomNav() {
 
   return (
     <nav className={styles.nav} aria-label="Điều hướng chính">
-      <NavLink to="/" end className={tabClass}>
-        <FamilyIcon />
-        <span>Gia đình</span>
-      </NavLink>
       <NavLink to="/so-do" className={tabClass}>
         <TreeIcon />
         <span>Sơ đồ</span>
@@ -40,8 +36,8 @@ export function BottomNav() {
         aria-pressed={more}
         onClick={() => open('them')}
       >
-        <MoreIcon />
-        <span>Thêm</span>
+        <SettingsIcon />
+        <span>Cài đặt</span>
       </button>
     </nav>
   );

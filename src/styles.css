@@ -3,6 +3,8 @@
  * Burnt Sienna, Terracotta, Amber on Sandy Cream and a warm linen ground; Charcoal ink;
  * Inter; soft warm shadows and generous radii. Text and button colours are stepped one
  * shade deeper where the board's swatch would miss WCAG AA (4.5:1) — see D51.
+ * The app has this one light look only: no dark mode and no other screen themes
+ * (the other themes are for printing).
  */
 
 :root {
@@ -78,76 +80,6 @@
   --bottom-bar: calc(var(--nav-h) + var(--safe-bottom));
   accent-color: var(--accent);
   color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --bg: #1c1917;
-    --surface: #262220;
-    --surface-2: #322c29;
-    --text: #f5ede4;
-    --text-2: #c4b6a9;
-    --line: #3a332f;
-    --line-strong: #574b43;
-    --accent: #f0a47e;
-    --accent-hover: #f6b896;
-    --accent-soft: #3d2a20;
-    --accent-track: #6a3b26;
-    --accent-ink: #f8d3bd;
-    --on-accent: #2a1206;
-    --highlight: #f6a14b;
-    --ok: #5fcf8a;
-    --warn: #f3b562;
-    --err: #f0937a;
-    --hero: linear-gradient(135deg, #8a3f22 0%, #a04b2a 100%);
-    --on-hero: #ffffff;
-    --on-hero-2: #ffffff;
-    --spouse: #dccdc3;
-    --deceased: #ab9d93;
-    --male-soft: #2e2825;
-    --female-soft: #3d2a20;
-    --spouse-soft: #2e2825;
-    --band: #211d1b;
-    --deceased-fill: #24201e;
-    --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 22px rgb(0 0 0 / 28%);
-    --shadow-float: 0 16px 44px rgb(0 0 0 / 55%);
-    --scrim: rgb(0 0 0 / 60%);
-    color-scheme: dark;
-  }
-}
-
-:root[data-theme='dark'] {
-  --bg: #1c1917;
-  --surface: #262220;
-  --surface-2: #322c29;
-  --text: #f5ede4;
-  --text-2: #c4b6a9;
-  --line: #3a332f;
-  --line-strong: #574b43;
-  --accent: #f0a47e;
-  --accent-hover: #f6b896;
-  --accent-soft: #3d2a20;
-  --accent-track: #6a3b26;
-  --accent-ink: #f8d3bd;
-  --on-accent: #2a1206;
-  --highlight: #f6a14b;
-  --ok: #5fcf8a;
-  --warn: #f3b562;
-  --err: #f0937a;
-  --hero: linear-gradient(135deg, #8a3f22 0%, #a04b2a 100%);
-  --on-hero: #ffffff;
-  --on-hero-2: #ffffff;
-  --spouse: #dccdc3;
-  --deceased: #ab9d93;
-  --male-soft: #2e2825;
-  --female-soft: #3d2a20;
-  --spouse-soft: #2e2825;
-  --band: #211d1b;
-  --deceased-fill: #24201e;
-  --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 22px rgb(0 0 0 / 28%);
-  --shadow-float: 0 16px 44px rgb(0 0 0 / 55%);
-  --scrim: rgb(0 0 0 / 60%);
-  color-scheme: dark;
 }
 
 *,
