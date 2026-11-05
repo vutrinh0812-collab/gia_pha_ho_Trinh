@@ -49,7 +49,8 @@ describe('admin sign-in', () => {
     fireEvent.change(input, { target: { value: 'ma-admin-demo' } });
     fireEvent.click(screen.getByRole('button', { name: 'Vào chế độ Admin' }));
     expect(await screen.findByRole('heading', { name: 'Quản trị' })).toBeInTheDocument();
-    expect(screen.getAllByText('Đang ở chế độ Admin').length).toBeGreaterThan(0);
+    // The small admin note (header on phones, sidebar on desktop) with its way out.
+    expect(screen.getAllByRole('button', { name: 'Thoát chế độ Admin' }).length).toBeGreaterThan(0);
   });
 
   it('signs out after 30 minutes without activity', async () => {

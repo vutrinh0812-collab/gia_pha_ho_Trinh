@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { AdminStatus } from '@/app/AdminStatus';
 import { isInDialog, useHotkeys } from '@/app/useHotkeys';
 import { useOverlays } from '@/app/useOverlays';
 import {
@@ -252,7 +251,6 @@ export default function TreeView() {
             <span className={styles.toolLabel}>{anyCollapsed ? 'Mở hết' : 'Thu gọn'}</span>
           </button>
         </div>
-        <AdminStatus variant="chip" />
         {isAdmin && (
           <button type="button" className={styles.chipButton} onClick={() => openAdmin('generations', '')}>
             <PlusIcon width={18} height={18} /> Thêm đời trên / dưới

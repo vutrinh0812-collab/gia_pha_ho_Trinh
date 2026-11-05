@@ -1,36 +1,44 @@
 .status {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: var(--accent);
-  color: var(--on-accent);
-}
-.status[data-variant='bar'] {
-  padding: 2px calc(var(--gutter-r) - 4px) 2px var(--gutter-l);
+  gap: 6px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-2);
 }
 .status[data-variant='side'] {
-  padding: 6px 6px 6px 12px;
-  border-radius: var(--radius-sm);
+  padding: 0 10px;
 }
-.status[data-variant='chip'] {
-  padding: 2px 4px 2px 12px;
-  border-radius: 999px;
-  font-size: 0.875rem;
+.status[data-variant='header'] {
+  flex: none;
+}
+.dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
 }
 .label {
-  flex: 1;
-  color: inherit;
+  color: var(--accent);
   font-weight: 600;
   text-decoration: none;
 }
+.label:hover {
+  text-decoration: underline;
+}
 .exit {
-  min-height: 40px;
-  padding: 0 12px;
-  border: 1px solid rgb(255 255 255 / 55%);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: inherit;
+  /* Small text, but still an easy target: padding widens the hit area. */
+  margin: -8px -6px;
+  padding: 8px 6px;
+  border: 0;
+  background: none;
+  color: var(--text-2);
   font: inherit;
-  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
   cursor: pointer;
+}
+.exit:hover {
+  color: var(--text);
 }

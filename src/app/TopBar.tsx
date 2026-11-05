@@ -17,11 +17,11 @@ export function TopBar() {
           <BrandMark className={styles.mark} size={26} />
           <span className={styles.name}>{model?.settings.title ?? 'Gia phả'}</span>
         </Link>
+        <AdminStatus variant="header" />
         <button type="button" className={styles.search} onClick={() => open('tk')} aria-label="Tìm kiếm">
           <SearchIcon />
         </button>
       </div>
-      <AdminStatus />
     </header>
   );
 }
