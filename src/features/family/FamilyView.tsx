@@ -16,7 +16,7 @@ import styles from './FamilyView.module.css';
 /**
  * "Gia đình" — the default view (SPEC 5A.1): one person in focus, then the
  * clan's next death anniversaries, the parents, spouses, children (grouped by
- * wife) and siblings, each as a readable list (design "Sơn son", D36).
+ * wife) and siblings, each as a readable list (design "Ember", D51).
  * Tap anyone to make them the centre; swipe up on the centre card to go up a generation.
  */
 export function FamilyView() {
@@ -105,8 +105,10 @@ export function FamilyView() {
           </div>
         ) : (
           <p className={styles.note}>
-            {centerId === model.rootId
-              ? 'Thủy tổ, đời đầu tiên được ghi trong gia phả.'
+            {model.founders.some((f) => f.id === centerId)
+              ? model.founders.length > 1
+                ? 'Đời đầu tiên được ghi trong gia phả; chưa ghi cha mẹ.'
+                : 'Thủy tổ, đời đầu tiên được ghi trong gia phả.'
               : person.isBloodline
                 ? 'Chưa ghi cha mẹ.'
                 : 'Cha mẹ chưa được ghi (dâu, rể của dòng họ).'}
@@ -165,7 +167,7 @@ export function FamilyView() {
   );
 }
 
-/** "Ngày giỗ sắp tới": the next three anniversaries in the clan (signature of the Sơn son design). */
+/** "Ngày giỗ sắp tới": the next three anniversaries in the clan (signature block of the home screen). */
 function UpcomingStrip({ model, onPick }: { model: ClanModel; onPick(id: string): void }) {
   const items = useMemo(() => upcomingAnniversaries(model, todaySolar(), 60).slice(0, 3), [model]);
   if (items.length === 0) return null;

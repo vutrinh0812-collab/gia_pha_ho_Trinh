@@ -104,9 +104,9 @@
   cursor: progress;
 }
 .secondary {
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--accent);
   background: var(--surface);
-  color: var(--text);
+  color: var(--accent);
 }
 .ghost {
   flex: none;
@@ -170,8 +170,9 @@
   gap: 2px;
   padding: 14px 16px;
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   background: var(--surface);
+  box-shadow: var(--shadow);
   color: var(--text);
   text-decoration: none;
 }

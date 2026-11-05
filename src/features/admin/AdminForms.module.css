@@ -1,4 +1,4 @@
-/* Admin panels and forms — design "Sơn son". Fields are 48px tall, labels above, 16px text. */
+/* Admin panels and forms — design "Ember". Fields are 48px tall, labels above, 16px text. */
 .title {
   margin: 4px 0 0;
   font-size: 1.25rem;
@@ -189,9 +189,12 @@
   cursor: progress;
 }
 .secondary {
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--accent);
   background: var(--surface);
-  color: var(--text);
+  color: var(--accent);
+}
+.secondary:hover {
+  background: var(--accent-soft);
 }
 .menu {
   list-style: none;

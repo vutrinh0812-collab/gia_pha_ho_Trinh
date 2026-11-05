@@ -10,6 +10,7 @@
   padding: 0 calc(6px + var(--safe-right)) var(--safe-bottom) calc(6px + var(--safe-left));
   background: var(--surface);
   border-top: 1px solid var(--line);
+  box-shadow: 0 -6px 20px rgb(91 52 30 / 6%);
 }
 .item {
   display: flex;
@@ -33,4 +34,19 @@
 .active {
   color: var(--accent);
   font-weight: 600;
+}
+/* The active tab's icon sits on a Sandy Cream pill, as on the Ember board. */
+.item svg {
+  box-sizing: content-box;
+  padding: 2px 14px;
+  border-radius: var(--radius-pill);
+}
+/* Landscape phones keep the compact bar (SPEC 5A.1): no extra height for the pill. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .item svg {
+    padding-block: 0;
+  }
+}
+.active svg {
+  background: var(--accent-soft);
 }

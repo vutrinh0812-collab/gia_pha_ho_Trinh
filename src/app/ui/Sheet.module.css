@@ -20,8 +20,8 @@
   flex-direction: column;
   background: var(--surface);
   color: var(--text);
-  border-radius: 18px 18px 0 0;
-  box-shadow: 0 -4px 24px rgb(0 0 0 / 18%);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-float);
   height: min(62vh, 640px);
   height: min(62dvh, 640px);
   transition: height 220ms ease, transform 220ms ease;

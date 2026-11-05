@@ -256,7 +256,7 @@ export default function TreeView() {
             type="button"
             className={styles.toolButton}
             onClick={() => setThemeOpen(true)}
-            aria-label={`Giao diện: ${treeTheme?.name ?? 'Sơn son'}`}
+            aria-label={`Giao diện: ${treeTheme?.name ?? 'Ember'}`}
           >
             <PaletteIcon />
             <span className={styles.toolLabel}>Giao diện</span>

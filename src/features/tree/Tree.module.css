@@ -84,8 +84,8 @@ main > .view {
 }
 
 /* ---------- Nodes ----------
-   Design "Sơn son": no colour by gender. Men of the clan are white boxes, women of the clan
-   the pale son tint, the deceased a warm grey; spouses are named inside their partner's box. */
+   Design "Ember": no colour by gender. Men of the clan are cream boxes, women of the clan
+   the warm sand tint, the deceased a warm grey; spouses are named inside their partner's box. */
 .node {
   --node-fill: var(--surface);
   --node-line: var(--line-strong);

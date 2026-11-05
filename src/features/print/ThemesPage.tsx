@@ -45,7 +45,7 @@ export default function ThemesPage() {
                 type="button"
                 className={styles.cardAction}
                 aria-pressed={treeTheme === theme.id}
-                onClick={() => setTreeTheme(treeTheme === theme.id ? 'son-son' : theme.id)}
+                onClick={() => setTreeTheme(treeTheme === theme.id ? 'ember' : theme.id)}
               >
                 {treeTheme === theme.id ? '✓ Đang dùng cho sơ đồ' : 'Dùng cho sơ đồ'}
               </button>

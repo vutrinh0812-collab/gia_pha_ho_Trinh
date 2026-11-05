@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react';
 import type { Theme } from './types';
 
-/** The screen theme (DECISIONS D36): its tokens live in styles.css. */
-export const SCREEN_THEME_ID = 'son-son';
+/** The screen theme (DECISIONS D51): its tokens live in styles.css. */
+export const SCREEN_THEME_ID = 'ember';
 
 /**
  * CSS custom properties that restyle the on-screen tree with a print theme's

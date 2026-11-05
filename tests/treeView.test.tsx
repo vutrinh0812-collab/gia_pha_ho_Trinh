@@ -74,7 +74,7 @@ describe('Sơ đồ view', () => {
   });
 
   it('switches the tree to a print theme and back, and remembers it', async () => {
-    usePrefsStore.getState().setTreeTheme('son-son');
+    usePrefsStore.getState().setTreeTheme('ember');
     const svg = await renderTree();
     const canvas = svg.parentElement!;
     expect(canvas.style.getPropertyValue('--bg')).toBe('');
@@ -82,14 +82,14 @@ describe('Sơ đồ view', () => {
     const sheet = await screen.findByRole('radiogroup', { name: 'Giao diện' }, { timeout: 5000 });
     const options = within(sheet).getAllByRole('radio');
     expect(options.map((o) => o.textContent)).toEqual(
-      expect.arrayContaining([expect.stringMatching(/^Sơn son/), expect.stringMatching(/^Men lam/), expect.stringMatching(/^Sơn mài vàng/)]),
+      expect.arrayContaining([expect.stringMatching(/^Ember/), expect.stringMatching(/^Men lam/), expect.stringMatching(/^Sơn mài vàng/)]),
     );
     expect(options).toHaveLength(5);
     fireEvent.click(within(sheet).getByRole('radio', { name: /^Sơn mài vàng/ }));
     await vi.waitFor(() => expect(canvas.style.getPropertyValue('--bg')).not.toBe(''));
     expect(usePrefsStore.getState().treeTheme).toBe('son-mai-vang');
     expect(screen.getByRole('button', { name: 'Giao diện: Sơn mài vàng' })).toBeInTheDocument();
-    act(() => usePrefsStore.getState().setTreeTheme('son-son'));
+    act(() => usePrefsStore.getState().setTreeTheme('ember'));
     await vi.waitFor(() => expect(canvas.style.getPropertyValue('--bg')).toBe(''));
   });
 });

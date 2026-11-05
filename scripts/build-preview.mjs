@@ -18,11 +18,11 @@ const css = styles.map((f) => readFileSync(join(buildDir, f), 'utf8')).join('\n'
 const js = readFileSync(join(buildDir, scripts[0]), 'utf8').replace(/<\/script/gi, '<\\/script');
 
 const out = `<title>Gia Phả Họ Trịnh</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&display=swap&subset=vietnamese">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap&subset=vietnamese">
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Bản xem thử gia phả với dữ liệu mẫu hư cấu">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#111418" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f0e9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1c1917" media="(prefers-color-scheme: dark)">
 <style>
 ${css}
 </style>

@@ -1,5 +1,5 @@
-/* A person, design "Sơn son": white card, 1px edge, name in ink. No colour by gender;
-   a married-in spouse's name is one step softer. Nothing casts a shadow at rest. */
+/* A person, design "Ember": a cream card on a soft warm shadow, name in charcoal. No colour by
+   gender; a married-in spouse's name is one step softer. */
 .card {
   display: flex;
   flex-direction: column;
@@ -11,12 +11,15 @@
   padding: 10px 14px;
   text-align: left;
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   background: var(--surface);
+  box-shadow: var(--shadow);
   color: var(--text);
   cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
 }
 .card:hover {
+  border-color: var(--accent-track);
   background: var(--surface-2);
 }
 .card:active {

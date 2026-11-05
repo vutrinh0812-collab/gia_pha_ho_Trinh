@@ -20,7 +20,7 @@ interface PrefsState extends Prefs {
 }
 
 const KEY = 'giapha.prefs.v1';
-const DEFAULTS: Prefs = { theme: 'system', largeText: false, showMaternal: null, treeTheme: 'son-son' };
+const DEFAULTS: Prefs = { theme: 'system', largeText: false, showMaternal: null, treeTheme: 'ember' };
 
 function read(): Prefs {
   try {
@@ -31,7 +31,11 @@ function read(): Prefs {
       theme: p.theme === 'light' || p.theme === 'dark' ? p.theme : 'system',
       largeText: p.largeText === true,
       showMaternal: typeof p.showMaternal === 'boolean' ? p.showMaternal : null,
-      treeTheme: typeof p.treeTheme === 'string' && /^[a-z0-9-]{1,40}$/.test(p.treeTheme) ? p.treeTheme : DEFAULTS.treeTheme,
+      // Earlier names of the screen theme map to the current one.
+      treeTheme:
+        typeof p.treeTheme === 'string' && /^[a-z0-9-]{1,40}$/.test(p.treeTheme) && p.treeTheme !== 'son-son' && p.treeTheme !== 'minimal'
+          ? p.treeTheme
+          : DEFAULTS.treeTheme,
     };
   } catch {
     return DEFAULTS;

@@ -1,50 +1,67 @@
 /*
- * Screen theme "Sơn son" (design proposal C, chosen by the clan; see DECISIONS D36).
- * One hue from lacquered altars and printed genealogies, Lexend for reading ease.
- * Every text colour reaches 4.5:1 on the surface it sits on, in light and dark.
+ * Screen theme "Ember" (DECISIONS D51), from the Ember / System design board:
+ * Burnt Sienna, Terracotta, Amber on Sandy Cream and a warm linen ground; Charcoal ink;
+ * Inter; soft warm shadows and generous radii. Text and button colours are stepped one
+ * shade deeper where the board's swatch would miss WCAG AA (4.5:1) — see D51.
  */
 
 :root {
-  --font-ui: 'Lexend', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
-  /* Ground and ink: the ground leans one step toward the palest tint of the son red. */
-  --bg: #fbf8f7;
-  --surface: #ffffff;
-  --surface-2: #f6efed;
-  --text: #1d1514;
-  --text-2: #63575a;
-  --line: #ebe1de;
-  --line-strong: #d8ccc9;
+  /* The board's palette, verbatim. */
+  --burnt-sienna: #bd5f3c;
+  --terracotta: #d67a53;
+  --amber: #f6a14b;
+  --sandy-cream: #f5e6d3;
+  --charcoal: #333333;
+  --warm-gray: #777777;
 
-  /* The one hue (son, lacquer red): full strength on small marks only, tints on areas. */
-  --accent: #a3271c;
-  --accent-soft: #fbefec;
-  --accent-track: #f4d8d2;
-  --accent-ink: #6b1810;
+  /* Ground and ink. */
+  --bg: #f5f0e9;
+  --surface: #fffcf8;
+  --surface-2: #f8efe4;
+  --text: var(--charcoal);
+  --text-2: #6b625b;
+  --line: #ece1d4;
+  --line-strong: #dccbb8;
+
+  /* Accent: Burnt Sienna, one step deeper for text and white-on-sienna buttons (AA). */
+  --accent: #a9532f;
+  --accent-hover: var(--burnt-sienna);
+  --accent-soft: var(--sandy-cream);
+  --accent-track: #ecc7ad;
+  --accent-ink: #84391b;
   --on-accent: #ffffff;
-  --ok: #247b50;
-  --warn: #92400e;
-  --err: #a3271c;
+  --highlight: var(--amber);
+  --ok: #2f7d4f;
+  --warn: #9a5208;
+  --err: #b3402a;
 
-  /* People: no colour by gender. Names in ink, married-in spouses one step softer;
-     on the tree, women of the clan get the pale son tint so the line still reads at a glance. */
+  /* Header cards: Burnt Sienna to a lighter sienna, white text stays above 4.5:1. */
+  --hero: linear-gradient(135deg, #a04b2a 0%, #b85a36 100%);
+  --on-hero: #ffffff;
+  --on-hero-2: #ffffff;
+
+  /* People: no colour by gender. Women of the clan get the warm sand tint on the tree. */
   --male: var(--text);
   --female: var(--text);
-  --spouse: #4a3f3e;
-  --deceased: #6f6466;
-  --male-soft: #f1ebe9;
-  --female-soft: #fbefec;
-  --spouse-soft: #f6efed;
+  --spouse: #5a4f48;
+  --deceased: #6f6862;
+  --male-soft: #f3eadf;
+  --female-soft: #fbe9d8;
+  --spouse-soft: #f5eee6;
 
-  --band: #f6efed;
-  --deceased-fill: #f7f3f2;
-  /* Nothing at rest casts a shadow; only what floats (sheets, dialogs) does. */
-  --shadow: none;
-  --shadow-float: 0 12px 40px rgb(29 21 20 / 16%);
-  --scrim: rgb(29 21 20 / 40%);
+  --band: #f3ebe1;
+  --deceased-fill: #f6f1eb;
+  /* Cards rest on a soft warm shadow; floating things (sheets, dialogs) cast a deeper one. */
+  --shadow: 0 1px 2px rgb(91 52 30 / 6%), 0 6px 18px rgb(91 52 30 / 8%);
+  --shadow-float: 0 16px 44px rgb(91 52 30 / 20%);
+  --scrim: rgb(51 34 24 / 40%);
 
-  --radius: 10px;
-  --radius-sm: 8px;
+  --radius-lg: 22px;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
   --tap: 48px;
   --nav-h: 64px;
   --safe-top: env(safe-area-inset-top, 0px);
@@ -59,63 +76,76 @@
   --panel-size: 380px;
   --top-bar: calc(56px + var(--safe-top));
   --bottom-bar: calc(var(--nav-h) + var(--safe-bottom));
+  accent-color: var(--accent);
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #151110;
-    --surface: #1e1918;
-    --surface-2: #2a2321;
-    --text: #f4eeec;
-    --text-2: #c4b5b2;
-    --line: #3a302e;
-    --line-strong: #54473f;
-    --accent: #ef8a7d;
-    --accent-soft: #3a201c;
-    --accent-track: #5c2b24;
-    --accent-ink: #f8cfc8;
-    --on-accent: #2a0c08;
-    --ok: #56d364;
-    --warn: #e3b341;
-    --err: #ef8a7d;
-    --spouse: #d8c9c6;
-    --deceased: #a99b98;
-    --male-soft: #2a2321;
-    --female-soft: #3a201c;
-    --spouse-soft: #2a2321;
-    --band: #1b1615;
-    --deceased-fill: #221d1c;
-    --shadow-float: 0 12px 40px rgb(0 0 0 / 50%);
+    --bg: #1c1917;
+    --surface: #262220;
+    --surface-2: #322c29;
+    --text: #f5ede4;
+    --text-2: #c4b6a9;
+    --line: #3a332f;
+    --line-strong: #574b43;
+    --accent: #f0a47e;
+    --accent-hover: #f6b896;
+    --accent-soft: #3d2a20;
+    --accent-track: #6a3b26;
+    --accent-ink: #f8d3bd;
+    --on-accent: #2a1206;
+    --highlight: #f6a14b;
+    --ok: #5fcf8a;
+    --warn: #f3b562;
+    --err: #f0937a;
+    --hero: linear-gradient(135deg, #8a3f22 0%, #a04b2a 100%);
+    --on-hero: #ffffff;
+    --on-hero-2: #ffffff;
+    --spouse: #dccdc3;
+    --deceased: #ab9d93;
+    --male-soft: #2e2825;
+    --female-soft: #3d2a20;
+    --spouse-soft: #2e2825;
+    --band: #211d1b;
+    --deceased-fill: #24201e;
+    --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 22px rgb(0 0 0 / 28%);
+    --shadow-float: 0 16px 44px rgb(0 0 0 / 55%);
     --scrim: rgb(0 0 0 / 60%);
     color-scheme: dark;
   }
 }
 
 :root[data-theme='dark'] {
-  --bg: #151110;
-  --surface: #1e1918;
-  --surface-2: #2a2321;
-  --text: #f4eeec;
-  --text-2: #c4b5b2;
-  --line: #3a302e;
-  --line-strong: #54473f;
-  --accent: #ef8a7d;
-  --accent-soft: #3a201c;
-  --accent-track: #5c2b24;
-  --accent-ink: #f8cfc8;
-  --on-accent: #2a0c08;
-  --ok: #56d364;
-  --warn: #e3b341;
-  --err: #ef8a7d;
-  --spouse: #d8c9c6;
-  --deceased: #a99b98;
-  --male-soft: #2a2321;
-  --female-soft: #3a201c;
-  --spouse-soft: #2a2321;
-  --band: #1b1615;
-  --deceased-fill: #221d1c;
-  --shadow-float: 0 12px 40px rgb(0 0 0 / 50%);
+  --bg: #1c1917;
+  --surface: #262220;
+  --surface-2: #322c29;
+  --text: #f5ede4;
+  --text-2: #c4b6a9;
+  --line: #3a332f;
+  --line-strong: #574b43;
+  --accent: #f0a47e;
+  --accent-hover: #f6b896;
+  --accent-soft: #3d2a20;
+  --accent-track: #6a3b26;
+  --accent-ink: #f8d3bd;
+  --on-accent: #2a1206;
+  --highlight: #f6a14b;
+  --ok: #5fcf8a;
+  --warn: #f3b562;
+  --err: #f0937a;
+  --hero: linear-gradient(135deg, #8a3f22 0%, #a04b2a 100%);
+  --on-hero: #ffffff;
+  --on-hero-2: #ffffff;
+  --spouse: #dccdc3;
+  --deceased: #ab9d93;
+  --male-soft: #2e2825;
+  --female-soft: #3d2a20;
+  --spouse-soft: #2e2825;
+  --band: #211d1b;
+  --deceased-fill: #24201e;
+  --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 22px rgb(0 0 0 / 28%);
+  --shadow-float: 0 16px 44px rgb(0 0 0 / 55%);
   --scrim: rgb(0 0 0 / 60%);
   color-scheme: dark;
 }

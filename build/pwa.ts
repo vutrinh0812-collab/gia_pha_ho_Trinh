@@ -20,10 +20,10 @@ export interface SiteMeta {
   allowIndexing?: boolean;
 }
 
-export const FONT_CSS = 'https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&display=swap&subset=vietnamese';
+export const FONT_CSS = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap&subset=vietnamese';
 
-const THEME = '#a3271c';
-const BACKGROUND = '#fbf8f7';
+const THEME = '#bd5f3c';
+const BACKGROUND = '#f5f0e9';
 
 const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 

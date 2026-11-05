@@ -1,4 +1,4 @@
-/* Gia đình — design "Sơn son". One column on a phone; up to three card columns on wide screens. */
+/* Gia đình — design "Ember". One column on a phone; up to three card columns on wide screens. */
 .view {
   display: flex;
   flex-direction: column;
@@ -52,6 +52,7 @@
   font-size: 0.9375rem;
 }
 .crumb[aria-current='page'] {
+  border-radius: var(--radius-pill);
   background: var(--accent-soft);
   color: var(--accent-ink);
   font-weight: 600;
@@ -61,17 +62,20 @@
   color: inherit;
 }
 
-/* The person in focus. */
+/* The person in focus: the Ember header card (sienna gradient, white text). */
 .center {
   padding: 22px 20px;
-  border-radius: var(--radius);
-  background: var(--accent-soft);
+  border-radius: var(--radius-lg);
+  background: var(--hero);
+  color: var(--on-hero);
+  box-shadow: var(--shadow);
   animation: enter 180ms ease-out;
   touch-action: pan-y;
 }
 .facts {
   margin: 0;
-  color: var(--accent-ink);
+  color: var(--on-hero-2);
+  font-weight: 500;
 }
 .centerName {
   margin: 2px 0 0;
@@ -83,7 +87,7 @@
 }
 .otherNames {
   margin: 4px 0 0;
-  color: var(--text-2);
+  color: var(--on-hero-2);
 }
 .years {
   margin: 8px 0 0;
@@ -104,7 +108,7 @@
   min-height: var(--tap);
   padding: 0 18px;
   border-radius: var(--radius-sm);
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
 }
 .primary {
@@ -113,15 +117,29 @@
   color: var(--on-accent);
 }
 .primary:hover {
-  filter: brightness(1.08);
+  filter: brightness(0.94);
 }
 .secondary {
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--accent);
   background: var(--surface);
-  color: var(--text);
+  color: var(--accent);
 }
 .secondary:hover {
-  background: var(--surface-2);
+  background: var(--accent-soft);
+}
+/* Inside the header card the buttons invert: a cream button and a white outline. */
+.center .primary {
+  border-color: var(--surface);
+  background: var(--surface);
+  color: var(--accent-ink);
+}
+.center .secondary {
+  border-color: var(--on-hero);
+  background: transparent;
+  color: var(--on-hero);
+}
+.center .secondary:hover {
+  background: rgb(255 255 255 / 12%);
 }
 
 /* Blocks */

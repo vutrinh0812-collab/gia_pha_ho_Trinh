@@ -37,7 +37,7 @@ export function TreeThemeSheet({ value, onChange, onClose }: Props) {
         <ul className={styles.themeList} role="radiogroup" aria-label="Giao diện">
           {themes.map((t) => {
             const c = t.colors;
-            const checked = t.id === value || (value === 'minimal' && t.id === SCREEN_THEME_ID);
+            const checked = t.id === value || ((value === 'minimal' || value === 'son-son') && t.id === SCREEN_THEME_ID);
             return (
               <li key={t.id}>
                 <button

@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a3271c"/><stop offset="1" stop-color="#7d1d15"/></linearGradient></defs>
-    <rect width="64" height="64" rx="14.08" fill="#a3271c"/>
-    <rect x="3.84" y="3.84" width="56.32" height="56.32" rx="10.88" fill="none" stroke="#e9b8ae" stroke-opacity="0.55" stroke-width="0.768"/>
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bd5f3c"/><stop offset="1" stop-color="#a04b2a"/></linearGradient></defs>
+    <rect width="64" height="64" rx="14.08" fill="url(#g)"/>
+    <rect x="3.84" y="3.84" width="56.32" height="56.32" rx="10.88" fill="none" stroke="#f6a14b" stroke-opacity="0.55" stroke-width="0.768"/>
     <g transform="translate(6.4,6.4)">
-  <g fill="none" stroke="#fbefec" stroke-width="2.8160000000000003" stroke-linecap="round" stroke-linejoin="round">
+  <g fill="none" stroke="#f5e6d3" stroke-width="2.8160000000000003" stroke-linecap="round" stroke-linejoin="round">
     <path d="M25.6 15.36 V25.6 M12.288 33.792 V25.6 H38.912000000000006 V33.792 M25.6 25.6 V33.792"/>
   </g>
-  <g fill="#fbefec">
+  <g fill="#f5e6d3">
     <circle cx="25.6" cy="12.8" r="4.352"/>
     <circle cx="12.288" cy="37.376" r="3.5840000000000005"/>
     <circle cx="25.6" cy="37.376" r="3.5840000000000005"/>

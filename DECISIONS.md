@@ -375,3 +375,29 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - **Phía trên:** thêm một tổ tiên làm cha chung của mọi gia đình ở Đời 1 (D48).
   - **Phía dưới:** chọn cha hoặc mẹ (danh sách nhóm theo đời, mặc định đời sâu nhất) rồi mở form Thêm con. Con của người ở đời cuối mở ra đời mới.
 - Sửa thông tin từng người vẫn như cũ: chạm vào người đó → Sửa thông tin / Thao tác khác.
+
+## Thiết kế giao diện: Ember
+
+### D51. Đổi giao diện màn hình sang "Ember" (thay D36 "Sơn son")
+- Theo bảng thiết kế **EMBER / SYSTEM** người dùng gửi.
+- **Bảng màu giữ nguyên mã:**
+  - Burnt Sienna `#BD5F3C`, Terracotta `#D67A53`, Amber `#F6A14B`;
+  - Sandy Cream `#F5E6D3`, Charcoal `#333333`, Warm Gray `#777777`.
+  - Các mã này nằm trong `src/styles.css` dưới dạng biến cùng tên (`--burnt-sienna`…).
+- **Chữ:** Inter (có bộ ký tự tiếng Việt), thay Lexend.
+- **Hình khối:**
+  - nền kem ấm `#F5F0E9`, thẻ màu kem sáng;
+  - bo góc 16px cho thẻ, 22px cho thẻ header và bảng trượt, 10px cho nút, viên thuốc cho chip;
+  - đổ bóng mềm màu nâu ấm. Sơn son trước đây không dùng bóng.
+- **Thành phần:**
+  - **Thẻ header** (người đang xem ở màn Gia đình): gradient sienna, chữ trắng. Nút bên trong đảo màu: nền kem, viền trắng.
+  - **Nút:** Primary nền sienna, chữ trắng; Secondary viền sienna trên nền kem. Nút phụ ở cuối bảng dùng trạng thái "Default" (nền kem).
+  - **Thanh điều hướng:** tab đang chọn có nền Sandy Cream sau biểu tượng.
+  - Ô chọn và thanh trượt của trình duyệt dùng `accent-color` sienna.
+- **Chỉnh nhỏ để đạt WCAG AA (SPEC yêu cầu):**
+  - chữ trắng trên `#BD5F3C` chỉ đạt 4,32:1. Chữ và nút dùng sienna đậm hơn một bậc `#A9532F` (5,3:1); `#BD5F3C` dùng cho mảng lớn, biểu tượng và icon app;
+  - Warm Gray `#777777` trên nền trắng đạt 4,48:1, nên chữ phụ dùng `#6B625B` (≥ 4,8:1 trên mọi nền kem);
+  - gradient header đi từ `#A04B2A` đến `#B85A36`, chữ trắng ≥ 4,6:1.
+- **Chế độ tối:** dựng từ Charcoal, giữ cùng tinh thần (sienna sáng `#F0A47E` cho chữ nhấn).
+- **Theme trên sơ đồ:** tên mới là `ember`. `son-son` và `minimal` vẫn được nhận và tự đổi sang `ember`.
+- Biểu tượng app, favicon và ảnh xem trước khi chia sẻ link đã vẽ lại theo màu Ember.

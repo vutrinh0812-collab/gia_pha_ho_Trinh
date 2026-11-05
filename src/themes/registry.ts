@@ -14,7 +14,7 @@ export const THEMES: Theme[] = Object.values(modules)
 export const PRINT_THEMES = THEMES.filter((t) => t.usage.includes('print'));
 
 /** Older ids kept working after a theme was renamed. */
-const ALIASES: Record<string, string> = { minimal: 'son-son' };
+const ALIASES: Record<string, string> = { minimal: 'ember', 'son-son': 'ember' };
 
 export function getTheme(id: string | null | undefined): Theme | undefined {
   const key = id ? (ALIASES[id] ?? id) : '';
