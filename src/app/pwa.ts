@@ -1,5 +1,9 @@
 import { create } from 'zustand';
 import { env } from '@/lib/env';
+import { useAdminUi } from '@/store/adminUiStore';
+
+/** A new version found this soon after the app is opened or shown again is applied at once. */
+const AUTO_UPDATE_WINDOW_MS = 15_000;
 
 /** Chrome's install prompt event (not in the TS DOM lib). */
 export interface InstallPromptEvent extends Event {
@@ -8,7 +12,7 @@ export interface InstallPromptEvent extends Event {
 }
 
 interface PwaState {
-  /** A new version is waiting; calling it activates the update (the page reloads). */
+  /** A new version is waiting and could not apply by itself; calling it activates the update (the page reloads). */
   applyUpdate: (() => void) | null;
   installPrompt: InstallPromptEvent | null;
   offline: boolean;
@@ -44,22 +48,44 @@ export function initPwa(): void {
     navigator.serviceWorker
       .register('/sw.js')
       .then((reg) => {
-        // Reload only when the user asked for the update — never on the first
-        // install, when the new worker merely takes control of this page.
+        // Reload only for a real update (we asked the waiting worker to take over) —
+        // never on the first install, when the new worker merely takes control of this page.
         let updateRequested = false;
-        const offerUpdate = (worker: ServiceWorker) =>
-          usePwaStore.setState({
-            applyUpdate: () => {
-              updateRequested = true;
-              worker.postMessage('SKIP_WAITING');
-            },
-          });
+        let waiting: ServiceWorker | null = null;
+        // A phone keeps the app open in the background for days, so a new version is
+        // checked for each time the app comes back to the screen (DECISIONS D53).
+        let shownAt = Date.now();
+        const apply = () => {
+          if (!waiting || updateRequested) return;
+          updateRequested = true;
+          waiting.postMessage('SKIP_WAITING');
+        };
+        /** Updates by itself only when nothing is lost: just opened or out of sight, no admin form open. */
+        const autoApply = () => {
+          if (!waiting || useAdminUi.getState().action) return;
+          if (document.visibilityState === 'hidden' || Date.now() - shownAt < AUTO_UPDATE_WINDOW_MS) apply();
+        };
+        const offerUpdate = (worker: ServiceWorker) => {
+          waiting = worker;
+          // The banner stays as a fallback while an update cannot apply by itself.
+          usePwaStore.setState({ applyUpdate: apply });
+          autoApply();
+        };
         if (reg.waiting && navigator.serviceWorker.controller) offerUpdate(reg.waiting);
         reg.addEventListener('updatefound', () => {
           const worker = reg.installing;
           worker?.addEventListener('statechange', () => {
             if (worker.state === 'installed' && navigator.serviceWorker.controller) offerUpdate(worker);
           });
+        });
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            shownAt = Date.now();
+            void reg.update().catch(() => {
+              // Offline: try again next time.
+            });
+          }
+          autoApply();
         });
         let reloading = false;
         navigator.serviceWorker.addEventListener('controllerchange', () => {

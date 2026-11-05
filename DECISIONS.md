@@ -186,7 +186,7 @@ Một plugin Vite nhỏ (`build/pwa.ts`) tạo ra `sw.js` cùng danh sách file 
 | Font Google, ảnh Firebase Storage | Trả bản đã lưu ngay, đồng thời tải bản mới về |
 | Dữ liệu Firestore | Không qua service worker; dùng bộ đệm offline riêng của Firestore (IndexedDB) |
 
-Khi có phiên bản mới, app hiện thông báo "Cập nhật" và **chỉ tải lại trang khi người dùng bấm nút**. Test e2e đã bắt được lỗi tự tải lại trang ở lần cài đầu tiên; lỗi này đã sửa.
+Khi có phiên bản mới, app hiện thông báo "Cập nhật" và **chỉ tải lại trang khi người dùng bấm nút**. Test e2e đã bắt được lỗi tự tải lại trang ở lần cài đầu tiên; lỗi này đã sửa. *(Đã đổi ở D53: app tự cập nhật khi mở lại.)*
 
 ### D32. Ảnh xem trước khi chia sẻ link (Open Graph)
 Zalo và Facebook không chạy JavaScript khi đọc link, nên các thẻ `og:*` phải nằm sẵn trong `index.html` lúc build. Chúng được lấy từ `VITE_APP_TITLE`, `VITE_APP_DESCRIPTION` và `VITE_SITE_URL`. **Phải điền `VITE_SITE_URL`** để `og:image` là địa chỉ đầy đủ; Facebook không chấp nhận đường dẫn tương đối.
@@ -412,3 +412,13 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - Mục "Thêm" đổi thành "Cài đặt" (icon bánh răng); trên máy tính nó nằm ngay dưới Ngày giỗ.
   - Ô "Tìm người" đổi thành "Tìm kiếm".
   - Phím tắt: 1 Sơ đồ, 2 Danh sách, 3 Ngày giỗ.
+
+### D53. Tự cập nhật phiên bản mới khi mở lại app (thay một phần D31)
+- **Vấn đề:** điện thoại giữ app mở chạy nền nhiều ngày. Bản mới đã deploy nhưng không ai bấm "Cập nhật", nên điện thoại vẫn hiện giao diện cũ.
+- **Cách làm (`src/app/pwa.ts`):**
+  - Mỗi khi app hiện lại trên màn hình, app hỏi xem có bản mới không (`reg.update()`).
+  - Khi có bản mới, app tự tải lại nếu không làm mất gì của người dùng:
+    - app vừa mở hoặc vừa hiện lại (trong 15 giây), hoặc
+    - app đang chạy nền (người dùng đã rời đi; lần quay lại sẽ thấy bản mới).
+  - **Không tự tải lại khi đang mở bảng sửa của admin.** Khi đó thông báo "Cập nhật" vẫn hiện để bấm tay.
+- Vẫn giữ điều D31 đã sửa: lần cài service worker đầu tiên không tải lại trang.
