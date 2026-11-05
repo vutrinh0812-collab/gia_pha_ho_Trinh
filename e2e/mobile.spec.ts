@@ -28,11 +28,12 @@ test('shared link → family → search → details → share', async ({ page })
   page.on('pageerror', (e) => errors.push(e.message));
   await stubShare(page);
 
-  // 1. Open a shared person link (as from Zalo/Messenger).
+  // 1. Open a shared person link (as from Zalo/Messenger): old /person/ links land on the profile page.
   await page.goto(`/person/${ROOT_ID}`);
-  const sheet = page.getByRole('dialog', { name: `Thông tin ${ROOT_NAME}` });
-  await expect(sheet).toBeVisible();
-  await sheet.getByRole('button', { name: 'Đóng' }).click();
+  await expect(page).toHaveURL(new RegExp(`/nguoi/${ROOT_ID}$`));
+  const profile = page.getByRole('article', { name: `Trang của ${ROOT_NAME}` });
+  await expect(profile.getByRole('heading', { level: 1, name: ROOT_NAME })).toBeVisible();
+  await profile.getByRole('button', { name: 'Gia đình' }).click();
 
   // 2. Family view, readable without zooming.
   const centre = page.getByRole('heading', { level: 1, name: ROOT_NAME });
@@ -52,13 +53,13 @@ test('shared link → family → search → details → share', async ({ page })
   // 4. Details open.
   const details = page.getByRole('dialog', { name: /Thông tin Trịnh Văn Việt/ });
   await expect(details).toBeVisible();
-  await expect(details.getByText('Ngày giỗ')).toBeVisible();
+  await expect(details.getByRole('region', { name: 'Ngày giỗ' })).toBeVisible();
 
   // 5. Share uses the phone's share sheet with the person link.
   await details.getByRole('button', { name: 'Chia sẻ' }).click();
   const shared = await page.evaluate(() => (window as unknown as { __shared: Array<{ url: string }> }).__shared);
   expect(shared).toHaveLength(1);
-  expect(shared[0]!.url).toMatch(/\/person\/p\d{4}$/);
+  expect(shared[0]!.url).toMatch(/\/nguoi\/p\d{4}$/);
 
   // Touch targets: bottom navigation buttons are at least 44×44.
   for (const box of await page.getByRole('navigation', { name: 'Điều hướng chính' }).locator('a, button').evaluateAll((els) =>
@@ -104,11 +105,10 @@ test('works when the in-app browser blocks storage, sharing and the clipboard', 
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(`/person/${ROOT_ID}`);
-  const details = page.getByRole('dialog', { name: `Thông tin ${ROOT_NAME}` });
-  await details.getByRole('button', { name: 'Chia sẻ' }).click();
-  await expect(details.getByRole('status')).toContainText(`/person/${ROOT_ID}`);
+  const profile = page.getByRole('article', { name: `Trang của ${ROOT_NAME}` });
+  await profile.getByRole('button', { name: 'Chia sẻ' }).click();
+  await expect(profile.getByRole('status')).toContainText(`/nguoi/${ROOT_ID}`);
   // Preferences still work for this visit.
-  await details.getByRole('button', { name: 'Đóng' }).click();
   await page.getByRole('button', { name: 'Thêm' }).click();
   await page.getByRole('switch', { name: /Chữ lớn/ }).check();
   await expect(page.locator('html')).toHaveAttribute('data-large-text', 'true');
