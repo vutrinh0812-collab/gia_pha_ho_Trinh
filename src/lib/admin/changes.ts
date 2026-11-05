@@ -323,7 +323,15 @@ export function deletePerson(model: ClanModel, id: string): ChangeSet {
 
 export function editSettings(model: ClanModel, fields: ClanSettings): ChangeSet {
   const before = settingsContent(model.settings);
-  const after = clean({ ...fields, rootPersonId: model.rootId });
+  // clean() drops empty strings, but the couplets and colophon are required and may be
+  // left empty ("" = none), as in the real clan settings — keep them (D62 fix).
+  const cleaned = clean({ ...fields, rootPersonId: model.rootId });
+  const after: ClanSettings = {
+    ...cleaned,
+    coupletLeft: cleaned.coupletLeft ?? '',
+    coupletRight: cleaned.coupletRight ?? '',
+    colophon: cleaned.colophon ?? '',
+  };
   const errors = validateSettings(after);
   if (errors.length) throw new AdminError(errors.join(' '));
   if (stableJson(before) === stableJson(after)) throw new AdminError('Chưa có thay đổi nào để lưu.');

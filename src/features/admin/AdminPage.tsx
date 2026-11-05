@@ -137,6 +137,9 @@ function EditPermission() {
         editSettings(model, { ...settingsContent(model.settings), openEditing: next }),
         next ? 'Đã mở quyền chỉnh sửa cho mọi người.' : 'Đã khóa: chỉ admin được chỉnh sửa.',
       );
+    } catch (e) {
+      // A check failed before saving: say why instead of doing nothing.
+      useToastStore.getState().show(e instanceof Error ? e.message : 'Không lưu được quyền chỉnh sửa.', 'error');
     } finally {
       setBusy(false);
     }

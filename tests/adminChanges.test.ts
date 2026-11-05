@@ -182,3 +182,19 @@ describe('toRoman', () => {
     expect(toRoman(0)).toBe('0');
   });
 });
+
+describe('editSettings with empty couplets (D62 fix)', () => {
+  it('keeps empty couplets and colophon, so the real clan settings can be saved', async () => {
+    const { editSettings, settingsContent } = await import('@/lib/admin/changes');
+    const { buildClanModel } = await import('@/lib/clanModel');
+    const { loadDemoSnapshot } = await import('@/lib/data/demoSource');
+    const snap = loadDemoSnapshot();
+    const model = buildClanModel({ ...snap, settings: { ...snap.settings!, coupletLeft: '', coupletRight: '', colophon: '' } })!;
+    const set = editSettings(model, { ...settingsContent(model.settings), openEditing: true });
+    const after = set.changes[0]!.after as Record<string, unknown>;
+    expect(after.openEditing).toBe(true);
+    expect(after.coupletLeft).toBe('');
+    expect(after.coupletRight).toBe('');
+    expect(after.colophon).toBe('');
+  });
+});
