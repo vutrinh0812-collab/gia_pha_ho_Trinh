@@ -66,7 +66,7 @@ export default function TreeView() {
  * (see useTreeParams; v = x,y,k).
  */
 function ChartView({ model, tp, onLayout }: { model: ClanModel; tp: TreeParams; onLayout(next: TreeLayoutPref): void }) {
-  const { params, branch, fromGen, toGen, showSpouses, showMaternal, setParam, setShowMaternal } = tp;
+  const { params, branch, fromGen, toGen, showSpouses, showMaternal, couple, setParam, setShowMaternal } = tp;
   const { open } = useOverlays();
   const desktop = useIsDesktop();
   const api = useRef<TreeCanvasApi>(null);
@@ -80,8 +80,8 @@ function ChartView({ model, tp, onLayout }: { model: ClanModel; tp: TreeParams; 
   const { lineageId, focusId, selectedId } = tp;
 
   const filters: TreeFilters = useMemo(
-    () => ({ branch, fromGen, toGen, showSpouses, showMaternal, collapsed }),
-    [branch, fromGen, toGen, showSpouses, showMaternal, collapsed],
+    () => ({ branch, fromGen, toGen, showSpouses, showMaternal, collapsed, couple }),
+    [branch, fromGen, toGen, showSpouses, showMaternal, collapsed, couple],
   );
   const layout = useMemo(() => computeTreeLayout(model, filters), [model, filters]);
 

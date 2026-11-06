@@ -21,7 +21,7 @@ export function MoreSheet() {
   const { close, open } = useOverlays();
   const desktop = useIsDesktop();
   const model = useClanStore((s) => s.model);
-  const { largeText, setLargeText, showMaternal, setShowMaternal } = usePrefsStore();
+  const { largeText, setLargeText, showMaternal, setShowMaternal, coupleStyle, setCoupleStyle } = usePrefsStore();
   const maternalOn = showMaternal ?? model?.settings.showMaternalDescendants ?? false;
 
   return (
@@ -75,6 +75,20 @@ export function MoreSheet() {
           className={styles.switch}
           checked={maternalOn}
           onChange={(e) => setShowMaternal(e.target.checked)}
+        />
+      </div>
+      <div className={styles.setting}>
+        <label htmlFor="pref-couple" className={styles.settingLabel}>
+          Vợ chồng nằm cạnh nhau
+          <span className={styles.settingHint}>Sơ đồ ngang, từ đời 4: thẻ vợ/chồng đặt bên cạnh, so le. Tắt thì tên vợ/chồng nằm dưới, trong cùng thẻ</span>
+        </label>
+        <input
+          id="pref-couple"
+          type="checkbox"
+          role="switch"
+          className={styles.switch}
+          checked={coupleStyle === 'side'}
+          onChange={(e) => setCoupleStyle(e.target.checked ? 'side' : 'stack')}
         />
       </div>
     </Sheet>

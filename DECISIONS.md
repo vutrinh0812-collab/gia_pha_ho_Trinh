@@ -548,3 +548,12 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - Ở mức xa nhất (L0) không vẽ phần nền và đường ngăn; ở L1 chỉ hiện tên, chưa hiện "vợ"/năm.
 - Vị trí từng dòng tính ở một chỗ (`verticalMetrics` trong `layout.ts`), dùng chung cho sơ đồ trên màn hình và bản in A1. Bản in vẫn theo tùy chọn "Hiện vợ/chồng" và "Hiện năm".
 - Đời 1–3 vẫn dùng thẻ ngang (ít người, có chỗ ghi đủ).
+
+### D64. Lựa chọn thứ hai: "Vợ chồng nằm cạnh nhau" (so le)
+- Cài đặt **"Vợ chồng nằm cạnh nhau"** (công tắc trong Cài đặt, nhớ trên từng máy; trên link có thể ghi `vc=canh` hoặc `vc=duoi`). Mặc định vẫn là kiểu D63 (vợ/chồng nằm dưới, trong cùng thẻ).
+- Khi bật, từ đời 4 trên sơ đồ ngang:
+  - Thẻ người trong họ giữ nguyên (rộng 56: thứ tự, tên mỗi chữ một dòng, năm sinh–mất).
+  - Mỗi vợ/chồng có **thẻ riêng rộng 58, đặt bên phải, thấp hơn 24 và nằm lấn sau thẻ chính 6**, như hai tấm thẻ đặt so le. Nền nhạt (`--spouse-soft`), chữ nhỏ "vợ"/"chồng", tên mỗi chữ một dòng. Nhiều vợ/chồng thì xếp tiếp sang phải.
+  - Đường từ cha mẹ đi vào **giữa thẻ chính**; đường xuống các con **đi ra từ chỗ giáp giữa hai vợ chồng** (`inX`, `outX` trong `TreeNode`).
+  - Thẻ có vợ/chồng rộng khoảng 108 thay vì 56: rộng hơn kiểu D63 nhưng vẫn hẹp hơn thẻ ngang (176), và thẻ thấp hơn.
+- Bản in A1 vẫn dùng kiểu D63.

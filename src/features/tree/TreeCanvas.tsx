@@ -336,8 +336,8 @@ export function TreeCanvas(props: Props) {
       const c = layout.byId.get(id);
       const p = c?.parentId ? layout.byId.get(c.parentId) : undefined;
       if (!c || !p || !pathIds.has(p.id)) continue;
-      const px = p.x + p.w / 2;
-      const cx = c.x + c.w / 2;
+      const px = p.x + p.outX;
+      const cx = c.x + c.inX;
       const barY = c.y - 26;
       d += `M${px},${p.y + p.h}V${barY}H${cx}V${c.y}`;
     }

@@ -224,3 +224,43 @@ describe('vertical cards for the lower generations', () => {
     }
   });
 });
+
+describe('side-by-side couples (option)', () => {
+  const layout = computeTreeLayout(model, { ...base, couple: 'side' });
+
+  it('puts each spouse in their own narrow card beside the person, a little lower', () => {
+    const married = layout.nodes.filter((n) => n.vertical && n.spouses.length > 0);
+    expect(married.length).toBeGreaterThan(0);
+    for (const n of married) {
+      const side = n.side!;
+      expect(side.spouses).toHaveLength(n.spouses.length);
+      side.spouses.forEach((c, i) => {
+        expect(c.x).toBeLessThan(i === 0 ? VNODE_W : side.spouses[i - 1]!.x + c.w); // tucked behind
+        expect(c.y).toBeGreaterThan(0); // staggered
+      });
+      expect(n.w).toBe(side.w);
+      expect(n.h).toBeGreaterThanOrEqual(side.person.height);
+      // The parent's line comes into the person's own card; the children's line leaves between the couple.
+      expect(n.inX).toBe(VNODE_W / 2);
+      expect(n.outX).toBeGreaterThan(VNODE_W / 2);
+      expect(n.outX).toBeLessThan(VNODE_W);
+    }
+  });
+
+  it('leaves unmarried and upper-generation cards as they are', () => {
+    for (const n of layout.nodes.filter((x) => !x.vertical || x.spouses.length === 0)) {
+      expect(n.w).toBe(n.vertical ? VNODE_W : NODE_W);
+    }
+  });
+
+  it('is wider than stacked couples but keeps nodes apart', () => {
+    const stacked = computeTreeLayout(model, base);
+    expect(layout.bounds.maxX).toBeGreaterThan(stacked.bounds.maxX);
+    const byRow = new Map<number, typeof layout.nodes>();
+    for (const n of layout.nodes) byRow.set(n.gen, [...(byRow.get(n.gen) ?? []), n]);
+    for (const row of byRow.values()) {
+      const sorted = [...row].sort((a, b) => a.x - b.x);
+      for (let i = 1; i < sorted.length; i++) expect(sorted[i]!.x).toBeGreaterThanOrEqual(sorted[i - 1]!.x + sorted[i - 1]!.w);
+    }
+  });
+});

@@ -187,6 +187,16 @@ main > .view {
 .node[data-role='female'] .vSection {
   fill: color-mix(in srgb, var(--spouse-soft) 55%, var(--female-soft));
 }
+/* Side-by-side couple: the spouse's card, tucked behind the person's, a little lower. */
+.sideCard {
+  fill: var(--spouse-soft);
+  stroke: var(--line-strong);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+.svg[data-lod='0'] .sideCard {
+  fill: var(--line);
+}
 .vDivider {
   fill: none;
   stroke: var(--node-line);

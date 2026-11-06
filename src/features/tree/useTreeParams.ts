@@ -2,6 +2,7 @@ import { useCallback, useRef } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import type { ClanModel } from '@/lib/clanModel';
 import { usePrefsStore } from '@/store/prefsStore';
+import type { CoupleStyle } from './layout';
 
 function intParam(v: string | null): number | null {
   const n = Number(v);
@@ -12,7 +13,8 @@ function intParam(v: string | null): number | null {
  * The view state "Sơ đồ" keeps in the URL, shared by the chart and the outline so a
  * link or a search result shows the same people in either layout.
  * URL: tu/den (generation range, the only filter — D56), dd (highlighted lineage),
- *      f (go to person), ct (open detail), xem (layout).
+ *      f (go to person), ct (open detail), xem (layout), vc (couples: canh = side by side,
+ *      duoi = stacked; otherwise the device setting).
  */
 export function useTreeParams(model: ClanModel) {
   const [params, setParams] = useSearchParams();
@@ -21,6 +23,7 @@ export function useTreeParams(model: ClanModel) {
   stateRef.current = location.state;
   const prefMaternal = usePrefsStore((s) => s.showMaternal);
   const setShowMaternal = usePrefsStore((s) => s.setShowMaternal);
+  const prefCouple = usePrefsStore((s) => s.coupleStyle);
 
   const setParam = useCallback(
     (patch: Record<string, string | null>) => {
@@ -57,6 +60,7 @@ export function useTreeParams(model: ClanModel) {
     // Fixed since D56: the whole clan, with spouses. "Bên ngoại" is a setting (Cài đặt).
     branch: null,
     showSpouses: true,
+    couple: (params.get('vc') === 'canh' ? 'side' : params.get('vc') === 'duoi' ? 'stack' : prefCouple) as CoupleStyle,
     showMaternal: prefMaternal ?? model.settings.showMaternalDescendants,
     lineageId: params.get('dd'),
     focusId: params.get('f'),
