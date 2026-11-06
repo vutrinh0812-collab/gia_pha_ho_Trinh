@@ -334,10 +334,18 @@ function Row({ row: r, mark, dim, onToggle, onSelect }: RowProps) {
           type="button"
           className={styles.toggle}
           aria-expanded={r.open}
-          aria-label={`${r.open ? 'Thu nhánh' : 'Mở nhánh'} ${p.fullName}`}
+          aria-label={`${r.open ? 'Thu nhánh' : 'Mở nhánh'} ${p.fullName}${
+            !r.open && r.hiddenCount > 0 ? `, ${r.hiddenCount} người trong nhánh` : ''
+          }`}
           onClick={() => onToggle(r.id)}
         >
           <span className={styles.chevron} aria-hidden="true" />
+          {/* People in a closed branch: a small figure under the arrow, leaving the right side to the name. */}
+          {!r.open && r.hiddenCount > 0 && (
+            <span className={styles.count} aria-hidden="true">
+              +{r.hiddenCount}
+            </span>
+          )}
         </button>
       ) : (
         <span className={styles.leaf} aria-hidden="true" />
@@ -366,11 +374,6 @@ function Row({ row: r, mark, dim, onToggle, onSelect }: RowProps) {
           )}
         </span>
       </button>
-      {!r.open && r.hiddenCount > 0 && (
-        <span className={styles.count} aria-label={`${r.hiddenCount} người trong nhánh`}>
-          +{r.hiddenCount}
-        </span>
-      )}
     </li>
   );
 }

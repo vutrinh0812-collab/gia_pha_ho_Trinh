@@ -565,3 +565,8 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - **Thanh lọc đời trên sơ đồ ngang lệch so với Cây dọc:** trên điện thoại, thanh bị đẩy sang phải 30px (chừa chỗ cho cột nhãn Đời) và thấp hơn 2px, nên khi chuyển Dọc ↔ Ngang thanh nhảy chỗ và rãnh kéo hẹp lại (80px thay vì 106px).
   - Sửa: thanh đầu của sơ đồ ngang dùng cùng lề trái và cùng chiều cao hàng (52px) với Cây dọc. Nhãn Đời nằm dưới thanh nên không bị che.
   - Trên máy tính, Cây dọc là một cột giữa màn hình còn sơ đồ ngang chiếm hết chiều ngang, nên vị trí thanh ở hai bố cục vẫn khác nhau, như thiết kế.
+
+### D66. Cây dọc: số "+N" của nhánh đang đóng nằm bên trái, dưới mũi tên
+- Trước đây "+12" là một nhãn tròn ở **bên phải** mỗi dòng, chiếm chỗ của tên, nên tên dài dễ bị xuống dòng.
+- Giờ số này là **chữ nhỏ (11px, cùng màu mũi tên) ngay dưới mũi tên mở nhánh**, trong cùng nút bấm. Chạm vào số cũng mở nhánh. Bên phải dòng dành hết cho tên, tên vợ/chồng và năm.
+- Trình đọc màn hình đọc số này trong tên nút: "Mở nhánh Trịnh Văn A, 12 người trong nhánh".

@@ -114,7 +114,10 @@ describe('Cây dọc (phone layout of Sơ đồ)', () => {
     expect(nameButtons(list, root.fullName)).toHaveLength(1);
     expect(nameButtons(list, firstChild.fullName)).toHaveLength(1);
     expect(within(list).getByRole('button', { name: `Thu nhánh ${root.fullName}` })).toHaveAttribute('aria-expanded', 'true');
-    expect(within(list).getByRole('button', { name: `Mở nhánh ${firstChild.fullName}` })).toHaveAttribute('aria-expanded', 'false');
+    // A closed branch says how many people it holds; the "+N" sits under the arrow, on the left.
+    const closed = within(list).getByRole('button', { name: new RegExp(`^Mở nhánh ${firstChild.fullName}, \\d+ người trong nhánh$`) });
+    expect(closed).toHaveAttribute('aria-expanded', 'false');
+    expect(closed).toHaveTextContent(/^\+\d+$/);
     expect(screen.getByRole('heading', { name: /Sơ đồ/ })).toHaveTextContent('7 đời');
   });
 
@@ -123,7 +126,7 @@ describe('Cây dọc (phone layout of Sơ đồ)', () => {
     const list = await outline();
     const grandchild = model.family(firstChild.id)!.partnerships[0]!.children[0]!;
     expect(nameButtons(list, grandchild.fullName)).toHaveLength(0);
-    fireEvent.click(within(list).getByRole('button', { name: `Mở nhánh ${firstChild.fullName}` }));
+    fireEvent.click(within(list).getByRole('button', { name: new RegExp(`^Mở nhánh ${firstChild.fullName}`) }));
     expect(nameButtons(list, grandchild.fullName)).toHaveLength(1);
     fireEvent.click(within(list).getByRole('button', { name: `Thu nhánh ${firstChild.fullName}` }));
     expect(nameButtons(list, grandchild.fullName)).toHaveLength(0);
