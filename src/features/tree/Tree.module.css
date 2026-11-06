@@ -280,7 +280,9 @@ main > .view {
   top: 0;
   left: 0;
   right: 0;
-  padding: calc(8px + var(--safe-top)) var(--gutter-r) 0 calc(var(--gutter-l) + 30px);
+  /* Same edges as the outline's header (Outline.module.css .head/.headRow), so the generation
+     slider stays put when switching Dọc ↔ Ngang. The rail labels start below this bar. */
+  padding: calc(8px + var(--safe-top)) var(--gutter-r) 0 var(--gutter-l);
   display: grid;
   gap: 6px;
   pointer-events: none;
@@ -292,6 +294,7 @@ main > .view {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 52px;
   min-width: 0;
   pointer-events: auto;
 }

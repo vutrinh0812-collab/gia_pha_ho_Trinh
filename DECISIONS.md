@@ -557,3 +557,11 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - Trên màn hình, mỗi chữ được đo thật trong trình duyệt (`FitText` trong `TreeNodeView.tsx`), đo lại sau khi font tải xong. Chữ nào vẫn rộng hơn chỗ trống (một chữ dài như "Nguyễn", "Trường", "Khương") thì được ép hẹp lại vừa khung (`textLength`), không cắt chữ.
   - Bản in không đo được nên ước lượng theo số ký tự và ép hẹp những chữ có thể tràn.
   - Đã thử riêng: khi thu thẻ còn 40, mọi chữ vẫn nằm trong khung.
+
+### D65. Sửa: nhãn "Đời" và thanh lọc đời bị lệch trên sơ đồ ngang
+- **Nhãn "Đời 1, 2, 3…" đứng yên khi kéo hoặc phóng sơ đồ**, nên lệch khỏi hàng thẻ (bản đồ nhỏ cũng đứng yên).
+  - Nguyên nhân: `TreeCanvas` gộp các lần vẽ lại vào một khung hình (`requestAnimationFrame`) và bỏ qua yêu cầu mới khi đang có khung chờ. Lúc dọn dẹp, khung chờ bị hủy nhưng mã số của nó không được xóa. React chạy lại effect (luôn có khi phát triển, và khi thành phần được gắn lại), nên từ đó mọi lần kéo/phóng đều bị bỏ qua.
+  - Sửa: xóa mã số (`frame.current = 0`) khi hủy. Đã đo trong trình duyệt, cả bản phát triển lẫn bản build: kéo sơ đồ 200px thì nhãn cũng dời đúng 200px, và vẫn khớp hàng sau khi đổi khoảng đời.
+- **Thanh lọc đời trên sơ đồ ngang lệch so với Cây dọc:** trên điện thoại, thanh bị đẩy sang phải 30px (chừa chỗ cho cột nhãn Đời) và thấp hơn 2px, nên khi chuyển Dọc ↔ Ngang thanh nhảy chỗ và rãnh kéo hẹp lại (80px thay vì 106px).
+  - Sửa: thanh đầu của sơ đồ ngang dùng cùng lề trái và cùng chiều cao hàng (52px) với Cây dọc. Nhãn Đời nằm dưới thanh nên không bị che.
+  - Trên máy tính, Cây dọc là một cột giữa màn hình còn sơ đồ ngang chiếm hết chiều ngang, nên vị trí thanh ở hai bố cục vẫn khác nhau, như thiết kế.

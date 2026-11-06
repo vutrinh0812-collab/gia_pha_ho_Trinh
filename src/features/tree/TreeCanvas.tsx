@@ -209,7 +209,10 @@ export function TreeCanvas(props: Props) {
       ro?.disconnect();
       sel.on('.zoom', null);
       window.clearTimeout(persistTimer);
+      // Reset the id too: a stale id would make schedule() skip every later frame,
+      // freezing the generation rail and the minimap after a remount.
       if (frame.current) cancelAnimationFrame(frame.current);
+      frame.current = 0;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
