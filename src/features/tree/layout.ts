@@ -13,14 +13,27 @@ import { spouseRole, toRoman } from '@/lib/format';
 
 export const NODE_W = 176;
 /**
- * From this generation down, each person is a narrow vertical card with the name
- * written top to bottom, one word per line (as in a traditional family book), so the
- * crowded lower generations take far less width.
+ * From this generation down, each person is a narrow "couple column": the name written
+ * top to bottom, one word per line (as in a traditional family book), and below it,
+ * in a tinted section of the same card, each spouse the same way. The crowded lower
+ * generations take a quarter of the width, and the couple still reads as one unit:
+ * width is what a family tree lacks, height it has to spare.
  */
 export const VERTICAL_FROM_GEN = 4;
 export const VNODE_W = 56;
 /** Line heights inside a vertical card (tree units). */
-export const V = { padTop: 10, caption: 15, word: 18, year: 14, padBottom: 10 } as const;
+export const V = {
+  padTop: 10,
+  caption: 15,
+  word: 18,
+  year: 14,
+  padBottom: 10,
+  /** Space above a spouse section (the divider sits in the middle of it). */
+  spouseGap: 10,
+  /** "vợ", "vợ hai", "chồng". */
+  spouseRole: 13,
+  spouseWord: 16,
+} as const;
 /** Vertical gap between generations; L3/L4 cards expand into it. */
 export const VGAP = 76;
 /** Default number of generation rows on a full tree (the app starts with 4 generations). */
@@ -135,20 +148,65 @@ export function isVerticalGen(gen: number): boolean {
   return gen >= VERTICAL_FROM_GEN;
 }
 
-/** What a vertical card shows, top to bottom: birth order, the name word by word, the years. */
-export function verticalContent(p: PersonRec): { caption: string | null; words: string[]; years: string[] } {
-  const words = p.fullName.trim().split(/\s+/).filter(Boolean);
+export type VerticalLineKind = 'caption' | 'word' | 'year' | 'role' | 'spouseWord';
+
+export interface VerticalLine {
+  kind: VerticalLineKind;
+  text: string;
+  /** Text baseline, from the top of the card (tree units). */
+  y: number;
+}
+
+export interface VerticalSection {
+  /** Top of the spouse section, where the divider is drawn. */
+  top: number;
+  spouseId: string;
+}
+
+export interface VerticalMetrics {
+  lines: VerticalLine[];
+  sections: VerticalSection[];
+  height: number;
+}
+
+function yearsOf(p: PersonRec): string[] {
   const years: string[] = [];
   const b = p.birth?.solar?.slice(0, 4) ?? (p.birth?.lunar?.year ? String(p.birth.lunar.year) : null);
   const d = p.death?.solar?.slice(0, 4) ?? (p.death?.lunar?.year ? String(p.death.lunar.year) : null);
   if (b) years.push(b);
   if (p.death?.isDeceased) years.push(d ?? '?');
-  return { caption: p.birthOrder ? toRoman(p.birthOrder) : null, words, years };
+  return years;
 }
 
-function verticalHeight(p: PersonRec): number {
-  const c = verticalContent(p);
-  return V.padTop + (c.caption ? V.caption : 0) + c.words.length * V.word + c.years.length * V.year + V.padBottom;
+const words = (name: string) => name.trim().split(/\s+/).filter(Boolean);
+
+/**
+ * What a vertical card shows, top to bottom, with each line's position: birth order,
+ * the name word by word, the years; then one section per spouse with the role ("vợ hai")
+ * and the spouse's name word by word. Shared by the screen tree and the printed poster.
+ */
+export function verticalMetrics(
+  p: PersonRec,
+  spouses: readonly TreeSpouse[],
+  opts: { years?: boolean } = {},
+): VerticalMetrics {
+  const lines: VerticalLine[] = [];
+  const sections: VerticalSection[] = [];
+  let y = V.padTop;
+  if (p.birthOrder) {
+    lines.push({ kind: 'caption', text: toRoman(p.birthOrder), y: y + 10 });
+    y += V.caption;
+  }
+  for (const w of words(p.fullName)) lines.push({ kind: 'word', text: w, y: (y += V.word) - 4 });
+  if (opts.years !== false) for (const yr of yearsOf(p)) lines.push({ kind: 'year', text: yr, y: (y += V.year) - 2 });
+  for (const s of spouses) {
+    y += V.spouseGap / 2;
+    sections.push({ top: y, spouseId: s.person.id });
+    y += V.spouseGap / 2;
+    lines.push({ kind: 'role', text: s.role.toLowerCase(), y: (y += V.spouseRole) - 3 });
+    for (const w of words(s.person.fullName)) lines.push({ kind: 'spouseWord', text: w, y: (y += V.spouseWord) - 4 });
+  }
+  return { lines, sections, height: y + V.padBottom };
 }
 
 export function isShown(model: ClanModel, p: PersonRec, f: TreeFilters): boolean {
@@ -260,7 +318,7 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
     const kids = shownChildren(model, p.id, f);
     info.set(p.id, { spouses, shownKids: kids });
     const vertical = isVerticalGen(gen);
-    const h = vertical ? verticalHeight(p) : BASE_H + spouses.length * SPOUSE_LINE;
+    const h = vertical ? verticalMetrics(p, spouses).height : BASE_H + spouses.length * SPOUSE_LINE;
     rowH.set(gen, Math.max(rowH.get(gen) ?? 0, h));
     return { id: p.id, gen, w: vertical ? VNODE_W : NODE_W, h, children: isCollapsed(p.id) ? [] : kids.map(build) };
   };

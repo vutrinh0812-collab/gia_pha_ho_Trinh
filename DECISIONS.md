@@ -538,3 +538,13 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - Lưu trong `settings.openEditing` (`useCanEdit()` trong `adminStore.ts`).
   - **Cần deploy lại `firestore.rules`**, vì luật kiểm tra cài đặt phải nhận thêm trường `openEditing`. Nếu chưa deploy, admin sẽ không lưu được lựa chọn này.
   - Lưu ý bảo mật: như ghi chú đầu file `firestore.rules`, máy chủ vốn đã cho mọi người ghi (khoá admin chỉ nằm trên trang web). Quyền này chỉ hiện hoặc ẩn các nút sửa trong app.
+
+### D63. "Cột vợ chồng": thẻ dọc có cả vợ/chồng
+- **Vấn đề:** thẻ ngang (rộng 176) ghi được vợ/chồng nhưng chiếm nhiều chiều ngang. Thẻ dọc (rộng 56, từ đời 4) thì gọn nhưng bỏ mất vợ/chồng.
+- **Cách làm:** giữ thẻ dọc rộng 56, nối dài **xuống dưới** trong cùng một thẻ. Cây gia phả thiếu chiều ngang chứ không thiếu chiều cao.
+  - Phần trên: thứ tự con (I, II…), họ tên mỗi chữ một dòng, năm sinh–mất (như cũ).
+  - Một **đường gạch đứt** ngăn cách, rồi phần dưới **nền nhạt hơn** (`--spouse-soft`): chữ nhỏ "vợ" / "chồng" / "vợ hai"…, rồi tên vợ/chồng mỗi chữ một dòng, chữ nhỏ hơn và màu dâu/rể.
+  - Nhiều vợ/chồng thì mỗi người một phần, xếp tiếp xuống dưới.
+  - Ở mức xa nhất (L0) không vẽ phần nền và đường ngăn; ở L1 chỉ hiện tên, chưa hiện "vợ"/năm.
+- Vị trí từng dòng tính ở một chỗ (`verticalMetrics` trong `layout.ts`), dùng chung cho sơ đồ trên màn hình và bản in A1. Bản in vẫn theo tùy chọn "Hiện vợ/chồng" và "Hiện năm".
+- Đời 1–3 vẫn dùng thẻ ngang (ít người, có chỗ ghi đủ).

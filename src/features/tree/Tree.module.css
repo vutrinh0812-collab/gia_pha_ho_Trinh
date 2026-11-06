@@ -168,6 +168,36 @@ main > .view {
   text-anchor: middle;
   font-variant-numeric: tabular-nums;
 }
+.vRole {
+  font-size: 10px;
+  fill: var(--text-2);
+  text-anchor: middle;
+  letter-spacing: 0.02em;
+}
+.vSpouse {
+  font-size: 12.5px;
+  font-weight: 500;
+  fill: var(--spouse);
+  text-anchor: middle;
+}
+/* Spouse part of a couple column: a softer tint under a dashed divider. */
+.vSection {
+  fill: var(--spouse-soft);
+}
+.node[data-role='female'] .vSection {
+  fill: color-mix(in srgb, var(--spouse-soft) 55%, var(--female-soft));
+}
+.vDivider {
+  fill: none;
+  stroke: var(--node-line);
+  stroke-width: 1px;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+.svg[data-lod='0'] .vSection,
+.svg[data-lod='0'] .vDivider {
+  display: none;
+}
 .nameL1 {
   font-size: 17px;
   font-weight: 600;

@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { formatDateInfo, lifeSpan, visibleNotes } from '@/lib/format';
-import { V, VGAP, verticalContent, type TreeNode } from './layout';
+import { VGAP, verticalMetrics, type TreeNode, type VerticalLineKind } from './layout';
 import type { Lod } from './lod';
 import styles from './Tree.module.css';
 
@@ -43,31 +43,46 @@ function extraLines(node: TreeNode, lod: Lod): string[] {
   return lines;
 }
 
-/** Narrow card: birth order, then the name one word per line, then the years. */
+const V_CLASS: Record<VerticalLineKind, string | undefined> = {
+  caption: styles.vCaption,
+  word: styles.vWord,
+  year: styles.vYear,
+  role: styles.vRole,
+  spouseWord: styles.vSpouse,
+};
+
+/** Bottom part of a card from `top` down, with the card's rounded corners. */
+function sectionPath(w: number, top: number, h: number, r: number): string {
+  return `M0,${top}H${w}V${h - r}Q${w},${h} ${w - r},${h}H${r}Q0,${h} 0,${h - r}Z`;
+}
+
+/**
+ * Couple column: birth order, the name one word per line, the years; below a divider,
+ * on a tinted section, each spouse's role and name the same way.
+ */
 function VerticalContent({ node, lod }: { node: TreeNode; lod: Lod }) {
-  const c = verticalContent(node.person);
+  const m = verticalMetrics(node.person, node.spouses);
   const cx = node.w / 2;
-  let y = V.padTop;
-  const caption = lod >= 2 && c.caption;
-  if (c.caption) y += V.caption;
+  const showSmall = lod >= 2;
   return (
     <>
-      {caption && (
-        <text className={styles.vCaption} x={cx} y={V.padTop + 10}>
-          {c.caption}
-        </text>
-      )}
-      {c.words.map((word, i) => (
-        <text key={i} className={styles.vWord} x={cx} y={y + V.word * (i + 1) - 4}>
-          {word}
-        </text>
+      {m.sections.map((s) => (
+        <g key={s.spouseId}>
+          <path className={styles.vSection} d={sectionPath(node.w, s.top, node.h, 8)} />
+          <path className={styles.vDivider} d={`M0,${s.top}H${node.w}`} />
+        </g>
       ))}
-      {lod >= 2 &&
-        c.years.map((year, i) => (
-          <text key={`y${i}`} className={styles.vYear} x={cx} y={y + c.words.length * V.word + V.year * (i + 1) - 2}>
-            {year}
+      {m.sections.length > 0 && (
+        // Redraw the card edge over the tinted section (marks and focus still style `.box`).
+        <rect className={styles.box} style={{ fill: 'none' }} width={node.w} height={node.h} rx={8} />
+      )}
+      {m.lines.map((l, i) =>
+        (l.kind === 'caption' || l.kind === 'year' || l.kind === 'role') && !showSmall ? null : (
+          <text key={i} className={V_CLASS[l.kind]} x={cx} y={l.y}>
+            {l.text}
           </text>
-        ))}
+        ),
+      )}
     </>
   );
 }

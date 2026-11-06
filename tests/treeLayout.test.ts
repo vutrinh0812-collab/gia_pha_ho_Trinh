@@ -1,7 +1,7 @@
 import { buildClanModel } from '@/lib/clanModel';
 import { loadDemoSnapshot } from '@/lib/data/demoSource';
 import { generateSampleData } from '@/lib/sampleData';
-import { collapseAllIds, computeTreeLayout, NODE_W, VERTICAL_FROM_GEN, VNODE_W, type TreeFilters, type TreeLayout } from '@/features/tree/layout';
+import { collapseAllIds, computeTreeLayout, NODE_W, VERTICAL_FROM_GEN, VNODE_W, verticalMetrics, type TreeFilters, type TreeLayout } from '@/features/tree/layout';
 import { lodFor, minScaleFor } from '@/features/tree/lod';
 
 const model = buildClanModel(loadDemoSnapshot())!;
@@ -203,6 +203,24 @@ describe('vertical cards for the lower generations', () => {
     for (const n of layout.nodes.filter((x) => x.vertical)) {
       const words = n.person.fullName.trim().split(/\s+/).length;
       expect(n.h).toBeGreaterThanOrEqual(words * 18);
+    }
+  });
+
+  it('stacks each spouse below the name in the same narrow column', () => {
+    const married = layout.nodes.filter((x) => x.vertical && x.spouses.length > 0);
+    expect(married.length).toBeGreaterThan(0);
+    for (const n of married) {
+      expect(n.w).toBe(VNODE_W);
+      const m = verticalMetrics(n.person, n.spouses);
+      expect(m.height).toBe(n.h);
+      expect(m.sections).toHaveLength(n.spouses.length);
+      const spouseWords = n.spouses.flatMap((s) => s.person.fullName.trim().split(/\s+/));
+      expect(m.lines.filter((l) => l.kind === 'spouseWord').map((l) => l.text)).toEqual(spouseWords);
+      expect(m.lines.filter((l) => l.kind === 'role').map((l) => l.text)).toEqual(n.spouses.map((s) => s.role.toLowerCase()));
+      // Every line sits inside the card, top to bottom.
+      const ys = m.lines.map((l) => l.y);
+      expect(ys).toEqual([...ys].sort((a, b) => a - b));
+      expect(Math.max(...ys)).toBeLessThan(n.h);
     }
   });
 });
