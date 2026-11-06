@@ -7,7 +7,7 @@ import { useId } from 'react';
 import type { ClanModel } from '@/lib/clanModel';
 import { lifeSpan } from '@/lib/format';
 import type { Theme } from '@/themes/types';
-import { VGAP, verticalMetrics, type TreeLayout } from '../tree/layout';
+import { VGAP, V_PAD_X, verticalMetrics, type TreeLayout } from '../tree/layout';
 
 export const A1 = { landscape: { w: 841, h: 594 }, portrait: { w: 594, h: 841 } } as const;
 const SAFE = 15; // mm, printer-safe margin
@@ -352,6 +352,10 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
                 ))}
                 {vm.lines.map((l, i) => {
                   const big = l.kind === 'word' || l.kind === 'spouseWord';
+                  const size = l.kind === 'word' ? 14 : l.kind === 'spouseWord' ? 12.5 : 10;
+                  // A static sheet cannot measure text: condense words estimated wider than the card.
+                  const maxW = n.w - 2 * V_PAD_X;
+                  const squeeze = l.text.length * size * (big ? 0.62 : 0.56) > maxW;
                   const fill =
                     l.kind === 'word' ? nameColor(p.gender === 'male', p.isBloodline) : l.kind === 'spouseWord' ? c.spouse : c.textSecondary;
                   return (
@@ -363,8 +367,10 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
                       fontFamily={big ? t.name.family : t.body.family}
                       fontWeight={l.kind === 'word' ? t.name.weight : l.kind === 'spouseWord' ? 600 : undefined}
                       fontStyle={l.kind === 'role' ? 'italic' : undefined}
-                      fontSize={l.kind === 'word' ? 14 : l.kind === 'spouseWord' ? 12.5 : 10}
+                      fontSize={size}
                       fill={fill}
+                      textLength={squeeze ? maxW : undefined}
+                      lengthAdjust={squeeze ? 'spacingAndGlyphs' : undefined}
                     >
                       {l.text}
                     </text>

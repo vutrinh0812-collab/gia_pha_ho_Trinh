@@ -1,16 +1,10 @@
-import { memo } from "react";
-import { formatDateInfo, lifeSpan, visibleNotes } from "@/lib/format";
-import {
-  SIDE,
-  VGAP,
-  verticalMetrics,
-  type TreeNode,
-  type VerticalLineKind,
-} from "./layout";
-import type { Lod } from "./lod";
-import styles from "./Tree.module.css";
+import { memo, useLayoutEffect, useRef } from 'react';
+import { formatDateInfo, lifeSpan, visibleNotes } from '@/lib/format';
+import { VGAP, V_PAD_X, verticalMetrics, type TreeNode, type VerticalLineKind } from './layout';
+import type { Lod } from './lod';
+import styles from './Tree.module.css';
 
-export type NodeMark = "none" | "path" | "flash" | "selected";
+export type NodeMark = 'none' | 'path' | 'flash' | 'selected';
 
 interface Props {
   node: TreeNode;
@@ -34,23 +28,13 @@ function extraLines(node: TreeNode, lod: Lod): string[] {
   const p = node.person;
   const lines: string[] = [];
   const o = p.otherNames;
-  const names = [
-    o?.huy && `Húy ${o.huy}`,
-    o?.tu && `Tự ${o.tu}`,
-    o?.hieu && `Hiệu ${o.hieu}`,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const names = [o?.huy && `Húy ${o.huy}`, o?.tu && `Tự ${o.tu}`, o?.hieu && `Hiệu ${o.hieu}`].filter(Boolean).join(' · ');
   if (names) lines.push(names);
-  if (p.deathAnniversaryLunar)
-    lines.push(
-      `Giỗ ${p.deathAnniversaryLunar.day}/${p.deathAnniversaryLunar.month} âm lịch`,
-    );
+  if (p.deathAnniversaryLunar) lines.push(`Giỗ ${p.deathAnniversaryLunar.day}/${p.deathAnniversaryLunar.month} âm lịch`);
   if (lod >= 4) {
     if (p.birth?.place) lines.push(`Sinh tại ${p.birth.place}`);
     const birth = formatDateInfo(p.birth);
-    if (birth && p.birth?.solar && p.birth.solar.length > 4)
-      lines.push(`Sinh ${birth}`);
+    if (birth && p.birth?.solar && p.birth.solar.length > 4) lines.push(`Sinh ${birth}`);
     if (p.burialPlace) lines.push(`An táng: ${p.burialPlace}`);
     if (p.occupation) lines.push(`Nghề: ${p.occupation}`);
     const notes = visibleNotes(p.notes);
@@ -66,6 +50,41 @@ const V_CLASS: Record<VerticalLineKind, string | undefined> = {
   role: styles.vRole,
   spouseWord: styles.vSpouse,
 };
+
+/** Fonts load after the first paint; re-fit words once they have. */
+const fontsReady: Promise<unknown> =
+  typeof document !== 'undefined' && document.fonts?.ready ? document.fonts.ready : Promise.resolve();
+
+/**
+ * A centred word that never crosses the card's frame: measured in the browser, and if
+ * wider than `maxW` (a long syllable such as "Nguyễn", or "Chữ lớn"), condensed to fit.
+ */
+function FitText({ className, x, y, maxW, children }: { className?: string; x: number; y: number; maxW: number; children: string }) {
+  const ref = useRef<SVGTextElement>(null);
+  useLayoutEffect(() => {
+    let alive = true;
+    const fitNow = () => {
+      const el = ref.current;
+      if (!alive || !el || typeof el.getComputedTextLength !== 'function') return;
+      el.removeAttribute('textLength');
+      el.removeAttribute('lengthAdjust');
+      if (el.getComputedTextLength() > maxW) {
+        el.setAttribute('textLength', String(maxW));
+        el.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+      }
+    };
+    fitNow();
+    void fontsReady.then(fitNow);
+    return () => {
+      alive = false;
+    };
+  }, [children, maxW]);
+  return (
+    <text ref={ref} className={className} x={x} y={y}>
+      {children}
+    </text>
+  );
+}
 
 /** Bottom part of a card from `top` down, with the card's rounded corners. */
 function sectionPath(w: number, top: number, h: number, r: number): string {
@@ -84,103 +103,31 @@ function VerticalContent({ node, lod }: { node: TreeNode; lod: Lod }) {
     <>
       {m.sections.map((s) => (
         <g key={s.spouseId}>
-          <path
-            className={styles.vSection}
-            d={sectionPath(node.w, s.top, node.h, 8)}
-          />
+          <path className={styles.vSection} d={sectionPath(node.w, s.top, node.h, 8)} />
           <path className={styles.vDivider} d={`M0,${s.top}H${node.w}`} />
         </g>
       ))}
       {m.sections.length > 0 && (
         // Redraw the card edge over the tinted section (marks and focus still style `.box`).
-        <rect
-          className={styles.box}
-          style={{ fill: "none" }}
-          width={node.w}
-          height={node.h}
-          rx={8}
-        />
+        <rect className={styles.box} style={{ fill: 'none' }} width={node.w} height={node.h} rx={8} />
       )}
       {m.lines.map((l, i) =>
-        (l.kind === "caption" || l.kind === "year" || l.kind === "role") &&
-        !showSmall ? null : (
-          <text key={i} className={V_CLASS[l.kind]} x={cx} y={l.y}>
+        (l.kind === 'caption' || l.kind === 'year' || l.kind === 'role') && !showSmall ? null : (
+          <FitText key={i} className={V_CLASS[l.kind]} x={cx} y={l.y} maxW={node.w - 2 * V_PAD_X}>
             {l.text}
-          </text>
+          </FitText>
         ),
       )}
     </>
   );
 }
 
-/**
- * Side-by-side couple: spouse cards first (they sit behind, lower and to the right),
- * then the person's own card on top.
- */
-function SideContent({ node, lod }: { node: TreeNode; lod: Lod }) {
-  const side = node.side!;
-  const showSmall = lod >= 2;
-  const text = (
-    l: { kind: VerticalLineKind; text: string; y: number },
-    i: number,
-    cx: number,
-    dy: number,
-  ) =>
-    (l.kind === "caption" || l.kind === "year" || l.kind === "role") &&
-    !showSmall ? null : (
-      <text key={i} className={V_CLASS[l.kind]} x={cx} y={dy + l.y}>
-        {l.text}
-      </text>
-    );
-  return (
-    <>
-      {[...side.spouses].reverse().map((c) => (
-        <g key={c.spouseId}>
-          <rect
-            className={styles.sideCard}
-            x={c.x}
-            y={c.y}
-            width={c.w}
-            height={c.h}
-            rx={8}
-          />
-          {lod >= 1 && (
-            <g key={lod} className={styles.content}>
-              {c.lines.map((l, i) =>
-                text(l, i, c.x + (c.w + SIDE.overlap) / 2, c.y),
-              )}
-            </g>
-          )}
-        </g>
-      ))}
-      <rect
-        className={styles.box}
-        width={side.person.w}
-        height={side.person.height}
-        rx={8}
-      />
-      {lod >= 1 && (
-        <g key={lod} className={styles.content}>
-          {side.person.lines.map((l, i) => text(l, i, side.person.w / 2, 0))}
-        </g>
-      )}
-    </>
-  );
-}
-
 /** One family box: bloodline person (+ spouses below), content by level of detail. */
-export const TreeNodeView = memo(function TreeNodeView({
-  node,
-  lod,
-  dim,
-  mark,
-  onSelect,
-  onToggle,
-}: Props) {
+export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, onSelect, onToggle }: Props) {
   const p = node.person;
-  const role = p.gender === "male" ? "male" : "female";
+  const role = p.gender === 'male' ? 'male' : 'female';
   const deceased = p.death?.isDeceased === true;
-  const years = lifeSpan(p) || (deceased ? "đã mất" : "");
+  const years = lifeSpan(p) || (deceased ? 'đã mất' : '');
   const w = node.w;
   const textW = w - 22;
 
@@ -190,7 +137,7 @@ export const TreeNodeView = memo(function TreeNodeView({
   const extras = extraLines(node, lod).slice(0, maxExtra);
   const cardH = extras.length ? node.h + extras.length * extraLine + 6 : node.h;
 
-  const label = `${p.fullName}, đời ${node.gen}${node.collapsed ? `, đang thu gọn ${node.hiddenCount} người` : ""}`;
+  const label = `${p.fullName}, đời ${node.gen}${node.collapsed ? `, đang thu gọn ${node.hiddenCount} người` : ''}`;
 
   return (
     <g
@@ -198,7 +145,7 @@ export const TreeNodeView = memo(function TreeNodeView({
       data-role={role}
       data-deceased={deceased || undefined}
       data-dim={dim || undefined}
-      data-mark={mark === "none" ? undefined : mark}
+      data-mark={mark === 'none' ? undefined : mark}
       data-raised={extras.length > 0 || undefined}
       transform={`translate(${node.x},${node.y})`}
       role="button"
@@ -206,81 +153,70 @@ export const TreeNodeView = memo(function TreeNodeView({
       aria-label={label}
       onClick={() => onSelect(node.id)}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
+        if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onSelect(node.id);
         }
       }}
     >
-      {node.side ? (
-        <SideContent node={node} lod={lod} />
-      ) : (
-        <>
-          <rect className={styles.box} width={w} height={cardH} rx={8} />
-          <g key={lod} className={styles.content}>
-            {node.vertical ? (
-              lod >= 1 && <VerticalContent node={node} lod={lod} />
-            ) : lod === 0 ? (
-              node.gen <= 2 && (
-                <text className={styles.farName} x={w / 2} y={node.h / 2}>
-                  {p.fullName}
-                </text>
-              )
-            ) : lod === 1 ? (
-              <text className={styles.nameL1} x={w / 2} y={node.h / 2 + 6}>
-                {fit(p.fullName, textW, 17)}
+      <rect className={styles.box} width={w} height={cardH} rx={8} />
+      <g key={lod} className={styles.content}>
+        {node.vertical ? (
+          lod >= 1 && <VerticalContent node={node} lod={lod} />
+        ) : lod === 0 ? (
+          node.gen <= 2 && (
+            <text className={styles.farName} x={w / 2} y={node.h / 2}>
+              {p.fullName}
+            </text>
+          )
+        ) : lod === 1 ? (
+          <text className={styles.nameL1} x={w / 2} y={node.h / 2 + 6}>
+            {fit(p.fullName, textW, 17)}
+          </text>
+        ) : (
+          <>
+            {node.caption && (
+              <text className={styles.caption} x={12} y={17}>
+                {fit(node.caption, textW, 12)}
               </text>
-            ) : (
-              <>
-                {node.caption && (
-                  <text className={styles.caption} x={12} y={17}>
-                    {fit(node.caption, textW, 12)}
-                  </text>
-                )}
-                <text className={styles.name} x={12} y={36}>
-                  {fit(p.fullName, textW, 14)}
-                </text>
-                {years && (
-                  <text className={styles.years} x={12} y={53}>
-                    {years}
-                  </text>
-                )}
-                {node.spouses.map((s, i) => (
-                  <text
-                    key={s.person.id}
-                    className={styles.spouse}
-                    x={12}
-                    y={53 + 15 * (i + 1)}
-                  >
-                    {fit(`${s.role}: ${s.person.fullName}`, textW, 13)}
-                  </text>
-                ))}
-                {extras.map((line, i) => (
-                  <text
-                    key={i}
-                    className={styles.extra}
-                    style={{ fontSize: extraFont }}
-                    x={12}
-                    y={node.h + 4 + extraLine * (i + 1) - 3}
-                  >
-                    {fit(line, textW, extraFont)}
-                  </text>
-                ))}
-              </>
             )}
-          </g>
-        </>
-      )}
+            <text className={styles.name} x={12} y={36}>
+              {fit(p.fullName, textW, 14)}
+            </text>
+            {years && (
+              <text className={styles.years} x={12} y={53}>
+                {years}
+              </text>
+            )}
+            {node.spouses.map((s, i) => (
+              <text key={s.person.id} className={styles.spouse} x={12} y={53 + 15 * (i + 1)}>
+                {fit(`${s.role}: ${s.person.fullName}`, textW, 13)}
+              </text>
+            ))}
+            {extras.map((line, i) => (
+              <text
+                key={i}
+                className={styles.extra}
+                style={{ fontSize: extraFont }}
+                x={12}
+                y={node.h + 4 + extraLine * (i + 1) - 3}
+              >
+                {fit(line, textW, extraFont)}
+              </text>
+            ))}
+          </>
+        )}
+      </g>
       {node.hasChildren && (lod >= 1 || node.collapsed) && (
         <g
           className={styles.toggle}
-          transform={`translate(${node.outX},${cardH})`}
+          transform={`translate(${w / 2},${cardH})`}
           onClick={(e) => {
             e.stopPropagation();
             onToggle(node.id);
           }}
           onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
+            if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
               e.stopPropagation();
               onToggle(node.id);
@@ -288,11 +224,7 @@ export const TreeNodeView = memo(function TreeNodeView({
           }}
           role="button"
           tabIndex={0}
-          aria-label={
-            node.collapsed
-              ? `Mở rộng nhánh (${node.hiddenCount} người)`
-              : "Thu gọn nhánh"
-          }
+          aria-label={node.collapsed ? `Mở rộng nhánh (${node.hiddenCount} người)` : 'Thu gọn nhánh'}
           aria-expanded={!node.collapsed}
         >
           <circle className={styles.hit} r={22} />

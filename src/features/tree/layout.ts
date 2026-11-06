@@ -16,11 +16,13 @@ export const NODE_W = 176;
  * From this generation down, each person is a narrow "couple column": the name written
  * top to bottom, one word per line (as in a traditional family book), and below it,
  * in a tinted section of the same card, each spouse the same way. The crowded lower
- * generations take a quarter of the width, and the couple still reads as one unit:
+ * generations take about a third of the width, and the couple still reads as one unit:
  * width is what a family tree lacks, height it has to spare.
  */
-export const VERTICAL_FROM_GEN = 4;
-export const VNODE_W = 56;
+export const VERTICAL_FROM_GEN = 3;
+export const VNODE_W = 64;
+/** Minimum space between a word and the left/right frame of a vertical card. */
+export const V_PAD_X = 6;
 /** Line heights inside a vertical card (tree units). */
 export const V = {
   padTop: 10,
@@ -34,15 +36,6 @@ export const V = {
   spouseRole: 13,
   spouseWord: 16,
 } as const;
-/**
- * How a couple is drawn in the narrow cards (D63/D64):
- *  - 'stack': spouses below the name, in the same column (narrowest);
- *  - 'side':  each spouse in their own narrow card beside the person, set a little lower
- *             and tucked slightly behind, like two cards laid side by side, staggered.
- */
-export type CoupleStyle = 'stack' | 'side';
-/** Side-by-side couples: spouse card width, how far it tucks under the person's card, how much lower it sits. */
-export const SIDE = { w: 58, overlap: 6, drop: 24, padTop: 8, padBottom: 8 } as const;
 /** Vertical gap between generations; L3/L4 cards expand into it. */
 export const VGAP = 76;
 /** Default number of generation rows on a full tree (the app starts with 4 generations). */
@@ -64,8 +57,6 @@ export interface TreeFilters {
   showSpouses: boolean;
   showMaternal: boolean;
   collapsed: ReadonlySet<string>;
-  /** Couples in the narrow cards; default 'stack'. */
-  couple?: CoupleStyle;
   /**
    * Branch view ("in theo chi"): show the line from the root ancestor down to this
    * person and ALL of their descendants; everyone else along the way (siblings,
@@ -93,12 +84,6 @@ export interface TreeNode {
   y: number;
   w: number;
   h: number;
-  /** Where the line from the parent comes in: x offset from the node's left (the person's own card). */
-  inX: number;
-  /** Side-by-side couple: the person's own card and each spouse card, relative to the node. */
-  /** Where the line to the children leaves the node (x offset): between husband and wife for side-by-side couples. */
-  outX: number;
-  side: SideCouple | null;
   parentId: string | null;
   childIds: string[];
   /** Has children that the current filters would show. */
@@ -226,45 +211,6 @@ export function verticalMetrics(
   return { lines, sections, height: y + V.padBottom };
 }
 
-export interface SideCard {
-  spouseId: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  /** Baselines relative to the spouse card's top. */
-  lines: VerticalLine[];
-}
-
-export interface SideCouple {
-  /** The person's own card (at 0,0). */
-  person: VerticalMetrics & { w: number };
-  spouses: SideCard[];
-  w: number;
-  h: number;
-}
-
-/**
- * Side-by-side couple: the person's narrow card, then each spouse in a narrower card to
- * the right, a little lower and tucked slightly behind (staggered).
- */
-export function sideCouple(p: PersonRec, spouses: readonly TreeSpouse[], opts: { years?: boolean } = {}): SideCouple {
-  const own = verticalMetrics(p, [], opts);
-  const cards: SideCard[] = [];
-  let x = VNODE_W - SIDE.overlap;
-  spouses.forEach((s, i) => {
-    const lines: VerticalLine[] = [];
-    let y = SIDE.padTop;
-    lines.push({ kind: 'role', text: s.role.toLowerCase(), y: (y += V.spouseRole) - 3 });
-    for (const w of words(s.person.fullName)) lines.push({ kind: 'spouseWord', text: w, y: (y += V.spouseWord) - 4 });
-    cards.push({ spouseId: s.person.id, x, y: SIDE.drop * (i + 1), w: SIDE.w, h: y + SIDE.padBottom, lines });
-    x += SIDE.w - SIDE.overlap;
-  });
-  const w = cards.length ? cards[cards.length - 1]!.x + SIDE.w : VNODE_W;
-  const h = Math.max(own.height, ...cards.map((c) => c.y + c.h));
-  return { person: { ...own, w: VNODE_W }, spouses: cards, w, h };
-}
-
 export function isShown(model: ClanModel, p: PersonRec, f: TreeFilters): boolean {
   if (!p.isBloodline) return false;
   if (!f.showMaternal && model.isMaternal(p.id)) return false;
@@ -363,7 +309,7 @@ export function branchOpenIds(model: ClanModel, focusId: string, f: TreeFilters)
 }
 
 export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout {
-  const info = new Map<string, { spouses: TreeSpouse[]; shownKids: PersonRec[]; side: SideCouple | null }>();
+  const info = new Map<string, { spouses: TreeSpouse[]; shownKids: PersonRec[] }>();
   const rowH = new Map<number, number>();
   const branchOpen = f.focusId ? branchOpenIds(model, f.focusId, f) : null;
   const isCollapsed = (id: string) => f.collapsed.has(id) || (branchOpen !== null && !branchOpen.has(id));
@@ -372,13 +318,11 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
     const gen = model.generationOf(p.id)!;
     const spouses = f.showSpouses ? spousesOf(model, p) : [];
     const kids = shownChildren(model, p.id, f);
+    info.set(p.id, { spouses, shownKids: kids });
     const vertical = isVerticalGen(gen);
-    const side = vertical && f.couple === 'side' ? sideCouple(p, spouses) : null;
-    const h = side ? side.h : vertical ? verticalMetrics(p, spouses).height : BASE_H + spouses.length * SPOUSE_LINE;
-    const w = side ? side.w : vertical ? VNODE_W : NODE_W;
-    info.set(p.id, { spouses, shownKids: kids, side });
+    const h = vertical ? verticalMetrics(p, spouses).height : BASE_H + spouses.length * SPOUSE_LINE;
     rowH.set(gen, Math.max(rowH.get(gen) ?? 0, h));
-    return { id: p.id, gen, w, h, children: isCollapsed(p.id) ? [] : kids.map(build) };
+    return { id: p.id, gen, w: vertical ? VNODE_W : NODE_W, h, children: isCollapsed(p.id) ? [] : kids.map(build) };
   };
 
   const starts = startingPersons(model, f);
@@ -433,9 +377,6 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
       w: d.w,
       vertical: isVerticalGen(d.gen),
       h: d.h,
-      inX: meta.side ? VNODE_W / 2 : d.w / 2,
-      outX: meta.side?.spouses.length ? VNODE_W - SIDE.overlap / 2 : d.w / 2,
-      side: meta.side,
       parentId,
       childIds: (n.children ?? []).map((c) => c.data.id),
       hasChildren: meta.shownKids.length > 0,
@@ -451,10 +392,10 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
   for (const p of nodes) {
     if (p.childIds.length === 0) continue;
     const kids = p.childIds.map((id) => byId.get(id)!);
-    const px = p.x + p.outX;
+    const px = p.x + p.w / 2;
     const childTop = kids[0]!.y;
     const barY = childTop - BAR_OFFSET;
-    const centers = kids.map((k) => k.x + k.inX);
+    const centers = kids.map((k) => k.x + k.w / 2);
     const lo = Math.min(px, ...centers);
     const hi = Math.max(px, ...centers);
     let d = `M${px},${p.y + p.h}V${barY}M${lo},${barY}H${hi}`;
