@@ -570,3 +570,12 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - Trước đây "+12" là một nhãn tròn ở **bên phải** mỗi dòng, chiếm chỗ của tên, nên tên dài dễ bị xuống dòng.
 - Giờ số này là **chữ nhỏ (11px, cùng màu mũi tên) ngay dưới mũi tên mở nhánh**, trong cùng nút bấm. Chạm vào số cũng mở nhánh. Bên phải dòng dành hết cho tên, tên vợ/chồng và năm.
 - Trình đọc màn hình đọc số này trong tên nút: "Mở nhánh Trịnh Văn A, 12 người trong nhánh".
+
+### D67. Cây dọc: dòng phụ "năm · vợ/chồng" xuống dòng gọn
+- **Lỗi:** dòng phụ gồm tên vợ/chồng rồi tới năm sinh–mất. Khi tên vợ/chồng dài, cả cụm "· k. 1843 – k. 1897" bị đẩy xuống một dòng riêng, mở đầu bằng dấu "·".
+- **Sửa** (`OutlineView.tsx`, `.line2` trong `Outline.module.css`):
+  - **Năm sinh–mất đứng trước** (ngắn, không bao giờ nằm lẻ một dòng), rồi tới từng vợ/chồng.
+  - Mỗi phần ("Vợ cả: …", "Vợ hai: …") là một khối riêng: không đủ chỗ thì **cả khối xuống dòng**, không cắt đôi giữa "Vợ:" và tên.
+  - Dấu "·" chỉ hiện **giữa hai phần trên cùng một dòng**, không bao giờ ở đầu hay cuối dòng. Cách làm: mỗi phần vẽ dấu "·" trong khoảng trống phía trước nó; phần đầu mỗi dòng nằm sát mép trái nên dấu của nó rơi ra ngoài và bị cắt (`overflow: hidden`).
+  - Không cắt tên bằng "…". Trên màn rất hẹp (320px), một tên vợ/chồng dài hơn cả dòng sẽ tự xuống dòng bên trong.
+- Đã kiểm tra trên iPhone 13 (390px) và iPhone SE (320px): không dòng nào bắt đầu bằng "·", không tên nào bị cắt.

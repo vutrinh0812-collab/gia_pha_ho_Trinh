@@ -312,7 +312,10 @@ interface RowProps {
 function Row({ row: r, mark, dim, onToggle, onSelect }: RowProps) {
   const p = r.person;
   const role = p.gender === 'female' ? 'female' : 'male';
-  const spouseText = r.spouses.map((s) => `${s.role}: ${s.person.fullName}`).join(' · ');
+  const meta: { key: string; text: string; years?: boolean }[] = [
+    ...(r.years ? [{ key: 'years', text: r.years, years: true }] : []),
+    ...r.spouses.map((s) => ({ key: s.person.id, text: `${s.role}: ${s.person.fullName}` })),
+  ];
   const isRoot = r.depth === 0;
   return (
     <li
@@ -366,10 +369,15 @@ function Row({ row: r, mark, dim, onToggle, onSelect }: RowProps) {
             {r.caption && <span className={styles.caption}>{r.caption}</span>}
             <span className={styles.name}>{p.fullName}</span>
           </span>
-          {(r.years || spouseText) && (
+          {meta.length > 0 && (
+            // Years first (short, never left alone on a line), then each spouse. Each part wraps
+            // whole; the "·" between parts only shows between two parts on the same line.
             <span className={styles.line2}>
-              {spouseText && <span className={styles.spouse}>{spouseText}</span>}
-              {r.years && <span className={styles.years}>{spouseText ? ` · ${r.years}` : r.years}</span>}
+              {meta.map((m) => (
+                <span key={m.key} className={m.years ? styles.years : styles.spouse}>
+                  {m.text}
+                </span>
+              ))}
             </span>
           )}
         </span>

@@ -463,12 +463,34 @@
 .line2 {
   display: flex;
   flex-wrap: wrap;
+  /* Each part draws a "·" in the gap before it. The first part of every line starts at the
+     left edge, so its dot falls outside and is clipped: dots only appear between two parts
+     on the same line, never at a line's start or end. */
+  --sep: 0.9em;
+  column-gap: var(--sep);
+  overflow: hidden;
   font-size: 0.8125rem;
   line-height: 1.35;
   color: var(--text-2);
   font-weight: 500;
 }
+.years,
+.spouse {
+  position: relative;
+  min-width: 0;
+}
+.years::before,
+.spouse::before {
+  content: '·';
+  position: absolute;
+  left: calc(-1 * var(--sep));
+  width: var(--sep);
+  text-align: center;
+}
+/* Each part moves to the next line whole (flex-wrap). Only a spouse too long for a whole
+   line on a very narrow screen wraps inside itself; nothing is cut off. */
 .years {
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 .spouse {
