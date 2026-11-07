@@ -41,7 +41,10 @@ interface Props {
   /** Shown under the title when the sheet is one branch ("Chi ông …"). */
   branchLine?: string | null;
   className?: string;
+  /** Typed on the print page; default: the clan's title and subtitle (D72). */
   title?: string;
+  /** null/empty hides the subtitle. */
+  subtitle?: string | null;
 }
 
 /** Splits an <svg …>inner</svg> string into its viewBox and inner markup, to inline it. */
@@ -77,7 +80,7 @@ function fit(text: string, maxW: number, size: number): string {
   return text.length <= max ? text : `${text.slice(0, Math.max(1, max - 1))}…`;
 }
 
-export function PosterSvg({ theme, model, layout, options, branchLine, className, title }: Props) {
+export function PosterSvg({ theme, model, layout, options, branchLine, className, title, subtitle }: Props) {
   const o = { ...DEFAULT_POSTER_OPTIONS, ...options };
   const uid = useId().replace(/:/g, '');
   const { w: W, h: H } = A1[o.orientation];
@@ -94,17 +97,35 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
     : { x: inset, y: inset, w: W - 2 * inset, h: H - 2 * inset };
 
   // ---- Header: banner + title, subtitle, root ancestor ----
-  const bannerW = Math.min(box.w * 0.52, 430);
-  const bannerH = theme.ornaments.titleBanner ? (bannerW * 84) / 400 : 0;
+  // A title board (D72) is a picture placed in mm on the sheet; the title and subtitle
+  // are fitted inside its text box. Otherwise the theme's SVG banner or plain text.
+  const board = theme.titleBoard;
   const titleText = title ?? s.title;
-  const titleSize = Math.min(t.title.sizePt * PT, (bannerW * 0.78) / (titleText.length * 0.52), 30);
-  const headerTop = box.y;
-  const titleY = theme.ornaments.titleBanner ? headerTop + bannerH / 2 : headerTop + titleSize * 0.8;
-  const subSize = t.heading.sizePt * PT * 0.62;
-  const subY = (theme.ornaments.titleBanner ? headerTop + bannerH : headerTop + titleSize * 1.3) + subSize * 1.5;
+  const subText = subtitle !== undefined ? subtitle?.trim() || null : s.subtitle;
+  const bannerW = board ? board.widthMm : Math.min(box.w * 0.52, 430);
+  const bannerH = board ? board.widthMm * board.aspect : theme.ornaments.titleBanner ? (bannerW * 84) / 400 : 0;
+  const bannerX = board?.leftMm ?? (W - bannerW) / 2;
+  const headerTop = board ? board.topMm : box.y;
+  const tb = board && {
+    x: bannerX + board.textBox.left * bannerW,
+    y: headerTop + board.textBox.top * bannerH,
+    w: (board.textBox.right - board.textBox.left) * bannerW,
+    h: (board.textBox.bottom - board.textBox.top) * bannerH,
+  };
+  const titleZoneH = tb ? (subText ? tb.h * 0.62 : tb.h) : 0;
+  const titleSize = tb
+    ? Math.min(t.title.sizePt * PT, tb.w / (Math.max(titleText.length, 1) * 0.6), titleZoneH * 0.72)
+    : Math.min(t.title.sizePt * PT, (bannerW * 0.78) / (titleText.length * 0.52), 30);
+  const titleY = tb ? tb.y + titleZoneH / 2 : theme.ornaments.titleBanner ? headerTop + bannerH / 2 : headerTop + titleSize * 0.8;
+  const subSize = tb && subText
+    ? Math.min(titleSize * 0.5, tb.w / (subText.length * 0.52), (tb.h - titleZoneH) * 0.6)
+    : t.heading.sizePt * PT * 0.62;
+  const subY = tb
+    ? tb.y + titleZoneH + (tb.h - titleZoneH) / 2
+    : (theme.ornaments.titleBanner ? headerTop + bannerH : headerTop + titleSize * 1.3) + subSize * 1.5;
   const root = model.get(model.rootId);
   const rootSize = t.heading.sizePt * PT;
-  const rootY = subY + (s.subtitle ? subSize * 1.2 : 0) + rootSize * 1.4;
+  const rootY = board ? headerTop + bannerH + rootSize * 1.5 : subY + (subText ? subSize * 1.2 : 0) + rootSize * 1.4;
   const branchY = rootY + (branchLine ? subSize * 1.5 : 0);
   const headerBottom = branchY + 8;
 
@@ -267,8 +288,9 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
       {theme.ornaments.titleBanner && (
         <Ornament svg={theme.ornaments.titleBanner} x={(W - bannerW) / 2} y={headerTop} width={bannerW} height={bannerH} />
       )}
+      {board && <image href={board.href} x={bannerX} y={headerTop} width={bannerW} height={bannerH} preserveAspectRatio="none" />}
       <text
-        x={W / 2}
+        x={tb ? tb.x + tb.w / 2 : W / 2}
         y={titleY}
         textAnchor="middle"
         dominantBaseline="central"
@@ -276,16 +298,25 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
         fontWeight={t.title.weight}
         fontSize={titleSize}
         letterSpacing={t.title.letterSpacing ? `${t.title.letterSpacing}em` : undefined}
-        fill={theme.ornaments.titleBanner ? (c.bannerText ?? c.textPrimary) : c.textPrimary}
+        fill={theme.ornaments.titleBanner || board ? (c.bannerText ?? c.textPrimary) : c.textPrimary}
       >
         {titleText}
       </text>
       {theme.ornaments.seal && (
         <Seal x={W / 2 + Math.min(titleText.length * titleSize * 0.27, bannerW / 2) + 10} y={titleY - 13} size={26} color={theme.ornaments.seal.color} name={s.clanName} font={t.heading.family} />
       )}
-      {s.subtitle && (
-        <text x={W / 2} y={subY} textAnchor="middle" fontFamily={t.heading.family} fontWeight={400} fontSize={subSize} fill={c.textSecondary}>
-          {s.subtitle}
+      {subText && (
+        <text
+          x={tb ? tb.x + tb.w / 2 : W / 2}
+          y={subY}
+          textAnchor="middle"
+          dominantBaseline={tb ? 'central' : undefined}
+          fontFamily={t.heading.family}
+          fontWeight={400}
+          fontSize={subSize}
+          fill={tb ? (c.bannerText ?? c.textSecondary) : c.textSecondary}
+        >
+          {subText}
         </text>
       )}
       {root && (

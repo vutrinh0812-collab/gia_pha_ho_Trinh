@@ -607,3 +607,21 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - Mục còn lẻ một mình ở hàng cuối cũng chiếm cả hàng, không để trống nửa bên phải.
   - Mục ngắn (năm sinh, nghề nghiệp) vẫn xếp hai cột.
 - Đã đo: "TRỊNH VĂN CHÍN (thứ VIII)" nằm trên **một dòng** ở màn hình rộng 360px; "Trịnh Văn Việt (thứ III)" một dòng cả ở 320px.
+
+### D72. Preset khung "Sơn mài rồng vàng" (thiết kế trên Canva), bảng tiêu đề tách riêng, xuất PDF khổ A1
+- **Preset đầu tiên thiết kế trên Canva** theo yêu cầu "nền tối, chữ và khung mạ vàng", dựng lại bố cục ngang A1 (841 × 594 mm). Người dùng đã duyệt mẫu.
+  - **Ảnh khung** `src/themes/son-mai-rong-vang/khung-a1.jpg`: 5600 × 3955 px (khoảng 169 dpi trên A1). Gồm nền sơn mài tối, viền vàng kép, rồng và mây vàng ở góc, trống đồng chìm ở giữa, hai câu đối vẽ sẵn. Canva gói miễn phí chỉ xuất đúng cỡ thiết kế, nên thiết kế được phóng lên cỡ lớn nhất Canva cho phép rồi mới xuất.
+  - **Ảnh bảng tiêu đề** `bang-tieu-de.png` (cuốn thư mạ vàng, 2042 × 627 px, nền trong suốt). Gói miễn phí không xuất được PNG trong suốt, nên ảnh được tách bằng cách so hai bản xuất (có và không có cuốn thư) trên cùng nền. Phần lõi tối bên trong cuốn thư giữ đặc để viết chữ.
+  - **Token** (theo bảng token đã duyệt): nền #1A1210, ô người #241915, vàng kim #D4AF37, vàng nhạt #F1D98A, vàng đậm #A67C1B (đường nối), chữ phụ #C9B37E. Chữ dùng theo "Sơn mài vàng" (Playfair Display, Lora).
+  - Là một giao diện in có sẵn (`son-mai-rong-vang`), chọn được ở trang In ấn như các giao diện khác.
+- **Bảng tiêu đề là một lớp riêng** (`Theme.titleBoard`): ảnh, vị trí (mm) trên tờ A1, và vùng viết chữ bên trong (tỉ lệ 0–1 của ảnh).
+  - **Tiêu đề và dòng phụ nhập tùy ý** ở trang In ấn (ô "Tiêu đề", "Dòng phụ dưới tiêu đề"), mặc định lấy từ cài đặt dòng họ. Chữ tự co cho vừa vùng viết; để trống dòng phụ thì ẩn.
+  - **Gói tự nhập** (D62) cũng có thể có bảng tiêu đề riêng: trường `bangTieuDe` trong JSON (`tep`, `trenMm`, `rongMm`, `traiMm`, `tiLe`, `vungChu`). Chọn cùng lúc file JSON, ảnh khung và ảnh bảng tiêu đề.
+- **Nút "Tải PDF khổ A1"** ở trang In ấn: xuất đúng tờ đang xem trước thành PDF khổ A1 (`exportPdf.ts`, jsPDF + svg2pdf.js).
+  - Chữ, ô người và đường nối là **vector**, phóng to bao nhiêu cũng sắc nét. Ảnh khung và bảng tiêu đề nhúng nguyên độ phân giải gốc.
+  - **Tiếng Việt đúng dấu:** phông của các giao diện in được đóng gói sẵn dạng TTF trong `public/fonts/pdf`. Có 20 file, đã cắt chỉ còn Latin + tiếng Việt, tổng khoảng 0,8 MB. Phông chỉ tải khi bấm xuất, và mỗi phông chỉ nhúng các chữ thực sự dùng. Phông lạ (của gói tự nhập) được thay bằng Noto Serif để không mất chữ.
+  - jsPDF/svg2pdf (khoảng 136 KB gzip) nằm ở phần tải riêng, chỉ tải khi xuất; gói tải lần đầu của app không đổi.
+  - Đã kiểm tra: PDF đúng 2384 × 1684 pt (A1), chữ trích ra được với đủ dấu, xem ở 600 dpi vẫn nét.
+  - **Còn thiếu:** viền hoa văn dạng lặp (SVG pattern) của các giao diện vẽ sẵn, như viền của "Truyền thống đỏ", không hiện trong PDF (góc và các trang trí khác vẫn có). "Sơn mài rồng vàng" không bị ảnh hưởng vì khung là ảnh.
+- **Sửa nhỏ trang In ấn:** các ô chọn không còn tràn sang cột bên (lưới 2 cột).
+- Bản xem thử một file (`build-preview.mjs`) nhúng luôn hai ảnh khung để giao diện mới hiện được trong artifact.

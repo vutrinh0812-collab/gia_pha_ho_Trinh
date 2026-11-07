@@ -27,7 +27,8 @@
   font-size: 0.875rem;
   color: var(--text-2);
 }
-.field select {
+.field select,
+.field input {
   min-height: 48px;
   padding: 0 10px;
   border: 1px solid var(--line-strong);
@@ -45,13 +46,27 @@
   display: grid;
   gap: 12px;
 }
+/* Title and subtitle written on the sheet (D72): their own row above the other options. */
+.titleFields {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
+}
+.field input,
+.field select {
+  width: 100%;
+  box-sizing: border-box;
+}
 @media (min-width: 960px) {
   .controls {
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     align-items: start;
   }
   .controls .toggles {
     grid-column: 1 / -1;
+  }
+  .titleFields {
+    grid-template-columns: 1fr 1fr;
   }
 }
 .toggles {
@@ -295,4 +310,16 @@
 .error {
   margin: 0;
   color: var(--err);
+}
+/* "Tải PDF khổ A1" above the preview (D72). */
+.exportBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 20px;
+}
+.exportBar .hint {
+  margin: 0;
+  flex: 1 1 260px;
 }

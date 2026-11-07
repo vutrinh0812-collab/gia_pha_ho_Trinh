@@ -78,8 +78,27 @@ export interface Theme {
   backgroundTexture?: string;
   /** A picture of the whole sheet (an imported frame package, D62), drawn under everything. */
   backgroundImage?: { href: string; fit: 'cover' | 'stretch' | 'contain' };
+  /**
+   * A picture of the title board (cuốn thư, hoành phi…) as its own layer (D72): the title
+   * and subtitle, which people type on the print page, are written inside `textBox`.
+   */
+  titleBoard?: TitleBoard;
   /** Where title and tree go on the sheet, in mm from each edge (default: inside the frame). */
   contentInsetMm?: { top: number; right: number; bottom: number; left: number };
   /** Paper direction the background picture was drawn for. */
   preferredOrientation?: 'landscape' | 'portrait';
+}
+
+/** The title board layer of a print theme (D72). */
+export interface TitleBoard {
+  /** The picture, with a transparent background (PNG/WebP), as a URL or data URL. */
+  href: string;
+  /** Height ÷ width of the picture. */
+  aspect: number;
+  /** Top edge and width on the A1 sheet, in mm; centred unless `leftMm` is given. */
+  topMm: number;
+  widthMm: number;
+  leftMm?: number;
+  /** Area for the text inside the picture, as fractions (0–1) of its width and height. */
+  textBox: { top: number; bottom: number; left: number; right: number };
 }

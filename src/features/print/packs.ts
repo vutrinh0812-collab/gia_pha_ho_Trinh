@@ -36,6 +36,22 @@ export interface PackJson {
   hienCauDoi?: boolean;
   /** Colour of the seal beside the title; null hides it. */
   mauConTrien?: string | null;
+  /**
+   * Title board as its own picture (D72): a transparent PNG/WebP placed in mm on the sheet.
+   * The title and subtitle typed on the print page are written inside `vungChu`.
+   */
+  bangTieuDe?: {
+    /** File name of the picture chosen together with the JSON, or a data:image/… URL. */
+    tep: string;
+    /** Top edge and width on the sheet (mm); centred unless `traiMm` is given. */
+    trenMm: number;
+    rongMm: number;
+    traiMm?: number;
+    /** Height ÷ width of the picture; read from the file when left out. */
+    tiLe?: number;
+    /** Text area inside the picture, as fractions 0–1 of its width/height (default: the middle). */
+    vungChu?: { tren: number; duoi: number; trai: number; phai: number };
+  };
 }
 
 export interface StoredPack {
@@ -43,6 +59,8 @@ export interface StoredPack {
   json: PackJson;
   /** The background picture as a data URL. */
   image: string;
+  /** The title board picture (data URL) and its height ÷ width, when the pack has one. */
+  board?: { image: string; aspect: number };
   addedAt: number;
 }
 
@@ -52,7 +70,8 @@ export const SAMPLE_PACK: PackJson & { _huongDan: string[] } = {
     'hinhNen.tep: tên file ảnh khung (PNG/JPG/WebP), nên vẽ đúng tỉ lệ A1: 841 × 594 mm (ngang) hoặc 594 × 841 mm (dọc), tối thiểu 3000 px chiều dài.',
     'hinhNen.cachPhu: "cover" (phủ kín, cắt bớt mép), "stretch" (kéo giãn vừa khít), "contain" (giữ nguyên ảnh).',
     'vungNoiDungMm: khoảng cách (mm) từ mép giấy vào vùng trống bên trong khung, nơi đặt tiêu đề và cây gia phả.',
-    'nen: giao diện có sẵn để lấy màu và chữ mặc định: truyen-thong-do, son-mai-vang, men-lam, giay-do.',
+    'nen: giao diện có sẵn để lấy màu và chữ mặc định: truyen-thong-do, son-mai-vang, son-mai-rong-vang, men-lam, giay-do.',
+    'bangTieuDe (không bắt buộc): ảnh bảng tiêu đề riêng, nền trong suốt (PNG). trenMm, rongMm: mép trên và chiều rộng trên tờ A1 (mm), tự căn giữa; traiMm nếu muốn đặt lệch. vungChu: vùng viết chữ bên trong ảnh, tính theo tỉ lệ 0–1 của ảnh. Chữ tiêu đề nhập ở trang In ấn.',
     'mau, chu, oNguoi, duongNoi: chỉ ghi những gì muốn đổi; bỏ trống thì dùng của giao diện nền. Màu viết dạng #rrggbb.',
     'Các trường bắt đầu bằng _ (như _huongDan) được bỏ qua.',
   ],
@@ -108,6 +127,21 @@ export function validatePack(raw: unknown): PackJson {
     for (const [k, c] of Object.entries(mau)) if (!isColor(c)) throw new Error(`Màu "mau.${k}" không hợp lệ (dùng dạng #rrggbb).`);
   }
   if (p.mauConTrien !== undefined && p.mauConTrien !== null && !isColor(p.mauConTrien)) throw new Error('"mauConTrien" không phải màu hợp lệ.');
+  const bt = p.bangTieuDe as Record<string, unknown> | undefined;
+  if (bt !== undefined) {
+    if (!bt || typeof bt.tep !== 'string' || !bt.tep.trim()) throw new Error('Thiếu "bangTieuDe.tep": tên file ảnh bảng tiêu đề.');
+    if (!isNum(bt.trenMm, 0, 841)) throw new Error('"bangTieuDe.trenMm" phải là số mm từ 0 đến 841.');
+    if (!isNum(bt.rongMm, 10, 841)) throw new Error('"bangTieuDe.rongMm" phải là số mm từ 10 đến 841.');
+    if (bt.traiMm !== undefined && !isNum(bt.traiMm, 0, 841)) throw new Error('"bangTieuDe.traiMm" phải là số mm từ 0 đến 841.');
+    if (bt.tiLe !== undefined && !isNum(bt.tiLe, 0.02, 10)) throw new Error('"bangTieuDe.tiLe" (cao ÷ rộng) phải là số dương.');
+    const vc = bt.vungChu as Record<string, unknown> | undefined;
+    if (vc !== undefined) {
+      for (const k of ['tren', 'duoi', 'trai', 'phai'])
+        if (!isNum(vc?.[k], 0, 1)) throw new Error(`"bangTieuDe.vungChu.${k}" phải là số từ 0 đến 1.`);
+      if ((vc.tren as number) >= (vc.duoi as number) || (vc.trai as number) >= (vc.phai as number))
+        throw new Error('"bangTieuDe.vungChu": tren phải nhỏ hơn duoi, trai phải nhỏ hơn phai.');
+    }
+  }
   if (p.fontsCss !== undefined && (typeof p.fontsCss !== 'string' || !p.fontsCss.startsWith('https://fonts.googleapis.com/')))
     throw new Error('"fontsCss" phải là link https://fonts.googleapis.com/…');
   return p as unknown as PackJson;
@@ -142,9 +176,38 @@ export function packTheme(pack: StoredPack): Theme {
       seal: j.mauConTrien === null ? undefined : { color: j.mauConTrien ?? base.ornaments.seal?.color ?? base.colors.accent },
     },
     backgroundImage: { href: pack.image, fit: j.hinhNen.cachPhu ?? 'cover' },
+    titleBoard:
+      pack.board && j.bangTieuDe
+        ? {
+            href: pack.board.image,
+            aspect: pack.board.aspect,
+            topMm: j.bangTieuDe.trenMm,
+            widthMm: j.bangTieuDe.rongMm,
+            leftMm: j.bangTieuDe.traiMm,
+            textBox: j.bangTieuDe.vungChu
+              ? {
+                  top: j.bangTieuDe.vungChu.tren,
+                  bottom: j.bangTieuDe.vungChu.duoi,
+                  left: j.bangTieuDe.vungChu.trai,
+                  right: j.bangTieuDe.vungChu.phai,
+                }
+              : { top: 0.2, bottom: 0.8, left: 0.15, right: 0.85 },
+          }
+        : undefined,
     contentInsetMm: inset ? { top: inset.tren, right: inset.phai, bottom: inset.duoi, left: inset.trai } : undefined,
     preferredOrientation: j.huongGiay === 'doc' ? 'portrait' : j.huongGiay === 'ngang' ? 'landscape' : undefined,
   };
+}
+
+/** Height ÷ width of a picture, or null when it cannot be decoded here. */
+function imageAspect(src: string): Promise<number | null> {
+  return new Promise((resolve) => {
+    if (typeof Image === 'undefined') return resolve(null);
+    const img = new Image();
+    img.onload = () => resolve(img.naturalWidth ? img.naturalHeight / img.naturalWidth : null);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
 }
 
 function readAs(file: Blob, as: 'text' | 'dataUrl'): Promise<string> {
@@ -176,11 +239,30 @@ export async function packFromFiles(files: File[]): Promise<StoredPack> {
     json.hinhNen = { ...json.hinhNen, tep: 'anh-trong-json' };
   } else {
     const want = json.hinhNen.tep.trim().toLowerCase();
-    const pictures = files.filter((f) => f.type.startsWith('image/'));
+    const boardName = json.bangTieuDe?.tep.trim().toLowerCase();
+    const pictures = files.filter((f) => f.type.startsWith('image/') && f.name.toLowerCase() !== boardName);
     const pic = pictures.find((f) => f.name.toLowerCase() === want) ?? (pictures.length === 1 ? pictures[0] : undefined);
     if (!pic) throw new Error(`Chưa chọn ảnh khung "${json.hinhNen.tep}". Hãy chọn cùng lúc file .json và file ảnh.`);
     if (pic.size > MAX_IMAGE) throw new Error('Ảnh khung quá lớn (tối đa 25 MB).');
     image = await readAs(pic, 'dataUrl');
+  }
+  let board: StoredPack['board'];
+  if (json.bangTieuDe) {
+    const bt = json.bangTieuDe;
+    let boardImage: string;
+    if (bt.tep.startsWith('data:image/')) {
+      boardImage = bt.tep;
+      json.bangTieuDe = { ...bt, tep: 'anh-trong-json' };
+    } else {
+      const want = bt.tep.trim().toLowerCase();
+      const pic = files.find((f) => f.type.startsWith('image/') && f.name.toLowerCase() === want);
+      if (!pic) throw new Error(`Chưa chọn ảnh bảng tiêu đề "${bt.tep}". Hãy chọn cùng lúc file .json, ảnh khung và ảnh bảng tiêu đề.`);
+      if (pic.size > MAX_IMAGE) throw new Error('Ảnh bảng tiêu đề quá lớn (tối đa 25 MB).');
+      boardImage = await readAs(pic, 'dataUrl');
+    }
+    const aspect = bt.tiLe ?? (await imageAspect(boardImage));
+    if (!aspect) throw new Error('Không đọc được kích thước ảnh bảng tiêu đề. Hãy ghi "bangTieuDe.tiLe" (cao ÷ rộng).');
+    board = { image: boardImage, aspect };
   }
   const slug = json.ten
     .normalize('NFD')
@@ -190,7 +272,7 @@ export async function packFromFiles(files: File[]): Promise<StoredPack> {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 40);
-  return { id: `${PACK_PREFIX}${slug || 'khung'}`, json, image, addedAt: Date.now() };
+  return { id: `${PACK_PREFIX}${slug || 'khung'}`, json, image, board, addedAt: Date.now() };
 }
 
 // ---------- Storage on this device (IndexedDB) ----------

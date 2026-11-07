@@ -27,9 +27,11 @@
     "d3-transition": "^3.0.2",
     "d3-zoom": "^3.0.1",
     "firebase": "^10.14.1",
+    "jspdf": "^2.5.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.6",
+    "svg2pdf.js": "^2.2.4",
     "zustand": "^5.0.16"
   },
   "devDependencies": {

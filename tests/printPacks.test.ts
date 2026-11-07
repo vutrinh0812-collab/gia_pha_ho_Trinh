@@ -38,3 +38,38 @@ describe('print frame packages (D62)', () => {
     expect(t.preferredOrientation).toBe('landscape');
   });
 });
+
+describe('title board as its own picture (D72)', () => {
+  const withBoard = {
+    ...SAMPLE_PACK,
+    bangTieuDe: { tep: 'bang-tieu-de.png', trenMm: 37, rongMm: 306.7, tiLe: 0.307, vungChu: { tren: 0.18, duoi: 0.76, trai: 0.17, phai: 0.83 } },
+  };
+
+  it('checks the board settings and explains mistakes', () => {
+    expect(() => validatePack(withBoard)).not.toThrow();
+    expect(() => validatePack({ ...SAMPLE_PACK, bangTieuDe: { trenMm: 1, rongMm: 100 } })).toThrow(/bangTieuDe\.tep/);
+    expect(() => validatePack({ ...SAMPLE_PACK, bangTieuDe: { tep: 'b.png', trenMm: 1, rongMm: 2 } })).toThrow(/rongMm/);
+    expect(() =>
+      validatePack({ ...SAMPLE_PACK, bangTieuDe: { tep: 'b.png', trenMm: 1, rongMm: 100, vungChu: { tren: 0.8, duoi: 0.2, trai: 0, phai: 1 } } }),
+    ).toThrow(/tren phải nhỏ hơn duoi/);
+  });
+
+  it('reads the frame and the board picture by name, chosen together', async () => {
+    const pack = await packFromFiles([json(withBoard), png('bang-tieu-de.png'), png()]);
+    expect(pack.image.startsWith('data:image/png')).toBe(true);
+    expect(pack.board).toEqual({ image: expect.stringMatching(/^data:image\/png/), aspect: 0.307 });
+    await expect(packFromFiles([json(withBoard), png()])).rejects.toThrow(/bang-tieu-de\.png/);
+  });
+
+  it('places the board on the sheet and writes the title inside its text box', () => {
+    const stored: StoredPack = { id: 'goi-b', json: withBoard, image: 'data:image/png;base64,AA', board: { image: 'data:image/png;base64,BB', aspect: 0.307 }, addedAt: 1 };
+    expect(packTheme(stored).titleBoard).toEqual({
+      href: 'data:image/png;base64,BB',
+      aspect: 0.307,
+      topMm: 37,
+      widthMm: 306.7,
+      leftMm: undefined,
+      textBox: { top: 0.18, bottom: 0.76, left: 0.17, right: 0.83 },
+    });
+  });
+});

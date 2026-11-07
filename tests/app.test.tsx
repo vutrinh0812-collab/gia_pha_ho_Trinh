@@ -122,13 +122,16 @@ describe('other pages', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'In ấn' }, { timeout: 5000 })).toBeInTheDocument();
     const picker = screen.getByRole('heading', { name: 'Giao diện khung' }).parentElement!;
     const options = within(picker).getAllByRole('button', { name: /^Giao diện / });
-    expect(options).toHaveLength(4);
+    expect(options).toHaveLength(5); // 4 drawn themes + "Sơn mài rồng vàng" (D72)
     expect(options.filter((b) => b.getAttribute('aria-pressed') === 'true')).toHaveLength(1);
     fireEvent.click(options[1]!);
     expect(options[1]).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByLabelText('Phạm vi in')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Nhập gói giao diện/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Tải JSON mẫu' })).toBeInTheDocument();
+    // D72: the title written on the sheet is typed here; the PDF is one click away.
+    expect(screen.getByRole('textbox', { name: 'Tiêu đề' })).toHaveValue(useClanStore.getState().model!.settings.title);
+    expect(screen.getByRole('button', { name: 'Tải PDF khổ A1' })).toBeInTheDocument();
   });
 
   it('old /themes links open "In ấn"', async () => {
