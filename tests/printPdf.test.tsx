@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { render } from '@testing-library/react';
 import { FALLBACK_FAMILY, PDF_FONTS, nearestFont, preparePosterSvg, styleKey } from '@/features/print/exportPdf';
-import { PRINT_SPACING, PosterSvg, fitBoardText, type BoardLine } from '@/features/print/PosterSvg';
+import { PRINT_SPACING, PosterSvg, Relief, fitBoardText, type BoardLine } from '@/features/print/PosterSvg';
 import { buildClanModel } from '@/lib/clanModel';
 import { loadDemoSnapshot } from '@/lib/data/demoSource';
 import { computeTreeLayout } from '@/features/tree/layout';
@@ -205,6 +205,56 @@ describe('title fitted from its ink inside the board (D79)', () => {
       expect(f.subSize).toBeLessThanOrEqual(f.titleSize * 0.5 + 1e-6);
     });
   }
+});
+
+describe('lettering in the material of its board (D80)', () => {
+  it('engraved: a dark rim to the upper left and a light one to the lower right, under the text', () => {
+    const fx = { style: 'engraved' as const, light: '#ffffff', dark: '#000000', depth: 0.02, opacity: 0.8 };
+    const { container } = render(
+      <svg>
+        <Relief fx={fx} size={50} draw={(fill) => <text fill={fill ?? '#4a2a0c'}>Gia phả</text>} />
+      </svg>,
+    );
+    const texts = Array.from(container.querySelectorAll('text'));
+    expect(texts.map((t) => t.getAttribute('fill'))).toEqual(['#000000', '#ffffff', '#4a2a0c']);
+    const [up, down] = Array.from(container.querySelectorAll('g'));
+    expect(up!.getAttribute('transform')).toBe('translate(-1 -1)');
+    expect(down!.getAttribute('transform')).toBe('translate(1 1)');
+    expect(up!.getAttribute('aria-hidden')).toBe('true');
+    expect(up!.getAttribute('opacity')).toBe('0.8');
+  });
+
+  it('raised: the light rim to the upper left; no relief, just the text', () => {
+    const fx = { style: 'raised' as const, light: '#ffffff', dark: '#000000', depth: 0.02 };
+    const { container } = render(<svg><Relief fx={fx} size={50} draw={(fill) => <text fill={fill ?? 'red'}>A</text>} /></svg>);
+    expect(Array.from(container.querySelectorAll('text')).map((t) => t.getAttribute('fill'))).toEqual(['#ffffff', '#000000', 'red']);
+    const plain = render(<svg><Relief size={50} draw={(fill) => <text fill={fill ?? 'red'}>A</text>} /></svg>);
+    expect(plain.container.querySelectorAll('text')).toHaveLength(1);
+  });
+
+  it('"Đỏ son sen vàng": title engraved into the ribbon, names raised on the cards', () => {
+    const theme = getTheme('do-son-sen-vang')!;
+    expect(theme.textRelief?.title?.style).toBe('engraved');
+    expect(theme.textRelief?.name?.style).toBe('raised');
+    const { container } = render(<PosterSvg theme={theme} model={model} layout={layout} title="Gia phả" subtitle="Đời thứ nhất" />);
+    // One readable title line, plus two hidden rims.
+    expect(container.querySelectorAll('g[aria-label="GIA PHẢ"]')).toHaveLength(1);
+    const rims = Array.from(container.querySelectorAll('g[aria-hidden="true"] text'));
+    expect(rims.some((t) => t.getAttribute('fill') === theme.textRelief!.title!.dark)).toBe(true);
+    expect(rims.some((t) => t.getAttribute('fill') === theme.textRelief!.name!.light)).toBe(true);
+  });
+
+  it('keeps the name on its own line on wide cards, above years and spouses', () => {
+    const theme = getTheme('do-son-sen-vang')!;
+    const { container } = render(<PosterSvg theme={theme} model={model} layout={layout} title="Gia phả" />);
+    const names = Array.from(container.querySelectorAll('text[font-size="15"]')).filter((t) => !t.closest('[aria-hidden="true"]'));
+    expect(names.length).toBeGreaterThan(0);
+    for (const name of names) {
+      const y = Number(name.getAttribute('y'));
+      const below = Array.from(name.parentElement!.querySelectorAll(':scope > text')).filter((t) => t !== name && ['11', '11.5'].includes(t.getAttribute('font-size')!));
+      for (const t of below) expect(Number(t.getAttribute('y')), t.textContent!).toBeGreaterThan(y);
+    }
+  });
 });
 
 describe('print sheet details (D74)', () => {

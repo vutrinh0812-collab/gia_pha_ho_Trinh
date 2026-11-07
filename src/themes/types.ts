@@ -17,6 +17,22 @@ export interface FontSpec {
   ttfUrl?: string;
 }
 
+/**
+ * Lettering that looks part of the material it sits on (D80): engraved (khắc chìm: a dark
+ * rim on the upper left, a light rim on the lower right) or raised (nổi: the reverse).
+ * Drawn as two offset copies under the text (no SVG filters, which the PDF export drops),
+ * so it stays vector and identical on screen and on paper.
+ */
+export interface TextRelief {
+  style: 'engraved' | 'raised';
+  light: string;
+  dark: string;
+  /** Offset of each rim, in ems of the text (about 0.02–0.035). */
+  depth: number;
+  /** Opacity of the rims (default 0.8). */
+  opacity?: number;
+}
+
 export type OrnamentPosition = 'top-left' | 'top-right' | 'bottom' | 'bottom-left' | 'bottom-right' | 'background';
 
 export interface Theme {
@@ -97,6 +113,11 @@ export interface Theme {
   };
   /** Where title and tree go on the sheet, in mm from each edge (default: inside the frame). */
   contentInsetMm?: { top: number; right: number; bottom: number; left: number };
+  /**
+   * Material of the lettering (D80): the title and subtitle (on the title board), the
+   * couplets (on their boards) and the names in the tree (on the cards).
+   */
+  textRelief?: { title?: TextRelief; couplet?: TextRelief; name?: TextRelief };
   /** Paper direction the background picture was drawn for. */
   preferredOrientation?: 'landscape' | 'portrait';
 }

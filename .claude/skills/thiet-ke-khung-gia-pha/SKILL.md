@@ -1,12 +1,12 @@
 ---
 name: thiet-ke-khung-gia-pha
-description: Thiết kế một preset khung tranh gia phả khổ A1 trên Canva (ảnh nền, bảng tiêu đề tách lớp, câu đối, bảng màu, kiểu chữ, bố cục chữ tiêu đề theo độ cong của bảng) cùng người dùng, dừng lại hỏi ở từng quyết định và đưa ít nhất 3 phương án ở các quyết định lớn, rồi đóng gói thành giao diện in của ứng dụng gia phả (theme có sẵn hoặc gói JSON tự nhập) và xuất PDF kiểm tra. Dùng khi người dùng gọi /thiet-ke-khung-gia-pha, hoặc nhờ "thiết kế khung gia phả", "làm preset giao diện in", "khung tranh gia phả mới trên Canva", "thêm giao diện in".
+description: Thiết kế một preset khung tranh gia phả khổ A1 trên Canva (ảnh nền, bảng tiêu đề tách lớp, câu đối, bảng màu, kiểu chữ, bố cục chữ tiêu đề theo độ cong của bảng, chất liệu chữ khắc chìm hoặc nổi hợp với khung) cùng người dùng, dừng lại hỏi ở từng quyết định và đưa ít nhất 3 phương án ở các quyết định lớn, rồi đóng gói thành giao diện in của ứng dụng gia phả (theme có sẵn hoặc gói JSON tự nhập) và xuất PDF kiểm tra. Dùng khi người dùng gọi /thiet-ke-khung-gia-pha, hoặc nhờ "thiết kế khung gia phả", "làm preset giao diện in", "khung tranh gia phả mới trên Canva", "thêm giao diện in".
 ---
 
 # Thiết kế khung tranh gia phả trên Canva
 
 Quy trình này được đúc kết từ lần làm preset "Sơn mài rồng vàng" (DECISIONS D72–D77) và
-"Đỏ son sen vàng" (D78–D79). Kết quả
+"Đỏ son sen vàng" (D78–D80). Kết quả
 cuối cùng là một giao diện in A1 trong ứng dụng: chọn được ở **Cài đặt → In ấn**, xuất được PDF
 A1 sắc nét, tiếng Việt đúng dấu.
 
@@ -137,12 +137,38 @@ thì thư pháp). Làm khi ảnh bảng đã cố định (bước 3) và phông
 5. Ghi vào theme: `titleBoard.textBox`, `titleBoard.arcRadius` (có dấu; bỏ trống = thẳng),
    `typography.title.uppercase` (ứng dụng tự viết hoa, người dùng vẫn gõ bình thường),
    `typography.title.letterSpacing` (được tính khi co chữ cho vừa bảng).
-6. **Bắt buộc soát trên PDF thật** (bước 11): phóng vùng bảng ở 300 dpi
+6. **Bắt buộc soát trên PDF thật** (bước 12): phóng vùng bảng ở 300 dpi
    (`pdftoppm -r 300 -x … -y …`; mm × 11,81 = px). Phải thấy: dấu cao nhất không chạm mép trên mặt
    bảng; khoảng trống trên và dưới khối chữ gần bằng nhau; hai đầu dòng không lấn vào đầu cuộn;
    tiêu đề và dòng phụ không dính nhau. Sai thì sửa `textBox` (đừng sửa cỡ chữ bằng tay), dựng lại.
 
-## Bước 7 — Câu chữ  ▶ DỪNG
+## Bước 7 — Chất liệu chữ  ▶ DỪNG, 3 phương án
+
+Chữ phải trông **là một phần của vật liệu chứa nó**, không như chữ in dán lên ảnh: chữ trên bảng
+gỗ/đồng/lụa vàng thì khắc chìm hoặc đúc nổi; chữ trên bảng câu đối sơn mài thì khắc rồi đổ vàng
+hoặc mạ vàng nổi; tên trong ô người thì theo chất liệu của ô (sơn mài, giấy, gấm…). Làm cho **cả ba
+nhóm chữ**: tiêu đề và dòng phụ (trên bảng), câu đối (trên bảng câu đối), tên trong sơ đồ (trên ô).
+
+1. Xác định chất liệu từng chỗ chứa chữ và hướng ánh sáng của ảnh khung (thường từ trên bên trái:
+   xem phía nào của phù điêu sáng hơn). Hiệu ứng phải cùng hướng sáng với ảnh.
+2. Dựng **≥ 3 phương án** bằng `node scripts/mau-tieu-de.cjs` với `hieuUngTieuDe` và
+   `hieuUngTen` (khắc chìm `khac` / nổi `noi`, màu viền sáng `sang` và tối `toi`, độ sâu `sau`
+   0,02–0,035 em, độ đậm `doMo` 0,7–0,9), cắt phóng to vùng bảng và ô người để so (ảnh dựng ở 2×).
+   Ví dụ: khắc chìm + tên nổi; cùng chất vàng đúc nổi; khắc sâu + tên khắc chìm. Màu viền lấy
+   từ chính chất liệu: sáng = phần được chiếu sáng của bảng (vàng nhạt, gần trắng), tối = phần
+   bóng sâu của nó (nâu đậm, không dùng đen tuyền trên vàng).
+3. Tiêu chí chọn: **vẫn đọc rõ từ xa** (chữ chính đủ tương phản; hiệu ứng chỉ là viền mảnh, đừng
+   để chữ cùng màu với nền như "vàng trên vàng" nếu đọc khó); hợp tinh thần khung; không dày nét
+   chữ nhỏ (với tên trong ô, độ sâu ≤ 0,03 em).
+4. Ghi vào theme: `textRelief: { title, couplet, name }`, mỗi mục
+   `{ style: 'engraved' | 'raised', light, dark, depth, opacity }`. Ứng dụng vẽ hai bản chữ lệch
+   (viền sáng và viền tối) dưới chữ chính, **không dùng filter SVG** vì bản xuất PDF bỏ filter;
+   chữ vẫn là vector. Bản sao bị ẩn khỏi trình đọc màn hình.
+5. **Soát trên PDF thật** (bước 12): phóng vùng bảng ở 300 dpi và vài ô người ở 600 dpi. Viền phải
+   đúng hướng, không nhòe chữ, không lệch khỏi chữ; ô ngang và ô dọc đều phải đúng vị trí dòng
+   (lần làm D80 từng có lỗi tên ô ngang đè lên dòng "Chồng: …", chỉ thấy khi phóng to).
+
+## Bước 8 — Câu chữ  ▶ DỪNG
 
 - **Câu đối mặc định của preset**: đưa **3 cặp câu đối** hợp phong cách (ví dụ "Cây có cội mới
   nảy cành xanh ngọn / Nước có nguồn mới bể rộng sông sâu"; "Tổ đức muôn đời soi lối cháu / Gia
@@ -150,7 +176,7 @@ thì thư pháp). Làm khi ảnh bảng đã cố định (bước 3) và phông
   tiên; câu mặc định chỉ dùng khi dòng họ để trống.
 - Tên preset (hiện ở trang In ấn) và một câu mô tả ngắn: đề xuất 3 tên.
 
-## Bước 8 — Dựng trên Canva và duyệt bản hoàn chỉnh  ▶ DỪNG (duyệt)
+## Bước 9 — Dựng trên Canva và duyệt bản hoàn chỉnh  ▶ DỪNG (duyệt)
 
 1. Tạo bản thiết kế theo các lựa chọn đã chốt (`create-design` với brief chi tiết bằng tiếng Việt
    hoặc `create-design-from-candidate` từ mẫu đã chọn). Có thể xin thêm trang 2 là bảng token để
@@ -159,7 +185,7 @@ thì thư pháp). Làm khi ảnh bảng đã cố định (bước 3) và phông
    "VIỄN"): `read-design` để đọc chữ, sửa bằng `edit-design` (`find_and_replace_text`).
 3. Gửi thumbnail cho người dùng duyệt; sửa đến khi người dùng đồng ý.
 
-## Bước 9 — Xuất ảnh khổ in (giới hạn Canva gói miễn phí)
+## Bước 10 — Xuất ảnh khổ in (giới hạn Canva gói miễn phí)
 
 Những gì đã gặp và cách xử lý:
 
@@ -189,7 +215,7 @@ câu đối (`coupletBoxes`, mm) và vùng cây (`contentInsetMm`) từ tọa đ
 Nếu bảng tiêu đề cong: ước bán kính cung chữ = bán kính lòng bảng ÷ bề rộng bảng (`arcRadius`;
 cuốn thư rồng vàng là 1,96).
 
-## Bước 10 — Đóng gói vào ứng dụng  ▶ DỪNG: hỏi kiểu đóng gói
+## Bước 11 — Đóng gói vào ứng dụng  ▶ DỪNG: hỏi kiểu đóng gói
 
 Hỏi người dùng (khuyên phương án 1 nếu preset dành cho mọi người dùng ứng dụng):
 
@@ -201,6 +227,7 @@ Hỏi người dùng (khuyên phương án 1 nếu preset dành cho mọi ngư�
      Bảng có phần trang trí rủ xuống hai bên (đuôi lụa…): đặt `titleBoard.treeFrom` (tỉ lệ chiều
      cao bảng mà cây bắt đầu từ đó; mặc định là dưới toàn bộ ảnh), rồi xuất PDF xem các ô đời 2
      ngoài cùng có chạm đuôi không (D78).
+     Chất liệu chữ đã chọn ở bước 7 vào `textRelief` (D80).
    - Phông mới cho PDF: `bash scripts/phong-pdf.sh "<Family>" <weight> <0|1> <khoa>` (chạy ở gốc
      repo) cho từng mặt chữ dùng tới; thêm vào `PDF_FONTS` trong `exportPdf.ts`; thêm dòng giấy
      phép vào `public/fonts/pdf/README.md` (chỉ dùng phông OFL/Apache).
@@ -212,14 +239,15 @@ Hỏi người dùng (khuyên phương án 1 nếu preset dành cho mọi ngư�
    tiêu đề ở trang In ấn ("Nhập gói giao diện"). Phông lạ không có trong `PDF_FONTS` sẽ bị thay
    bằng Noto Serif khi xuất PDF: nói rõ điều này.
 
-## Bước 11 — Kiểm tra và bàn giao
+## Bước 12 — Kiểm tra và bàn giao
 
 1. `npx tsc -b --noEmit` và `npx vitest run`. **Không chạy `npx prettier`** (repo không có cấu hình,
    nó đổi cả file sang nháy kép).
 2. Chạy bản demo `npx vite --mode demo --port 5199` (MemoryRouter: vào bằng cách bấm Cài đặt →
    In ấn), chọn giao diện mới, gõ tiêu đề, bấm "Tải PDF khổ A1" bằng Playwright; xem PDF bằng
-   `pdftoppm` (toàn tờ ở 40 dpi, phóng các vùng: tiêu đề ở 300 dpi, câu đối, vài ô người). Kiểm
-   tra: chữ tiếng Việt đủ dấu, tiêu đề đạt đủ các điều ở bước 6 mục 6, không đè họa tiết, cây
+   `pdftoppm` (toàn tờ ở 40 dpi, phóng các vùng: tiêu đề ở 300 dpi, câu đối, vài ô ngang và ô
+   dọc ở 600 dpi). Kiểm tra: chữ tiếng Việt đủ dấu, tiêu đề đạt đủ các điều ở bước 6 mục 6, chất
+   liệu chữ như bước 7 mục 5, không đè họa tiết, cây
    nằm gọn trong vùng. Nếu đổi cách đặt chữ trong `PosterSvg`, xuất lại cả các giao diện có bảng
    tiêu đề khác (ví dụ "Sơn mài rồng vàng") và so trước/sau.
 3. Gửi ảnh toàn tờ, ảnh phóng to và file PDF cho người dùng. ▶ DỪNG: hỏi chỉnh gì thêm.

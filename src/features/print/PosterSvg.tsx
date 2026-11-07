@@ -3,10 +3,10 @@
  * 841 × 594. Shared by the theme preview (/themes) and the print page (/print);
  * phase 6 adds auto-fit with vertical name boxes and the PDF/SVG/PNG export.
  */
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import type { ClanModel } from '@/lib/clanModel';
 import { lifeSpan } from '@/lib/format';
-import type { FontSpec, Theme } from '@/themes/types';
+import type { FontSpec, TextRelief, Theme } from '@/themes/types';
 import { V_PAD_X, verticalMetrics, type LayoutMetrics, type TreeLayout } from '../tree/layout';
 
 export const A1 = { landscape: { w: 841, h: 594 }, portrait: { w: 594, h: 841 } } as const;
@@ -234,8 +234,32 @@ function useFontsLoaded(): number {
  * elements, which every renderer and the PDF export understand (unlike <textPath>).
  * The arc's highest point is at (cx, y); its centre is `radius` below.
  */
-function ArcText(props: { text: string; cx: number; y: number; radius: number; size: number; font: FontSpec; fill: string }) {
-  const { text, cx, y, radius, size, font, fill } = props;
+/**
+ * Draws text as part of its material (D80): two copies offset towards and away from the
+ * light (upper left) in the rim colours, under the text itself. `draw(fill, ghost)` returns
+ * the text; ghost copies are hidden from assistive technology. Without `fx`, just the text.
+ */
+export function Relief(props: { fx?: TextRelief; size: number; draw: (fill: string | undefined, ghost: boolean) => ReactNode }) {
+  const { fx, size, draw } = props;
+  if (!fx) return <>{draw(undefined, false)}</>;
+  const d = fx.depth * size;
+  const [upperLeft, lowerRight] = fx.style === 'engraved' ? [fx.dark, fx.light] : [fx.light, fx.dark];
+  const op = fx.opacity ?? 0.8;
+  return (
+    <>
+      <g transform={`translate(${-d} ${-d})`} opacity={op} aria-hidden="true">
+        {draw(upperLeft, true)}
+      </g>
+      <g transform={`translate(${d} ${d})`} opacity={op} aria-hidden="true">
+        {draw(lowerRight, true)}
+      </g>
+      {draw(undefined, false)}
+    </>
+  );
+}
+
+function ArcText(props: { text: string; cx: number; y: number; radius: number; size: number; font: FontSpec; fill: string; ghost?: boolean }) {
+  const { text, cx, y, radius, size, font, fill, ghost } = props;
   const letters = Array.from(text.normalize('NFC'));
   // Brush scripts have very narrow spaces: keep words clearly apart on the arc.
   // A capital whose stroke sweeps far over the next letter (brush T) gets part of that room,
@@ -249,7 +273,7 @@ function ArcText(props: { text: string; cx: number; y: number; radius: number; s
   const total = widths.reduce((a, b) => a + b, 0);
   let along = -total / 2;
   return (
-    <g aria-label={text}>
+    <g aria-label={ghost ? undefined : text}>
       {letters.map((l, i) => {
         const mid = along + widths[i]! / 2;
         along += widths[i]!;
@@ -365,19 +389,25 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
           </>
         )}
         {words.map((word, i) => (
-          <text
+          <Relief
             key={i}
-            x={b.x + b.w / 2}
-            y={startY + i * size * 1.28}
-            textAnchor="middle"
-            fontFamily={t.couplet.family}
-            fontWeight={t.couplet.weight}
-            fontStyle={t.couplet.italic ? 'italic' : undefined}
-            fontSize={size}
-            fill={c.coupletText ?? c.textPrimary}
-          >
-            {word}
-          </text>
+            fx={theme.textRelief?.couplet}
+            size={size}
+            draw={(fill) => (
+              <text
+                x={b.x + b.w / 2}
+                y={startY + i * size * 1.28}
+                textAnchor="middle"
+                fontFamily={t.couplet.family}
+                fontWeight={t.couplet.weight}
+                fontStyle={t.couplet.italic ? 'italic' : undefined}
+                fontSize={size}
+                fill={fill ?? c.coupletText ?? c.textPrimary}
+              >
+                {word}
+              </text>
+            )}
+          />
         ))}
       </g>
     );
@@ -528,7 +558,11 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
         <Ornament svg={theme.ornaments.titleBanner} x={(W - bannerW) / 2} y={headerTop} width={bannerW} height={bannerH} />
       )}
       {board && <image href={board.href} x={bannerX} y={headerTop} width={bannerW} height={bannerH} preserveAspectRatio="none" />}
-      {board?.arcRadius && tb ? (
+      <Relief
+        fx={board ? theme.textRelief?.title : undefined}
+        size={titleSize}
+        draw={(rim, ghost) =>
+      board?.arcRadius && tb ? (
         <ArcText
           text={titleShown}
           cx={tb.x + tb.w / 2}
@@ -536,7 +570,8 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
           radius={board.arcRadius * bannerW}
           size={titleSize}
           font={t.title}
-          fill={c.bannerText ?? c.textPrimary}
+          fill={rim ?? c.bannerText ?? c.textPrimary}
+          ghost={ghost}
         />
       ) : (
       <text
@@ -549,39 +584,48 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
         fontWeight={t.title.weight}
         fontSize={titleSize}
         letterSpacing={t.title.letterSpacing ? `${t.title.letterSpacing}em` : undefined}
-        fill={theme.ornaments.titleBanner || board ? (c.bannerText ?? c.textPrimary) : c.textPrimary}
+        fill={rim ?? (theme.ornaments.titleBanner || board ? (c.bannerText ?? c.textPrimary) : c.textPrimary)}
       >
         {titleShown}
       </text>
       )}
+      />
       {theme.ornaments.seal && (
         <Seal x={W / 2 + Math.min(titleText.length * titleSize * 0.27, bannerW / 2) + 10} y={titleY - 13} size={26} color={theme.ornaments.seal.color} name={s.clanName} font={t.heading.family} />
       )}
-      {subText && board?.arcRadius && tb && (
-        // Same centre as the title's arc, so the two lines curve together.
-        <ArcText
-          text={subText}
-          cx={tb.x + tb.w / 2}
-          y={subY}
-          radius={board.arcRadius * bannerW - (subY - titleY)}
+      {subText && (
+        <Relief
+          fx={board ? theme.textRelief?.title : undefined}
           size={subSize}
-          font={{ ...t.heading, weight: 400 }}
-          fill={c.bannerText ?? c.textSecondary}
+          draw={(rim, ghost) =>
+            board?.arcRadius && tb ? (
+              // Same centre as the title's arc, so the two lines curve together.
+              <ArcText
+                text={subText}
+                cx={tb.x + tb.w / 2}
+                y={subY}
+                radius={board.arcRadius * bannerW - (subY - titleY)}
+                size={subSize}
+                font={{ ...t.heading, weight: 400 }}
+                fill={rim ?? c.bannerText ?? c.textSecondary}
+                ghost={ghost}
+              />
+            ) : (
+              <text
+                x={tb ? tb.x + tb.w / 2 : W / 2}
+                fontStyle={ital(t.heading)}
+                y={subY}
+                textAnchor="middle"
+                fontFamily={t.heading.family}
+                fontWeight={400}
+                fontSize={subSize}
+                fill={rim ?? (tb ? (c.bannerText ?? c.textSecondary) : c.textSecondary)}
+              >
+                {subText}
+              </text>
+            )
+          }
         />
-      )}
-      {subText && !board?.arcRadius && (
-        <text
-          x={tb ? tb.x + tb.w / 2 : W / 2}
-          fontStyle={ital(t.heading)}
-          y={subY}
-          textAnchor="middle"
-          fontFamily={t.heading.family}
-          fontWeight={400}
-          fontSize={subSize}
-          fill={tb ? (c.bannerText ?? c.textSecondary) : c.textSecondary}
-        >
-          {subText}
-        </text>
       )}
 
       {/* Couplets */}
@@ -641,21 +685,27 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
                   const fill =
                     l.kind === 'word' ? nameColor(p.gender === 'male', p.isBloodline) : l.kind === 'spouseWord' ? c.spouse : c.textSecondary;
                   return (
-                    <text
+                    <Relief
                       key={i}
-                      x={n.w / 2}
-                      y={l.y}
-                      textAnchor="middle"
-                      fontFamily={big ? t.name.family : t.body.family}
-                      fontWeight={l.kind === 'word' ? t.name.weight : l.kind === 'spouseWord' ? 600 : undefined}
-                      fontStyle={l.kind === 'role' || (big ? t.name.italic : t.body.italic) ? 'italic' : undefined}
-                      fontSize={size}
-                      fill={fill}
-                      textLength={squeeze ? maxW : undefined}
-                      lengthAdjust={squeeze ? 'spacingAndGlyphs' : undefined}
-                    >
-                      {l.text}
-                    </text>
+                      fx={big ? theme.textRelief?.name : undefined}
+                      size={size}
+                      draw={(rim) => (
+                        <text
+                          x={n.w / 2}
+                          y={l.y}
+                          textAnchor="middle"
+                          fontFamily={big ? t.name.family : t.body.family}
+                          fontWeight={l.kind === 'word' ? t.name.weight : l.kind === 'spouseWord' ? 600 : undefined}
+                          fontStyle={l.kind === 'role' || (big ? t.name.italic : t.body.italic) ? 'italic' : undefined}
+                          fontSize={size}
+                          fill={rim ?? fill}
+                          textLength={squeeze ? maxW : undefined}
+                          lengthAdjust={squeeze ? 'spacingAndGlyphs' : undefined}
+                        >
+                          {l.text}
+                        </text>
+                      )}
+                    />
                   );
                 })}
                 {n.collapsed && n.hiddenCount > 0 && (
@@ -674,6 +724,7 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
           const r = u(theme.node.radius);
           const sw = u(theme.node.borderWidth);
           let y = n.caption ? 30 : 24;
+          const nameY = y;
           return (
             <g key={n.id} transform={`translate(${n.x} ${n.y})`}>
               <rect width={n.w} height={h} rx={r} fill={theme.node.fill} stroke={theme.colors.frame} strokeWidth={sw} />
@@ -685,9 +736,16 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
                   {fit(n.caption, n.w - 16, 10)}
                 </text>
               )}
-              <text x={n.w / 2} y={y} textAnchor="middle" fontFamily={t.name.family} fontWeight={t.name.weight} fontStyle={ital(t.name)} fontSize={15} fill={nameColor(p.gender === 'male', p.isBloodline)}>
-                {fit(p.fullName, n.w - 14, 15)}
-              </text>
+              <Relief
+                fx={theme.textRelief?.name}
+                size={15}
+                // `y` moves on for the lines below before this draws: keep the name's own.
+                draw={(rim) => (
+                  <text x={n.w / 2} y={nameY} textAnchor="middle" fontFamily={t.name.family} fontWeight={t.name.weight} fontStyle={ital(t.name)} fontSize={15} fill={rim ?? nameColor(p.gender === 'male', p.isBloodline)}>
+                    {fit(p.fullName, n.w - 14, 15)}
+                  </text>
+                )}
+              />
               {other && (
                 <text x={n.w / 2} y={(y += 15)} textAnchor="middle" fontFamily={t.body.family} fontStyle="italic" fontSize={11} fill={c.textSecondary}>
                   {fit(other, n.w - 14, 11)}

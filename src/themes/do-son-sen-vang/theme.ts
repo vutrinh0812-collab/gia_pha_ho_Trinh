@@ -47,6 +47,11 @@ const theme: Theme = {
     bannerText: '#4a2a0c',
     coupletText: '#ffe4a0',
   },
+  // Engraved into the gold ribbon; gilded names slightly raised on the lacquer cards (D80).
+  textRelief: {
+    title: { style: 'engraved', light: '#fff6cf', dark: '#3a1f06', depth: 0.02, opacity: 0.8 },
+    name: { style: 'raised', light: '#fff8e0', dark: '#14020a', depth: 0.025, opacity: 0.8 },
+  },
   node: { ...base.node, fill: '#4f0b0e', borderWidth: 0.45 },
   connector: { ...base.connector, color: '#d9a640', width: 0.45 },
   // The picture is the frame: no drawn border, corners, texture or ornaments.

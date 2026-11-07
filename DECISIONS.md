@@ -697,3 +697,28 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - thử chữ khó bằng `mau-tieu-de.cjs` (script đặt chữ đúng như ứng dụng, có khung vùng chữ): tiêu đề dài nhiều dấu chồng, không có dòng phụ;
   - soát vùng bảng trên PDF ở 300 dpi theo danh sách: dấu không chạm mép, trên dưới cách đều, không lấn đầu cuộn.
 - **Hạn chế**: tiêu đề rất dài (khoảng 40 ký tự) co nhỏ nhiều, dòng phụ khó đọc. Nên giữ tiêu đề khoảng 20 ký tự, phần còn lại đưa xuống dòng phụ.
+
+## D80 — Chữ mang chất liệu của khung (khắc chìm, nổi)
+
+- **Mục tiêu**: chữ trông như một phần của vật liệu chứa nó (bảng tiêu đề, bảng câu đối, ô người), không như chữ in dán lên ảnh.
+- **Token mới** `Theme.textRelief: { title?, couplet?, name? }`, mỗi mục là một `TextRelief`:
+  - `style`: `engraved` (khắc chìm) hoặc `raised` (nổi);
+  - `light`, `dark`: màu viền sáng và viền tối;
+  - `depth`: độ lệch mỗi viền, tính bằng em của chữ;
+  - `opacity`: độ đậm của viền, mặc định 0,8.
+- **Áp vào**: `title` cho tiêu đề và dòng phụ trên bảng tiêu đề; `couplet` cho chữ câu đối; `name` cho tên người và tên vợ/chồng trong ô dọc, tên trong ô ngang. Năm sinh và các dòng phụ trong ô giữ phẳng cho dễ đọc.
+- **Cách vẽ** (`Relief` trong `PosterSvg.tsx`): hai bản chữ lệch về phía ánh sáng (trên bên trái) và ngược lại, nằm dưới chữ chính.
+  - Khắc chìm: viền tối ở trên trái, viền sáng ở dưới phải. Nổi: ngược lại.
+  - Không dùng filter SVG vì bản xuất PDF (svg2pdf) bỏ filter. Chữ vẫn là vector, màn hình và PDF giống nhau.
+  - Bản sao có `aria-hidden` và không có `aria-label`.
+- **"Đỏ son sen vàng"** (người dùng chọn phương án A trong 3):
+  - tiêu đề khắc chìm vào lụa vàng: sáng `#fff6cf`, tối `#3a1f06`, sâu 0,02 em;
+  - tên mạ vàng hơi nổi trên ô sơn mài: sáng `#fff8e0`, tối `#14020a`, sâu 0,025 em;
+  - đậm 0,8.
+- **Lỗi bắt được khi soát PDF ở 600 dpi**: trên ô ngang, tên bị vẽ đè lên dòng "Chồng: …". Hàm vẽ của `Relief` chạy sau khi biến `y` đã được cộng dồn cho các dòng dưới. Đã sửa bằng cách giữ tọa độ của tên trong một hằng số riêng (`nameY`), có kiểm thử hồi quy.
+- **Skill**: thêm bước 7 "Chất liệu chữ" cho cả tiêu đề, câu đối và tên trong sơ đồ.
+  - Dựng ≥ 3 phương án bằng `mau-tieu-de.cjs` (`hieuUngTieuDe`, `hieuUngTen`, ảnh dựng ở 2×).
+  - Màu viền lấy từ chính chất liệu; hướng sáng theo ảnh khung; ưu tiên đọc rõ từ xa.
+  - Soát trên PDF thật: vùng bảng ở 300 dpi, ô ngang và ô dọc ở 600 dpi.
+  - Các bước sau đánh số lại (8–12).
+- **Hạn chế**: gói JSON tự nhập chưa có trường cho `textRelief`. Hiệu ứng trên tên trong ô rất tinh, chỉ thấy khi nhìn gần, và đó là chủ ý để không làm dày nét chữ nhỏ.

@@ -21,6 +21,11 @@
  * }
  * A face is "Family:weight" with an optional "i" for italic. "doCong" null/0 = straight.
  * "hoa": write the title in capitals; "gianChu": letter spacing in em.
+ * Material (D80), optional per option: "hieuUngTieuDe" (title and subtitle) and "hieuUngTen"
+ * (the sample card's name) = { "kieu": "khac" | "noi", "sang": "#fff1b8", "toi": "#2a1606",
+ *   "sau": 0.022, "doMo": 0.7 } — engraved (khắc chìm: dark rim top-left, light rim bottom-right) or raised
+ * (nổi: the reverse), as two offset copies under the text, like the app draws them;
+ * "mauTieuDe" / "mauTen" override the lettering colour.
  * Optional per option: "tieuDe_text" / "dongPhu_text" to try another wording (a long
  * title with stacked tone marks, or "" for no subtitle) — always try those before choosing.
  */
@@ -56,7 +61,10 @@ const ctx=document.createElement('canvas').getContext('2d');
 const fontStr=(f,size)=>(f.italic?'italic ':'')+f.weight+' '+size+'px "'+f.family+'"';
 const widths=(t,f,size,sp)=>Array.from(t).map(ch=>{ctx.font=fontStr(f,size);return ctx.measureText(ch).width+(sp||0)*size;});
 const W=1100;
-function line(svg,text,f,size,cx,y,R,fill,sp){
+function line(svg,text,f,size,cx,y,R,fill,sp,fx){
+  if(fx){const d=(fx.sau||0.022)*size,[a,b]=fx.kieu==='khac'?[fx.toi,fx.sang]:[fx.sang,fx.toi];
+    const g1=document.createElementNS('http://www.w3.org/2000/svg','g');g1.setAttribute('transform','translate('+(-d)+' '+(-d)+')');g1.setAttribute('opacity',fx.doMo??0.7);svg.appendChild(g1);line(g1,text,f,size,cx,y,R,a,sp);
+    const g2=document.createElementNS('http://www.w3.org/2000/svg','g');g2.setAttribute('transform','translate('+d+' '+d+')');g2.setAttribute('opacity',fx.doMo??0.7);svg.appendChild(g2);line(g2,text,f,size,cx,y,R,b,sp);}
   if(!R){const t=document.createElementNS('http://www.w3.org/2000/svg','text');
     Object.entries({x:cx,y,'text-anchor':'middle','font-family':f.family,'font-weight':f.weight,'font-style':f.italic?'italic':'normal','font-size':size,fill,'letter-spacing':(sp||0)+'em'}).forEach(([k,v])=>t.setAttribute(k,v));
     t.textContent=text;svg.appendChild(t);return;}
@@ -92,14 +100,17 @@ function panel(p,iw,ih){
   const L=lay(ts),blockTop=tb.y+(tb.h-L.height)/2,ty=blockTop+L.top+ts*T.above,sy=S?ty+ts*T.below+L.gap+L.ss*S.above:ty;
   const box=document.createElementNS('http://www.w3.org/2000/svg','rect');
   Object.entries({x:tb.x,y:tb.y,width:tb.w,height:tb.h,fill:'none',stroke:'#2a6cff','stroke-width':1.5,'stroke-dasharray':'6 4'}).forEach(([k,v])=>box.setAttribute(k,v));svg.appendChild(box);
-  line(svg,title,tf,ts,tb.x+tb.w/2,ty,R,spec.chu,p.gianChu);
-  if(S)line(svg,sub,sf,L.ss,tb.x+tb.w/2,sy,R?R-(sy-ty):0,spec.chu,0);
+  const fx=p.hieuUngTieuDe,tc=p.mauTieuDe||spec.chu;
+  line(svg,title,tf,ts,tb.x+tb.w/2,ty,R,tc,p.gianChu,fx);
+  if(S)line(svg,sub,sf,L.ss,tb.x+tb.w/2,sy,R?R-(sy-ty):0,tc,0,fx);
   const o=spec.o;if(o){const g=document.createElementNS('http://www.w3.org/2000/svg','g');g.innerHTML=
     '<rect x="'+(W/2-230)+'" y="'+(bh+20)+'" width="460" height="110" rx="10" fill="'+o.nen+'" stroke="'+o.vien+'" stroke-width="3"/>'+
-    '<text x="'+W/2+'" y="'+(bh+62)+'" text-anchor="middle" font-family="'+nf.family+'" font-weight="'+nf.weight+'" font-style="'+(nf.italic?'italic':'normal')+'" font-size="30" fill="'+o.chu+'">Trịnh Thị Thanh Thơm</text>'+
+    (()=>{const nm=(fill,dx,dy,op)=>'<text opacity="'+(op??1)+'" x="'+(W/2+dx)+'" y="'+(bh+62+dy)+'" text-anchor="middle" font-family="'+nf.family+'" font-weight="'+nf.weight+'" font-style="'+(nf.italic?'italic':'normal')+'" font-size="30" fill="'+fill+'">Trịnh Thị Thanh Thơm</text>';
+      const fx=p.hieuUngTen;if(!fx)return nm(p.mauTen||o.chu,0,0);const d=(fx.sau||0.022)*30,op=fx.doMo??0.7,[a,b]=fx.kieu==='khac'?[fx.toi,fx.sang]:[fx.sang,fx.toi];
+      return nm(a,-d,-d,op)+nm(b,d,d,op)+nm(p.mauTen||o.chu,0,0);})()+
     '<text x="'+W/2+'" y="'+(bh+100)+'" text-anchor="middle" font-family="'+nf.family+'" font-weight="400" font-size="22" fill="'+o.phu+'">1818 – 1897 · Vợ: Dương Thị Loan</text>';svg.appendChild(g);}
   d.appendChild(svg);
-  const n=document.createElement('div');n.className='n';n.textContent=(p.tieuDe_text!==undefined||p.dongPhu_text!==undefined?'thử chữ khác · ':'')+p.tieuDe+' · '+p.dongPhu+' · '+p.ten+(p.doCong?' · cung '+p.doCong:' · thẳng')+(p.hoa?' · chữ hoa':'')+(p.gianChu?' · giãn '+p.gianChu+'em':'');d.appendChild(n);
+  const n=document.createElement('div');n.className='n';n.textContent=(p.tieuDe_text!==undefined||p.dongPhu_text!==undefined?'thử chữ khác · ':'')+p.tieuDe+' · '+p.dongPhu+' · '+p.ten+(p.doCong?' · cung '+p.doCong:' · thẳng')+(p.hoa?' · chữ hoa':'')+(p.gianChu?' · giãn '+p.gianChu+'em':'')+(p.hieuUngTieuDe?' · tiêu đề '+(p.hieuUngTieuDe.kieu==='khac'?'khắc chìm':'nổi'):'')+(p.hieuUngTen?' · tên '+(p.hieuUngTen.kieu==='khac'?'khắc chìm':'nổi'):'');d.appendChild(n);
   return d;
 }
 document.fonts.ready.then(()=>{const i=new Image();i.onload=()=>{spec.phuongAn.forEach(p=>root.appendChild(panel(p,i.width,i.height)));document.body.dataset.done=1;};i.src=IMG;});
@@ -107,7 +118,7 @@ document.fonts.ready.then(()=>{const i=new Image();i.onload=()=>{spec.phuongAn.f
 
 (async () => {
   const b = await chromium.launch();
-  const p = await b.newPage({ viewport: { width: 1180, height: 800 } });
+  const p = await b.newPage({ viewport: { width: 1180, height: 800 }, deviceScaleFactor: 2 });
   await p.setContent(html, { waitUntil: 'networkidle' });
   await p.waitForFunction(() => document.body.dataset.done === '1', null, { timeout: 60000 });
   await p.waitForTimeout(500);
