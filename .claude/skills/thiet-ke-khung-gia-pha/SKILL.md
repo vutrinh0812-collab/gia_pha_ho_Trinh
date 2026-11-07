@@ -1,11 +1,12 @@
 ---
 name: thiet-ke-khung-gia-pha
-description: Thiết kế một preset khung tranh gia phả khổ A1 trên Canva (ảnh nền, bảng tiêu đề tách lớp, câu đối, bảng màu, kiểu chữ) cùng người dùng, dừng lại hỏi ở từng quyết định và đưa ít nhất 3 phương án ở các quyết định lớn, rồi đóng gói thành giao diện in của ứng dụng gia phả (theme có sẵn hoặc gói JSON tự nhập) và xuất PDF kiểm tra. Dùng khi người dùng gọi /thiet-ke-khung-gia-pha, hoặc nhờ "thiết kế khung gia phả", "làm preset giao diện in", "khung tranh gia phả mới trên Canva", "thêm giao diện in".
+description: Thiết kế một preset khung tranh gia phả khổ A1 trên Canva (ảnh nền, bảng tiêu đề tách lớp, câu đối, bảng màu, kiểu chữ, bố cục chữ tiêu đề theo độ cong của bảng) cùng người dùng, dừng lại hỏi ở từng quyết định và đưa ít nhất 3 phương án ở các quyết định lớn, rồi đóng gói thành giao diện in của ứng dụng gia phả (theme có sẵn hoặc gói JSON tự nhập) và xuất PDF kiểm tra. Dùng khi người dùng gọi /thiet-ke-khung-gia-pha, hoặc nhờ "thiết kế khung gia phả", "làm preset giao diện in", "khung tranh gia phả mới trên Canva", "thêm giao diện in".
 ---
 
 # Thiết kế khung tranh gia phả trên Canva
 
-Quy trình này được đúc kết từ lần làm preset "Sơn mài rồng vàng" (DECISIONS D72–D77). Kết quả
+Quy trình này được đúc kết từ lần làm preset "Sơn mài rồng vàng" (DECISIONS D72–D77) và
+"Đỏ son sen vàng" (D78). Kết quả
 cuối cùng là một giao diện in A1 trong ứng dụng: chọn được ở **Cài đặt → In ấn**, xuất được PDF
 A1 sắc nét, tiếng Việt đúng dấu.
 
@@ -104,8 +105,33 @@ Kiểm tra độ tương phản chữ trên `surface` (chữ nhỏ phải đọc
   thay vì viết hoa toàn bộ.
 
 Render bằng `node scripts/mau-chu.cjs spec.json out.png` (xem chú thích đầu file), gửi người dùng.
+Nếu ảnh bảng tiêu đề đã có (bước 3), dựng phông tiêu đề **ngay trên ảnh bảng thật** bằng
+`node scripts/mau-tieu-de.cjs` (chữ để thẳng, độ cong chọn ở bước 6). Nền bảng sáng (vàng óng)
+thì chữ tiêu đề phải tối (`bannerText`, ví dụ nâu đồng #4a2a0c), hỏi người dùng màu chữ.
 
-## Bước 6 — Câu chữ  ▶ DỪNG
+## Bước 6 — Bố cục chữ tiêu đề trên bảng  ▶ DỪNG, 3 phương án
+
+Chữ tiêu đề phải ôm theo hình bảng: cuốn thư vồng lên, băng lụa võng xuống giữa hai cuộn, hoành
+phi thẳng. Làm khi ảnh bảng đã cố định (bước 3) và phông đã chọn (bước 5).
+
+1. **Đo vùng chữ** (`textBox`, tỉ lệ 0–1 của ảnh bảng đã cắt sát): kẻ lưới 10% lên ảnh bảng
+   (nền đỏ phía sau) rồi đọc mặt phẳng để viết, tránh tòa sen, đầu cuộn, viền.
+2. **Đo độ cong**: dò mép của mặt chữ (mép dưới với băng võng, mép trên với cuốn thư vồng) ở vài
+   cột trong `textBox` (cột kênh alpha hoặc nơi độ sáng đổi nhiều nhất). Với độ lệch `s` giữa giữa
+   bảng và hai đầu, ở nửa dây cung `c` (cả hai tính theo bề rộng bảng): bán kính = c² ÷ (2s).
+   **Dấu**: dương = vồng (giữa cao hơn, ví dụ cuốn thư rồng vàng 1,96); âm = võng (giữa thấp hơn,
+   ví dụ băng lụa sen vàng −2,0).
+3. **Dựng ≥ 3 phương án trên ảnh bảng thật** bằng
+   `node scripts/mau-tieu-de.cjs spec.json out.png` (cùng cách tính cỡ chữ và đặt chữ theo cung như
+   ứng dụng; có ô người mẫu bên dưới). Các trục để phối: thẳng / theo cung đo được; chữ thường /
+   chữ hoa giãn chữ (0,04–0,08 em); có hay không dòng phụ. Ví dụ ba phương án: võng + chữ thường,
+   thẳng + chữ hoa, võng + chữ hoa.
+4. Ghi vào theme: `titleBoard.arcRadius` (có dấu; bỏ trống = thẳng), `typography.title.uppercase`
+   (ứng dụng tự viết hoa, người dùng vẫn gõ bình thường), `typography.title.letterSpacing` (được
+   tính khi co chữ cho vừa bảng). Chữ có dấu đặt theo cung hơi nhấp nhô từng chữ: phóng to PDF
+   để xem lại.
+
+## Bước 7 — Câu chữ  ▶ DỪNG
 
 - **Câu đối mặc định của preset**: đưa **3 cặp câu đối** hợp phong cách (ví dụ "Cây có cội mới
   nảy cành xanh ngọn / Nước có nguồn mới bể rộng sông sâu"; "Tổ đức muôn đời soi lối cháu / Gia
@@ -113,7 +139,7 @@ Render bằng `node scripts/mau-chu.cjs spec.json out.png` (xem chú thích đ�
   tiên; câu mặc định chỉ dùng khi dòng họ để trống.
 - Tên preset (hiện ở trang In ấn) và một câu mô tả ngắn: đề xuất 3 tên.
 
-## Bước 7 — Dựng trên Canva và duyệt bản hoàn chỉnh  ▶ DỪNG (duyệt)
+## Bước 8 — Dựng trên Canva và duyệt bản hoàn chỉnh  ▶ DỪNG (duyệt)
 
 1. Tạo bản thiết kế theo các lựa chọn đã chốt (`create-design` với brief chi tiết bằng tiếng Việt
    hoặc `create-design-from-candidate` từ mẫu đã chọn). Có thể xin thêm trang 2 là bảng token để
@@ -122,7 +148,7 @@ Render bằng `node scripts/mau-chu.cjs spec.json out.png` (xem chú thích đ�
    "VIỄN"): `read-design` để đọc chữ, sửa bằng `edit-design` (`find_and_replace_text`).
 3. Gửi thumbnail cho người dùng duyệt; sửa đến khi người dùng đồng ý.
 
-## Bước 8 — Xuất ảnh khổ in (giới hạn Canva gói miễn phí)
+## Bước 9 — Xuất ảnh khổ in (giới hạn Canva gói miễn phí)
 
 Những gì đã gặp và cách xử lý:
 
@@ -152,7 +178,7 @@ câu đối (`coupletBoxes`, mm) và vùng cây (`contentInsetMm`) từ tọa đ
 Nếu bảng tiêu đề cong: ước bán kính cung chữ = bán kính lòng bảng ÷ bề rộng bảng (`arcRadius`;
 cuốn thư rồng vàng là 1,96).
 
-## Bước 9 — Đóng gói vào ứng dụng  ▶ DỪNG: hỏi kiểu đóng gói
+## Bước 10 — Đóng gói vào ứng dụng  ▶ DỪNG: hỏi kiểu đóng gói
 
 Hỏi người dùng (khuyên phương án 1 nếu preset dành cho mọi người dùng ứng dụng):
 
@@ -161,6 +187,9 @@ Hỏi người dùng (khuyên phương án 1 nếu preset dành cho mọi ngư�
      nhận thư mục mới. Lấy `son-mai-rong-vang/theme.ts` làm khuôn: `backgroundImage` (stretch),
      `titleBoard`, `coupletBoxes` (kèm `defaultText`), `ornaments.showCouplets`, `contentInsetMm`,
      `preferredOrientation`, `frame.enabled: false`, `fontsCss`, `typography`, `colors`.
+     Bảng có phần trang trí rủ xuống hai bên (đuôi lụa…): đặt `titleBoard.treeFrom` (tỉ lệ chiều
+     cao bảng mà cây bắt đầu từ đó; mặc định là dưới toàn bộ ảnh), rồi xuất PDF xem các ô đời 2
+     ngoài cùng có chạm đuôi không (D78).
    - Phông mới cho PDF: `bash scripts/phong-pdf.sh "<Family>" <weight> <0|1> <khoa>` (chạy ở gốc
      repo) cho từng mặt chữ dùng tới; thêm vào `PDF_FONTS` trong `exportPdf.ts`; thêm dòng giấy
      phép vào `public/fonts/pdf/README.md` (chỉ dùng phông OFL/Apache).
@@ -172,7 +201,7 @@ Hỏi người dùng (khuyên phương án 1 nếu preset dành cho mọi ngư�
    tiêu đề ở trang In ấn ("Nhập gói giao diện"). Phông lạ không có trong `PDF_FONTS` sẽ bị thay
    bằng Noto Serif khi xuất PDF: nói rõ điều này.
 
-## Bước 10 — Kiểm tra và bàn giao
+## Bước 11 — Kiểm tra và bàn giao
 
 1. `npx tsc -b --noEmit` và `npx vitest run`. **Không chạy `npx prettier`** (repo không có cấu hình,
    nó đổi cả file sang nháy kép).
@@ -188,6 +217,16 @@ Hỏi người dùng (khuyên phương án 1 nếu preset dành cho mọi ngư�
 6. **Chỉ merge vào main khi người dùng bảo** ("merge main").
 
 ## Ghi chú
+
+- **Ảnh Canva tạo chỉ rộng 1536 px**: kéo cả khung lên A1 thì mờ (~46 dpi). Cách đã làm ở D78: tạo
+  riêng từng thành phần (sen góc, dải diềm, cụm tiêu đề) bằng `generate-image`, tách nền bằng
+  `remove-background`, đặt mỗi ảnh vào một trang đúng cỡ (`edit-design` `add_page` + `insert_fill`)
+  rồi `export-design` PNG `transparent_background: true` (cần Canva Pro) để lấy bản gốc trong
+  suốt từ `export-download.canva.com`. Nền tờ (màu, hoa văn chìm, viền vàng) vẽ thẳng ở 5600 ×
+  3955 bằng PIL; ghép các thành phần bằng PIL. Sen góc dưới: tạo riêng cụm "mọc thẳng lên", đừng
+  lật dọc cụm góc trên (hoa bị chúc ngược).
+- Lỗi `quota_exceeded` hoặc "team admin has disabled this tool": tài khoản Canva hết lượt AI hoặc
+  nhóm tắt AI; hỏi người dùng (đợi, đổi tài khoản, nâng Pro), không tự thay bằng công cụ khác.
 
 - Canva sinh chữ tiếng Việt hay sai dấu: luôn đọc lại chữ trong thiết kế.
 - Trên ảnh khung đừng để chữ cố định nào (tiêu đề, câu đối, tên): mọi chữ do ứng dụng vẽ để người

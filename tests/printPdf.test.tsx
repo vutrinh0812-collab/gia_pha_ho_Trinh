@@ -109,6 +109,76 @@ describe('"Sơn mài rồng vàng": frame preset with its own title board (D72)'
   });
 });
 
+describe('"Đỏ son sen vàng": relief Buddha above a gold silk ribbon (D78)', () => {
+  const theme = getTheme('do-son-sen-vang')!;
+
+  it('is a print theme: frame picture, title layer, no couplets, A1 landscape', () => {
+    expect(PRINT_THEMES.map((t) => t.id)).toContain('do-son-sen-vang');
+    expect(theme.backgroundImage?.href).toBeTruthy();
+    expect(theme.titleBoard).toMatchObject({ topMm: 8, widthMm: 400, arcRadius: -2.0 });
+    expect(theme.ornaments.showCouplets).toBe(false);
+    expect(theme.preferredOrientation).toBe('landscape');
+  });
+
+  it('writes the title in spaced capitals, bent along the ribbon\'s sag, in bronze on its face', () => {
+    const { container } = render(
+      <PosterSvg theme={theme} model={model} layout={layout} title="Gia Phả Họ Trịnh" subtitle="Đời thứ nhất đến đời thứ bảy" />,
+    );
+    const b = theme.titleBoard!;
+    const h = b.widthMm * b.aspect;
+    const x0 = (841 - b.widthMm) / 2;
+    const face = {
+      left: x0 + b.textBox.left * b.widthMm,
+      right: x0 + b.textBox.right * b.widthMm,
+      top: b.topMm + b.textBox.top * h,
+      bottom: b.topMm + b.textBox.bottom * h,
+    };
+    const lines = [
+      ['GIA PHẢ HỌ TRỊNH', 'Noto Serif Display'],
+      ['Đời thứ nhất đến đời thứ bảy', 'Prata'],
+    ] as const;
+    for (const [text, family] of lines) {
+      const line = container.querySelector(`g[aria-label="${text}"]`)!;
+      expect(line, text).not.toBeNull();
+      const letters = Array.from(line.querySelectorAll('text'));
+      expect(letters.map((l) => l.textContent).join('')).toBe(text.replace(/ /g, ''));
+      expect(letters[0]!.getAttribute('font-family')).toBe(family);
+      expect(letters[0]!.getAttribute('fill')).toBe('#4a2a0c');
+      const xs = letters.map((l) => Number(l.getAttribute('x')));
+      const ys = letters.map((l) => Number(l.getAttribute('y')));
+      for (let i = 0; i < letters.length; i++) {
+        expect(xs[i]).toBeGreaterThan(face.left);
+        expect(xs[i]).toBeLessThan(face.right);
+        expect(ys[i]).toBeGreaterThan(face.top);
+        expect(ys[i]).toBeLessThan(face.bottom);
+      }
+      // A sag: the middle letters sit lower than the ends, which lean inwards.
+      const mid = ys[Math.floor(ys.length / 2)]!;
+      expect(ys[0]!).toBeLessThan(mid);
+      expect(ys[ys.length - 1]!).toBeLessThan(mid);
+      expect(letters[0]!.getAttribute('transform')).toMatch(/^rotate\([0-9]/);
+      expect(letters[letters.length - 1]!.getAttribute('transform')).toMatch(/^rotate\(-/);
+    }
+  });
+
+  it('starts the tree below the ribbon, beside its tails, not below the whole picture', () => {
+    const b = theme.titleBoard!;
+    const h = b.widthMm * b.aspect;
+    const treeTop = (t: typeof theme) => {
+      const { container, unmount } = render(<PosterSvg theme={t} model={model} layout={layout} title="Gia phả" />);
+      const g = Array.from(container.querySelectorAll('g[transform*="scale("]')).find((e) => /^translate\([^)]*\) scale\(/.test(e.getAttribute('transform')!))!;
+      const [, , oy, k] = g.getAttribute('transform')!.match(/translate\(([-\d.e]+) ([-\d.e]+)\) scale\(([-\d.e]+)\)/)!.map(Number);
+      const ys = Array.from(g.children).map((c) => c.getAttribute('transform')?.match(/translate\([-\d.e]+ ([-\d.e]+)\)/)?.[1]).filter(Boolean).map(Number);
+      unmount();
+      return oy! + Math.min(...ys) * k!;
+    };
+    const top = treeTop(theme);
+    expect(top).toBeGreaterThan(b.topMm + h * b.treeFrom!);
+    // Without it the tree area begins under the tails: the (centred) tree sits lower.
+    expect(top).toBeLessThan(treeTop({ ...theme, titleBoard: { ...b, treeFrom: undefined } }));
+  });
+});
+
 describe('print sheet details (D74)', () => {
   it('shows no generation labels ("Đời 1…") on any print theme', () => {
     for (const theme of PRINT_THEMES) {

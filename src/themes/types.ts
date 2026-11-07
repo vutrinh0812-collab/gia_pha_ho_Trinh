@@ -11,6 +11,8 @@ export interface FontSpec {
   sizePt: number;
   letterSpacing?: number;
   italic?: boolean;
+  /** Write the text in capitals (D78), whatever case it was typed in. */
+  uppercase?: boolean;
   /** TTF to embed in PDF exports (phase 6). */
   ttfUrl?: string;
 }
@@ -116,4 +118,10 @@ export interface TitleBoard {
    * given as a multiple of the board's width (D73). Left out: straight text.
    */
   arcRadius?: number;
+  /**
+   * Where the tree may start, as a fraction (0–1) of the board's height (D78): for a
+   * board whose lower part is only ornaments at the sides (ribbon tails), so the tree
+   * starts below the text and not below the whole picture. Left out: below the board.
+   */
+  treeFrom?: number;
 }

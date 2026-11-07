@@ -660,3 +660,21 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 ## D77 — Bản in không có dải màu phân cách đời
 
 - Cùng với nhãn "Đời …" (D74), các dải nền mờ xen kẽ sau từng đời cũng bỏ khỏi bản in ở mọi giao diện. Hai thứ cùng theo tùy chọn `showGenerations` (mặc định tắt). Thứ tự trên dưới của cây đã đủ để nhận ra các đời.
+
+## D78 — Giao diện in "Đỏ son sen vàng"; tiêu đề võng theo băng lụa
+
+- **Preset mới** `src/themes/do-son-sen-vang/` (làm cùng người dùng theo skill `thiet-ke-khung-gia-pha`). Các lựa chọn đã chốt:
+  - Hướng phong cách "Thiền tối giản" đỏ son; A1 ngang; không con triện; không câu đối.
+  - Bố cục: sen phù điêu mạ vàng ở bốn góc (hai góc dưới là cụm sen mọc thẳng lên, không lật ngược cụm góc trên), dải sen phù điêu dọc chân khung, viền vàng kép, nền đỏ son có hoa văn sóng chìm mờ.
+  - Bảng tiêu đề: Đức Phật phù điêu ngồi tòa sen, hào quang tỏa tia, trên băng lụa vàng óng có hai đuôi bay (rộng 400 mm, cách mép trên 8 mm). Chữ tiêu đề màu nâu đồng `#4a2a0c`.
+  - Bảng màu "ô đỏ trầm, chữ vàng sáng": nền `#9e1b1e`, ô `#4f0b0e`, viền ô `#b8862b`, đường nối `#d9a640`, chữ `#ffe4a0` / `#e8c88c`, nữ `#ffcf8f`.
+  - Phông: tiêu đề Noto Serif Display 800 viết hoa, giãn 0,06 em; dòng phụ Prata; tên và năm Literata. Cả ba đã có trong `PDF_FONTS`.
+- **Ảnh**: `khung-a1.jpg` 5600 × 3955 px (≈169 dpi, JPEG 88, 1,9 MB), `bang-tieu-de.png` 1474 × 721 px trong suốt. Canva chỉ tạo ảnh rộng 1536 px, nên không phóng cả khung: sen góc, dải sen, cụm tiêu đề được tạo riêng (`generate-image`), tách nền (`remove-background`), xuất PNG trong suốt từ một trang đúng cỡ. Nền, hoa văn chìm và viền vàng vẽ thẳng ở khổ in, rồi ghép bằng PIL. Thiết kế nháp Canva: `DAHaOUIunco` (các trang 2–6 giữ bản gốc của từng thành phần). Ảnh gốc: sen góc `MAHaOTKM6HE`, sen góc dưới `MAHaOauDS5E`, dải sen `MAHaOXuoXHE`, cụm Phật + lụa `MAHaOW_kukM`.
+- **Chữ tiêu đề võng theo băng**: mép dưới băng lụa võng 0,8% bề rộng bảng trên nửa dây cung 18% → bán kính ≈ 2,0 lần bề rộng. `TitleBoard.arcRadius` nhận **số âm** cho cung võng (giữa thấp hơn hai đầu); dòng phụ võng đồng tâm. Vùng chữ `textBox` 0,545–0,69 × 0,31–0,69.
+- **Mới trong mã**:
+  - `FontSpec.uppercase`: ứng dụng tự viết hoa tiêu đề, người dùng vẫn gõ bình thường.
+  - Khi co tiêu đề cho vừa bảng, `letterSpacing` được tính vào bề rộng chữ. "Sơn mài rồng vàng" (giãn 0,04 em) vì vậy có thể có tiêu đề nhỏ đi một chút khi tiêu đề dài, nhưng không còn tràn sát mép.
+  - `TitleBoard.treeFrom`: cây bắt đầu ở tỉ lệ này của chiều cao bảng thay vì dưới toàn bộ ảnh. Dùng cho bảng có trang trí rủ hai bên. Ở preset này là 0,85: dưới băng lụa, đủ thấp để các ô đời 2 ngoài cùng không chạm mũi đuôi lụa.
+  - Lề vùng cây: 38 mm ba cạnh (trong sen góc, trên dải sen chân khung).
+- **Skill**: thêm bước 6 "Bố cục chữ tiêu đề trên bảng" (đo vùng chữ và độ cong có dấu, dựng ≥ 3 phương án trên ảnh bảng thật bằng `scripts/mau-tieu-de.cjs`); các bước sau đánh số lại. Ghi chú thêm cách lấy thành phần sắc nét khi ảnh Canva chỉ 1536 px.
+- **Còn hạn chế**: gói JSON tự nhập (`packs.ts`) chưa có trường cho `uppercase` và `treeFrom`. Chữ có dấu đặt theo cung hơi nhấp nhô từng chữ.

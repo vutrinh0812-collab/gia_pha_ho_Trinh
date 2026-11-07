@@ -230,6 +230,8 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
   useFontsLoaded();
   const board = theme.titleBoard;
   const titleText = title ?? s.title;
+  // Some boards want the title in capitals (D78); people still type it as they like.
+  const titleShown = t.title.uppercase ? titleText.toLocaleUpperCase('vi') : titleText;
   const subText = subtitle !== undefined ? subtitle?.trim() || null : s.subtitle;
   const bannerW = board ? board.widthMm : Math.min(box.w * 0.52, 430);
   const bannerH = board ? board.widthMm * board.aspect : theme.ornaments.titleBanner ? (bannerW * 84) / 400 : 0;
@@ -242,10 +244,12 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
     h: (board.textBox.bottom - board.textBox.top) * bannerH,
   };
   const titleZoneH = tb ? (subText ? tb.h * 0.62 : tb.h) : 0;
-  const em = (text: string, f: FontSpec) => Math.max(0.5, letterWidths(text, f).reduce((a, b) => a + b, 0));
+  // Width in ems, letter spacing included so a spaced-out title still fits the board.
+  const em = (text: string, f: FontSpec) =>
+    Math.max(0.5, letterWidths(text, f).reduce((a, b) => a + b + (f.letterSpacing ?? 0), 0));
   const titleSize = tb
-    ? Math.min(t.title.sizePt * PT, (tb.w * 0.94) / em(titleText, t.title), titleZoneH * 0.72)
-    : Math.min(t.title.sizePt * PT, (bannerW * 0.78) / (titleText.length * 0.52), 30);
+    ? Math.min(t.title.sizePt * PT, (tb.w * 0.94) / em(titleShown, t.title), titleZoneH * 0.72)
+    : Math.min(t.title.sizePt * PT, (bannerW * 0.78) / (titleShown.length * 0.52), 30);
   const titleY = tb ? tb.y + titleZoneH / 2 : theme.ornaments.titleBanner ? headerTop + bannerH / 2 : headerTop + titleSize * 0.8;
   const subSize = tb && subText
     ? Math.min(titleSize * 0.5, (tb.w * 0.94) / em(subText, t.heading), (tb.h - titleZoneH) * 0.6)
@@ -254,7 +258,7 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
     ? tb.y + titleZoneH + (tb.h - titleZoneH) / 2
     : (theme.ornaments.titleBanner ? headerTop + bannerH : headerTop + titleSize * 1.3) + subSize * 1.5;
   // No "Thủy tổ: …" line under the title any more (D73): the tree starts with the founder.
-  const headerEnd = board ? headerTop + bannerH : subText ? subY + subSize * 0.4 : titleY + titleSize * 0.5;
+  const headerEnd = board ? headerTop + bannerH * (board.treeFrom ?? 1) : subText ? subY + subSize * 0.4 : titleY + titleSize * 0.5;
   // No caption line for a single branch either (D76): the sheet shows just that branch.
   const headerBottom = headerEnd + 8;
 
@@ -448,7 +452,7 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
       {board && <image href={board.href} x={bannerX} y={headerTop} width={bannerW} height={bannerH} preserveAspectRatio="none" />}
       {board?.arcRadius && tb ? (
         <ArcText
-          text={titleText}
+          text={titleShown}
           cx={tb.x + tb.w / 2}
           y={titleY}
           radius={board.arcRadius * bannerW}
@@ -469,7 +473,7 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
         letterSpacing={t.title.letterSpacing ? `${t.title.letterSpacing}em` : undefined}
         fill={theme.ornaments.titleBanner || board ? (c.bannerText ?? c.textPrimary) : c.textPrimary}
       >
-        {titleText}
+        {titleShown}
       </text>
       )}
       {theme.ornaments.seal && (
