@@ -507,27 +507,25 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
       {showCouplets && coupletLeft && coupletColumn(coupletLeft, painted ? painted.left : drawnBox(box.x), !painted)}
       {showCouplets && coupletRight && coupletColumn(coupletRight, painted ? painted.right : drawnBox(box.x + box.w - coupletW), !painted)}
 
-      {/* Generation bands and labels */}
-      {fitted.rows.map((r, i) => {
+      {/* Generation bands and labels: both off by default (D74, D77) */}
+      {o.showGenerations && fitted.rows.map((r, i) => {
         const y = oy + (r.top - vgap / 2) * scale;
         const h = (r.height + vgap) * scale;
         return (
           <g key={r.gen}>
             {i % 2 === 1 && <rect x={area.x - genW} y={y} width={area.w + genW} height={h} fill={c.generationBand} />}
-            {o.showGenerations && (
-              <text
-                x={area.x - genW / 2}
-                y={oy + (r.top + r.height / 2) * scale}
-                textAnchor="middle"
-                dominantBaseline="central"
-                fontFamily={t.heading.family}
-                fontWeight={t.heading.weight}
-                fontSize={Math.min(5, h * 0.35)}
-                fill={c.accent}
-              >
-                Đời {r.gen}
-              </text>
-            )}
+            <text
+              x={area.x - genW / 2}
+              y={oy + (r.top + r.height / 2) * scale}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontFamily={t.heading.family}
+              fontWeight={t.heading.weight}
+              fontSize={Math.min(5, h * 0.35)}
+              fill={c.accent}
+            >
+              Đời {r.gen}
+            </text>
           </g>
         );
       })}

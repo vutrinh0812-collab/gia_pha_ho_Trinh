@@ -656,3 +656,7 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 ## D76 — In theo chi: không có dòng chú thích
 
 - Khi in một chi, bản in không còn dòng "Chi ông … (đời …): đầy đủ con cháu; các nhánh khác thu gọn" dưới tiêu đề. Cây đã tự cho thấy chi được in; nếu cần ghi rõ thì gõ vào tiêu đề hoặc dòng phụ ở trang In ấn. Phần đầu tờ gọn hơn, cây có thêm chỗ.
+
+## D77 — Bản in không có dải màu phân cách đời
+
+- Cùng với nhãn "Đời …" (D74), các dải nền mờ xen kẽ sau từng đời cũng bỏ khỏi bản in ở mọi giao diện. Hai thứ cùng theo tùy chọn `showGenerations` (mặc định tắt). Thứ tự trên dưới của cây đã đủ để nhận ra các đời.

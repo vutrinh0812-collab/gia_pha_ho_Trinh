@@ -115,6 +115,8 @@ describe('print sheet details (D74)', () => {
       const { container, unmount } = render(<PosterSvg theme={theme} model={model} layout={layout} title="Gia phả" />);
       const texts = Array.from(container.querySelectorAll('text')).map((t) => t.textContent ?? '');
       expect(texts.some((t) => /^Đời \d+$/.test(t)), theme.id).toBe(false);
+      // …nor the faint bands behind every other generation (D77).
+      expect(container.querySelector(`rect[fill="${theme.colors.generationBand}"]`), theme.id).toBeNull();
       unmount();
     }
   });
