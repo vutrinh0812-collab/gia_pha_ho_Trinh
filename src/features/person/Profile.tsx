@@ -2,7 +2,8 @@
  * A person's profile, laid out like a social-network profile page: cover band,
  * round portrait, name and key facts on top, then cards for the details, the
  * biography and the family. Used in the detail sheet and on /nguoi/:id.
- * Admins edit from here: the portrait, every section, and empty fields.
+ * Opened, it shows only what is known. Editors press "Chỉnh sửa hồ sơ" first (D83): then
+ * the portrait button, the "+ …" chips for empty fields and relatives, and the pencils appear.
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
@@ -53,6 +54,14 @@ export function Profile({ model, person, variant, onPick }: ProfileProps) {
   const openAdmin = useAdminUi((s) => s.open);
   const [note, setNote] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  // Read first, edit on request (D83): editing controls only after "Chỉnh sửa hồ sơ".
+  const [editing, setEditing] = useState(false);
+  useEffect(() => {
+    setEditing(false);
+    setNote(null);
+    setPhotoError(null);
+  }, [person.id]);
+  const canEdit = isAdmin && editing;
   const edit = () => openAdmin('edit', person.id);
 
   const fam = model.family(person.id);
@@ -71,7 +80,7 @@ export function Profile({ model, person, variant, onPick }: ProfileProps) {
   ].filter(Boolean);
 
   return (
-    <article className={styles.profile} data-variant={variant} aria-label={`Trang của ${person.fullName}`}>
+    <article className={styles.profile} data-variant={variant} data-editing={canEdit || undefined} aria-label={`Trang của ${person.fullName}`}>
       <header className={styles.top}>
         <div className={styles.identity}>
           <div className={styles.portrait} data-has-photo={Boolean(person.photoUrl) || undefined}>
@@ -81,7 +90,7 @@ export function Profile({ model, person, variant, onPick }: ProfileProps) {
             ) : (
               <Avatar person={person} size={variant === 'page' ? 120 : 96} ring />
             )}
-            {isAdmin && (
+            {canEdit && (
               <PhotoButton
                 model={model}
                 person={person}
@@ -102,14 +111,25 @@ export function Profile({ model, person, variant, onPick }: ProfileProps) {
             {yearsParts.length > 0 && <p className={styles.years}>{yearsParts.join(' · ')}</p>}
           </div>
         </div>
-        {/* Only admins act on a profile; family links are in the "Gia đình" card below (D57). */}
-        {isAdmin && (
+        {/* Only editors act on a profile; family links are in the "Gia đình" card below (D57).
+            Reading comes first: the editing controls appear after "Chỉnh sửa hồ sơ" (D83). */}
+        {isAdmin && !editing && (
           <div className={styles.actions}>
+            <button type="button" className={styles.secondary} onClick={() => setEditing(true)}>
+              <EditIcon width={18} height={18} /> Chỉnh sửa hồ sơ
+            </button>
+          </div>
+        )}
+        {canEdit && (
+          <div className={`${styles.actions} ${styles.editActions}`} role="group" aria-label="Chỉnh sửa hồ sơ">
             <button type="button" className={styles.primary} onClick={edit}>
-              <EditIcon width={18} height={18} /> Sửa hồ sơ
+              <EditIcon width={18} height={18} /> Sửa thông tin
             </button>
             <button type="button" className={styles.secondary} onClick={() => openAdmin('menu', person.id)}>
               <PlusIcon width={18} height={18} /> Thêm người thân
+            </button>
+            <button type="button" className={`${styles.secondary} ${styles.done}`} onClick={() => setEditing(false)}>
+              Xong
             </button>
           </div>
         )}
@@ -127,8 +147,8 @@ export function Profile({ model, person, variant, onPick }: ProfileProps) {
 
       <div className={styles.body}>
         <Anniversary person={person} />
-        <About person={person} parent={parent} isAdmin={isAdmin} onEdit={edit} />
-        <FamilyCard model={model} person={person} isAdmin={isAdmin} onPick={onPick} />
+        <About person={person} parent={parent} isAdmin={canEdit} onEdit={edit} />
+        <FamilyCard model={model} person={person} isAdmin={canEdit} onPick={onPick} />
         {children.length > 0 && (
           <p className={styles.printLink}>
             <Link to={`/print?goc=${encodeURIComponent(person.id)}`}>In gia phả theo chi của {person.fullName} →</Link>

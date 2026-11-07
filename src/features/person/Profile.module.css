@@ -187,6 +187,18 @@
 .secondary:hover {
   background: var(--accent-soft);
 }
+/* Editing (D83): "Sửa thông tin" on its own row, then "Thêm người thân" and a small "Xong",
+   the same at every width, so no word is cut and no button is left alone on a line. */
+.editActions .primary {
+  flex: 1 1 100%;
+}
+.editActions .secondary {
+  flex: 1 1 auto;
+}
+.editActions .done {
+  flex: 0 0 auto;
+  padding: 0 18px;
+}
 
 .stats {
   list-style: none;

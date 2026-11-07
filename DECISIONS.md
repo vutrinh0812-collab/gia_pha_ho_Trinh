@@ -740,3 +740,14 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - tiêu đề, dòng phụ, ô ngang, ô dọc lệch nhau không quá 0,25 mm (một điểm ảnh khi dựng ảnh);
   - chữ bị co trong ô dọc giờ trùng khít.
 - **Bài học cho skill**: chỉ dùng những gì svg2pdf hỗ trợ. Không dùng `textLength`, filter, `textPath`. Soát bằng cách chồng ảnh app với ảnh PDF.
+
+## D83 — Hồ sơ mở ra để đọc; chỉnh sửa khi bấm "Chỉnh sửa hồ sơ"
+
+- **Trước**: người có quyền sửa mở hồ sơ là thấy ngay mọi nút sửa: nút máy ảnh trên ảnh đại diện, bút chì trên từng mục, các ô "+ Bổ sung" cho mục còn trống, "+ Thêm" con hoặc vợ/chồng, và hai nút "Sửa hồ sơ", "Thêm người thân". Trang rối, khó đọc.
+- **Giờ**:
+  - Mở hồ sơ chỉ hiện thông tin đã có, kèm một nút **"Chỉnh sửa hồ sơ"** (chỉ hiện với người có quyền sửa).
+  - Bấm nút đó mới hiện các nút sửa: đổi ảnh, bút chì, "+ Bổ sung", "+ Thêm", cùng hàng nút "Sửa thông tin" (mở biểu mẫu), "Thêm người thân" và "Xong".
+  - Bấm "Xong", hoặc mở sang người khác, là trở về chế độ đọc.
+  - Người xem không có quyền sửa vẫn thấy như cũ.
+- **Bố cục nút khi đang sửa**: "Sửa thông tin" chiếm trọn một hàng; hàng dưới là "Thêm người thân" và nút "Xong" nhỏ. Bố cục giống nhau ở mọi bề rộng, không cắt chữ (đã xem ở khung hồ sơ trên máy tính và ở màn hình điện thoại rộng 375 px).
+- **Kiểm thử**: hồ sơ mở ra không có nút sửa nào; bấm "Chỉnh sửa hồ sơ" thì có; bấm "Xong" thì hết. Các bài kiểm thử sửa và thêm người thân đã đổi theo thao tác mới.
