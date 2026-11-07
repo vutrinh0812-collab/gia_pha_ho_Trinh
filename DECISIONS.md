@@ -594,3 +594,8 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - **Chỉ đổi cách hiển thị**, ảnh lưu trên máy chủ vẫn giữ màu. Bỏ dấu "Đã mất" thì ảnh có màu trở lại.
 - Trong form "Sửa thông tin", ảnh xem trước đổi đen trắng ngay khi đánh dấu "Đã mất", để admin thấy trước kết quả.
 - **Sửa kèm:** trước đây bỏ dấu "Đã mất" rồi đánh dấu lại trong cùng form thì mất năm mất, ngày mất âm lịch… đã nhập. Giờ form nhớ các thông tin đó cho tới khi đóng.
+
+### D70. Cây dọc: bỏ số La Mã thứ tự
+- Cây dọc **không còn ghi thứ tự con bằng số La Mã** (I, II, III…) trước tên. Anh chị em đã xếp trên dưới theo đúng thứ tự, nên số này chỉ chiếm chỗ của tên.
+- **Vẫn giữ "bà cả" / "bà hai"** trước tên khi người cha có con với nhiều vợ: thứ tự trên dưới không cho biết con của bà nào.
+- Sơ đồ ngang và bản in vẫn ghi số La Mã như cũ (`nodeCaption(..., withOrder)` trong `layout.ts`).

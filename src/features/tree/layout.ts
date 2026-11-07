@@ -266,9 +266,14 @@ export function startingPersons(model: ClanModel, f: TreeFilters): PersonRec[] {
   return starts;
 }
 
-export function nodeCaption(model: ClanModel, p: PersonRec, f: TreeFilters): string | null {
+/**
+ * "II · bà hai": birth order, and which mother when the parent had children in several
+ * marriages. `withOrder: false` leaves out the birth order (the vertical tree, where the
+ * order of the rows already shows it; D70).
+ */
+export function nodeCaption(model: ClanModel, p: PersonRec, f: TreeFilters, withOrder = true): string | null {
   const parts: string[] = [];
-  if (p.birthOrder) parts.push(toRoman(p.birthOrder));
+  if (withOrder && p.birthOrder) parts.push(toRoman(p.birthOrder));
   const parentUnion = model.index.parentUnionOf(p.id);
   if (parentUnion) {
     const unionsWithKids = model.index

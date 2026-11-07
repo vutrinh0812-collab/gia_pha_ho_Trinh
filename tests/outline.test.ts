@@ -45,3 +45,16 @@ describe('buildOutline', () => {
   });
 });
 
+
+describe('row captions (D70)', () => {
+  const rows = buildOutline(model, f, allOpenIds(model, f));
+
+  it('shows no Roman birth order: the order of the rows already gives it', () => {
+    expect(rows.some((r) => r.person.birthOrder)).toBe(true);
+    for (const r of rows) expect(r.caption ?? '').not.toMatch(/^[IVXLC]+\b/);
+  });
+
+  it('keeps "bà hai" (which mother) for children of several marriages', () => {
+    expect(rows.some((r) => /^(bà|ông) /.test(r.caption ?? ''))).toBe(true);
+  });
+});

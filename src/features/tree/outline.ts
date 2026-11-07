@@ -24,7 +24,7 @@ export interface OutlineRow {
   /** Indentation level: 0 for the people the outline starts from. */
   depth: number;
   parentId: string | null;
-  /** "II · bà hai". */
+  /** "bà hai" (which mother) when the parent had children in several marriages; no birth order (D70). */
   caption: string | null;
   years: string;
   spouses: TreeSpouse[];
@@ -61,7 +61,8 @@ export function buildOutline(model: ClanModel, filters: OutlineFilters, open: Re
       gen: model.generationOf(p.id) ?? depth + 1,
       depth,
       parentId,
-      caption: nodeCaption(model, p, f),
+      // Only "bà hai" (which mother): the order of the rows already shows the birth order (D70).
+      caption: nodeCaption(model, p, f, false),
       years: lifeSpan(p),
       spouses: f.showSpouses ? spousesOf(model, p) : [],
       hasChildren: kids.length > 0,
