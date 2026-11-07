@@ -339,6 +339,11 @@
   align-items: flex-start;
   min-width: 0;
 }
+/* Long values, and an item left alone on the last row, take the full width (D71). */
+.facts li[data-wide],
+.facts li:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
 .factIcon {
   flex: none;
   width: 34px;

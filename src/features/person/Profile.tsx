@@ -266,6 +266,9 @@ function Card({ title, area, onEdit, children }: { title: string; area: 'about' 
   );
 }
 
+/** Characters above which a fact ("Con của …", a place) spans the full width of the card. */
+const WIDE_FACT = 16;
+
 function About({
   person,
   parent,
@@ -305,7 +308,9 @@ function About({
       {shown.length > 0 && (
         <ul className={styles.facts}>
           {shown.map((r) => (
-            <li key={r.label}>
+            // A long value (a parent's full name, a long place name) takes the whole row, so it
+            // is not squeezed into half the card and broken over several lines (D71).
+            <li key={r.label} data-wide={(r.value?.length ?? 0) > WIDE_FACT || undefined}>
               <span className={styles.factIcon}>{r.icon}</span>
               <span>
                 <span className={styles.factLabel}>{r.label}</span>

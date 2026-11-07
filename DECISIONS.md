@@ -599,3 +599,11 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - Cây dọc **không còn ghi thứ tự con bằng số La Mã** (I, II, III…) trước tên. Anh chị em đã xếp trên dưới theo đúng thứ tự, nên số này chỉ chiếm chỗ của tên.
 - **Vẫn giữ "bà cả" / "bà hai"** trước tên khi người cha có con với nhiều vợ: thứ tự trên dưới không cho biết con của bà nào.
 - Sơ đồ ngang và bản in vẫn ghi số La Mã như cũ (`nodeCaption(..., withOrder)` trong `layout.ts`).
+
+### D71. Hồ sơ: thông tin dài không bị bó vào nửa thẻ
+- **Lỗi:** trên điện thoại, mục "Giới thiệu & tiểu sử" luôn chia hai cột bằng nhau. "Con của TRỊNH VĂN CHÍN (thứ VIII)" bị bó vào nửa thẻ và gãy thành 3 dòng, kể cả khi đó là mục duy nhất.
+- **Sửa** (`Profile.tsx`, `.facts` trong `Profile.module.css`):
+  - Mục có nội dung dài (trên 16 ký tự, `WIDE_FACT`; ví dụ tên cha mẹ, quê quán, ngày sinh kèm âm lịch) chiếm **cả chiều ngang thẻ**.
+  - Mục còn lẻ một mình ở hàng cuối cũng chiếm cả hàng, không để trống nửa bên phải.
+  - Mục ngắn (năm sinh, nghề nghiệp) vẫn xếp hai cột.
+- Đã đo: "TRỊNH VĂN CHÍN (thứ VIII)" nằm trên **một dòng** ở màn hình rộng 360px; "Trịnh Văn Việt (thứ III)" một dòng cả ở 320px.
