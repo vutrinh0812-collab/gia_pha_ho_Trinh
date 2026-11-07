@@ -108,6 +108,35 @@ describe('"Sơn mài rồng vàng": frame preset with its own title board (D72)'
   });
 });
 
+describe('print sheet details (D74)', () => {
+  it('shows no generation labels ("Đời 1…") on any print theme', () => {
+    for (const theme of PRINT_THEMES) {
+      const { container, unmount } = render(<PosterSvg theme={theme} model={model} layout={layout} title="Gia phả" />);
+      const texts = Array.from(container.querySelectorAll('text')).map((t) => t.textContent ?? '');
+      expect(texts.some((t) => /^Đời \d+$/.test(t)), theme.id).toBe(false);
+      unmount();
+    }
+  });
+
+  it('"Sơn mài rồng vàng" writes the couplets in brush calligraphy on the painted boards', () => {
+    const theme = getTheme('son-mai-rong-vang')!;
+    expect(theme.typography.couplet.family).toBe('Water Brush');
+    const { container } = render(<PosterSvg theme={theme} model={model} layout={layout} title="Gia phả" />);
+    const words = Array.from(container.querySelectorAll('text[font-family="Water Brush"]'));
+    const wanted = [model.settings.coupletLeft, model.settings.coupletRight].join(' ').split(/\s+/).filter(Boolean);
+    expect(words.map((w) => w.textContent)).toEqual(wanted);
+    const { left, right } = theme.coupletBoxes!;
+    for (const w of words) {
+      const x = Number(w.getAttribute('x'));
+      const y = Number(w.getAttribute('y'));
+      const b = x < 420 ? left : right;
+      expect(x).toBeCloseTo(b.x + b.w / 2, 5);
+      expect(y).toBeGreaterThan(b.y);
+      expect(y).toBeLessThan(b.y + b.h);
+    }
+  });
+});
+
 describe('fuller print layout (D73)', () => {
   const theme = getTheme('son-mai-rong-vang')!;
   const build = (spacing: Parameters<typeof computeTreeLayout>[2]) => computeTreeLayout(model, filters, spacing);

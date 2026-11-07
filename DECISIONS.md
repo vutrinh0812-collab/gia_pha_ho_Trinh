@@ -640,3 +640,9 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - **Tiêu đề uốn theo cuốn thư:** `TitleBoard.arcRadius` (trong JSON gói tự nhập là `bangTieuDe.doCong`) là bán kính cung chữ, tính bằng số lần chiều rộng bảng. Với cuốn thư này là 1,96, đo từ độ cong của lòng cuốn thư.
   - Chữ được đặt **từng ký tự** dọc theo cung và xoay theo cung, bề rộng mỗi chữ đo bằng phông thật, đo lại sau khi phông tải xong. Dòng phụ uốn theo cung đồng tâm.
   - Không dùng `<textPath>`, vì thư viện xuất PDF không hỗ trợ. Cách đặt từng chữ hiện đúng cả trên màn hình lẫn trong PDF.
+
+## D74 — Bản in không ghi đời; câu đối thư pháp trên bảng vẽ sẵn của "Sơn mài rồng vàng"
+
+- Bản in A1 (mọi giao diện) không còn cột "Đời 1, 2…" bên trái: thứ tự trên dưới đã đủ, và cây được thêm chỗ ngang. Các dải màu xen kẽ theo đời vẫn giữ.
+- Theme có thể khai báo `coupletBoxes` (mm trên tờ A1): vùng chữ của hai bảng câu đối đã vẽ trong ảnh nền. Khi có, câu đối được viết thẳng vào đó (không vẽ thêm bảng, không chiếm chỗ của cây); cỡ chữ tự co theo chữ rộng nhất (đo thật) và số chữ. Câu đối lấy từ cài đặt dòng họ; nếu dòng họ để trống thì dùng `defaultText` của theme.
+- "Sơn mài rồng vàng": ảnh nền Canva được xuất lại với hai bảng câu đối trống, chữ do ứng dụng viết bằng **Water Brush** (thư pháp bút lông, có đủ dấu tiếng Việt, OFL) — phông được đóng gói cho PDF (`public/fonts/pdf/water-brush-400.ttf`). Họa tiết trống đồng giữa nền được làm rõ hơn 20% (tăng đúng phần chênh lệch của lớp trống: ảnh = có trống + 0,2 × (có trống − không trống)).

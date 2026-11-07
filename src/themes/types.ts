@@ -83,6 +83,16 @@ export interface Theme {
    * and subtitle, which people type on the print page, are written inside `textBox`.
    */
   titleBoard?: TitleBoard;
+  /**
+   * Couplet boards painted in the background picture (D74): the couplets are written
+   * inside these areas (mm on the sheet) instead of on boards drawn by the app.
+   * `defaultText` is used when the clan has no couplets of its own.
+   */
+  coupletBoxes?: {
+    left: { x: number; y: number; w: number; h: number };
+    right: { x: number; y: number; w: number; h: number };
+    defaultText?: { left: string; right: string };
+  };
   /** Where title and tree go on the sheet, in mm from each edge (default: inside the frame). */
   contentInsetMm?: { top: number; right: number; bottom: number; left: number };
   /** Paper direction the background picture was drawn for. */

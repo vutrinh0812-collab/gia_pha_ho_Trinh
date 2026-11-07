@@ -48,6 +48,7 @@ export const PDF_FONTS: Record<string, Array<{ weight: number; italic?: boolean;
     { weight: 600, file: 'dancing-script-600.ttf' },
     { weight: 700, file: 'dancing-script-700.ttf' },
   ],
+  'Water Brush': [{ weight: 400, file: 'water-brush-400.ttf' }],
 };
 
 /** Used for any family that is not bundled (an imported pack's own font): it has every Vietnamese letter. */

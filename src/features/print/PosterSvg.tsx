@@ -30,7 +30,8 @@ export const DEFAULT_POSTER_OPTIONS: PosterOptions = {
   showOtherNames: false,
   showCouplets: true,
   showColophon: false,
-  showGenerations: true,
+  // No "Đời 1, 2…" column on the sheet (D74).
+  showGenerations: false,
 };
 
 /** Builds the tree with a given spacing (the print page passes one, so the sheet can fit it). */
@@ -240,28 +241,33 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
   const headerBottom = (branchLine ? branchY : headerEnd) + 8;
 
   // ---- Couplets (vertical, word by word) ----
-  const showCouplets = o.showCouplets && theme.ornaments.showCouplets && (s.coupletLeft || s.coupletRight);
-  const coupletW = showCouplets ? 30 : 0;
-  const coupletTop = box.y + 6;
-  const coupletH = box.h - 18;
-  const coupletColumn = (text: string, x: number) => {
+  // Either on boards the app draws beside the tree, or written into boards painted in
+  // the theme's picture (`coupletBoxes`, D74).
+  const painted = theme.coupletBoxes;
+  const coupletLeft = s.coupletLeft || (painted ? painted.defaultText?.left : undefined);
+  const coupletRight = s.coupletRight || (painted ? painted.defaultText?.right : undefined);
+  const showCouplets = Boolean(o.showCouplets && theme.ornaments.showCouplets && (coupletLeft || coupletRight));
+  const coupletW = showCouplets && !painted ? 30 : 0;
+  const drawnBox = (x: number) => ({ x, y: box.y + 6, w: coupletW, h: box.h - 18 });
+  const coupletColumn = (text: string, b: { x: number; y: number; w: number; h: number }, drawBoard: boolean) => {
     const words = text.split(/\s+/).filter(Boolean);
-    // Fit the longest word inside the board, and all words inside its height.
-    const longest = Math.max(1, ...words.map((w) => w.length));
-    const size = Math.min(t.couplet.sizePt * PT, (coupletH - 16) / (Math.max(words.length, 1) * 1.28), (coupletW - 7) / (longest * 0.6));
-    const startY = coupletTop + (coupletH - words.length * size * 1.28) / 2 + size;
+    // Fit the widest word (measured) inside the board, and all words inside its height.
+    const pad = drawBoard ? 7 : 2;
+    const widest = Math.max(0.5, ...words.map((w) => letterWidths(w, t.couplet).reduce((a, x) => a + x, 0)));
+    const size = Math.min(t.couplet.sizePt * PT, (b.h - 16) / (Math.max(words.length, 1) * 1.28), (b.w - pad) / widest);
+    const startY = b.y + (b.h - words.length * size * 1.28) / 2 + size;
     return (
       <g>
-        {c.coupletBoard && c.coupletBoard !== 'transparent' && (
+        {drawBoard && c.coupletBoard && c.coupletBoard !== 'transparent' && (
           <>
-            <rect x={x} y={coupletTop} width={coupletW} height={coupletH} rx={2} fill={c.coupletBoard} />
-            <rect x={x + 2} y={coupletTop + 2} width={coupletW - 4} height={coupletH - 4} rx={1.5} fill="none" stroke={c.frameInner ?? c.frame} strokeWidth={0.5} />
+            <rect x={b.x} y={b.y} width={b.w} height={b.h} rx={2} fill={c.coupletBoard} />
+            <rect x={b.x + 2} y={b.y + 2} width={b.w - 4} height={b.h - 4} rx={1.5} fill="none" stroke={c.frameInner ?? c.frame} strokeWidth={0.5} />
           </>
         )}
         {words.map((word, i) => (
           <text
             key={i}
-            x={x + coupletW / 2}
+            x={b.x + b.w / 2}
             y={startY + i * size * 1.28}
             textAnchor="middle"
             fontFamily={t.couplet.family}
@@ -485,8 +491,8 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
       )}
 
       {/* Couplets */}
-      {showCouplets && s.coupletLeft && coupletColumn(s.coupletLeft, box.x)}
-      {showCouplets && s.coupletRight && coupletColumn(s.coupletRight, box.x + box.w - coupletW)}
+      {showCouplets && coupletLeft && coupletColumn(coupletLeft, painted ? painted.left : drawnBox(box.x), !painted)}
+      {showCouplets && coupletRight && coupletColumn(coupletRight, painted ? painted.right : drawnBox(box.x + box.w - coupletW), !painted)}
 
       {/* Generation bands and labels */}
       {fitted.rows.map((r, i) => {
