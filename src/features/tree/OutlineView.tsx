@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AdminStatus } from '@/app/AdminStatus';
-import { CloseIcon, CollapseIcon, ExpandIcon, PlusIcon } from '@/app/ui/icons';
+import { CloseIcon, CollapseIcon, ExpandIcon } from '@/app/ui/icons';
 import { useOverlays } from '@/app/useOverlays';
 import { useIsDesktop } from '@/app/useMediaQuery';
 import type { ClanModel } from '@/lib/clanModel';
 import type { TreeLayoutPref } from '@/store/prefsStore';
-import { useCanEdit } from '@/store/adminStore';
-import { useAdminUi } from '@/store/adminUiStore';
 import { Avatar } from '../person/Avatar';
 import { allOpenIds, ancestorIds, buildOutline, defaultOpenIds, outlineStats, rowIdFor, type OutlineFilters, type OutlineRow } from './outline';
 import { GenRangeSlider } from './GenRangeSlider';
@@ -42,8 +40,6 @@ export function OutlineView({ model, tp, onLayout }: { model: ClanModel; tp: Tre
   const { branch, fromGen, toGen, showSpouses, showMaternal, lineageId, focusId, selectedId, setParam, setShowMaternal } = tp;
   const { open: openOverlay } = useOverlays();
   const desktop = useIsDesktop();
-  const isAdmin = useCanEdit();
-  const openAdmin = useAdminUi((s) => s.open);
   const [flashId, setFlashId] = useState<string | null>(null);
 
   const filters: OutlineFilters = useMemo(
@@ -222,7 +218,7 @@ export function OutlineView({ model, tp, onLayout }: { model: ClanModel; tp: Tre
             {everythingOpen ? <CollapseIcon width={20} height={20} /> : <ExpandIcon width={20} height={20} />}
           </button>
         </div>
-        {(lineagePerson || isAdmin) && (
+        {lineagePerson && (
           <div className={styles.chips}>
             {lineagePerson && (
               <div className={styles.chip} role="status">
@@ -231,11 +227,6 @@ export function OutlineView({ model, tp, onLayout }: { model: ClanModel; tp: Tre
                   <CloseIcon width={18} height={18} />
                 </button>
               </div>
-            )}
-            {isAdmin && (
-              <button type="button" className={styles.chipButton} onClick={() => openAdmin('generations', '')}>
-                <PlusIcon width={18} height={18} /> Thêm đời trên / dưới
-              </button>
             )}
           </div>
         )}

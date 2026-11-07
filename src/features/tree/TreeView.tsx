@@ -14,8 +14,6 @@ import {
 import { useIsDesktop } from '@/app/useMediaQuery';
 import type { ClanModel } from '@/lib/clanModel';
 import { useClanStore } from '@/store/clanStore';
-import { useCanEdit } from '@/store/adminStore';
-import { useAdminUi } from '@/store/adminUiStore';
 import { usePrefsStore, type TreeLayoutPref } from '@/store/prefsStore';
 import { collapseAllIds, computeTreeLayout, type TreeFilters } from './layout';
 import { TreeCanvas, type TreeCanvasApi } from './TreeCanvas';
@@ -71,8 +69,6 @@ function ChartView({ model, tp, onLayout }: { model: ClanModel; tp: TreeParams; 
   const desktop = useIsDesktop();
   const api = useRef<TreeCanvasApi>(null);
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
-  const isAdmin = useCanEdit();
-  const openAdmin = useAdminUi((s) => s.open);
   const [flashId, setFlashId] = useState<string | null>(null);
   const [hintHidden, setHintHidden] = useState(() => readFlag(HINT_KEY));
   const coarse = useMemo(() => window.matchMedia?.('(pointer: coarse)').matches ?? false, []);
@@ -233,11 +229,6 @@ function ChartView({ model, tp, onLayout }: { model: ClanModel; tp: TreeParams; 
           </button>
         </div>
         {!desktop && <AdminStatus variant="header" />}
-        {isAdmin && (
-          <button type="button" className={styles.chipButton} onClick={() => openAdmin('generations', '')}>
-            <PlusIcon width={18} height={18} /> Thêm đời trên / dưới
-          </button>
-        )}
         {lineagePerson && (
           <div className={styles.chip} role="status">
             Dòng dõi: <strong>{lineagePerson.fullName}</strong>

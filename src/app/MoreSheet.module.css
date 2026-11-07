@@ -20,6 +20,8 @@
   align-items: center;
   justify-content: space-between;
   min-height: 52px;
+  /* Buttons ("Tùy chỉnh nhánh gia phả", "Phím tắt") line up with the links. */
+  padding: 0;
   border-bottom: 1px solid var(--line);
   color: var(--text);
   text-decoration: none;
@@ -112,4 +114,15 @@
   background: var(--accent-soft);
   overflow-wrap: anywhere;
   user-select: all;
+}
+
+.linkLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+}
+.linkHint {
+  font-size: 0.8125rem;
+  color: var(--text-2);
 }

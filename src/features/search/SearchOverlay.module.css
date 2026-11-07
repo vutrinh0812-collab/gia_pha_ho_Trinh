@@ -1,6 +1,9 @@
 .overlay {
   position: fixed;
-  inset: 0;
+  /* Phone: stops above the bottom bar, so Sơ đồ · Ngày giỗ · Tìm kiếm · Cài đặt stay in reach
+     (--bottom-bar is 0 on desktop, where the search is a centred dialog). The extra 2.5px is
+     the bar's red top border, which --bottom-bar does not count. */
+  inset: 0 0 calc(var(--bottom-bar) + 2.5px) 0;
   z-index: 45;
   display: flex;
   flex-direction: column;
@@ -44,7 +47,7 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 12px var(--gutter-r) calc(24px + var(--safe-bottom)) var(--gutter-l);
+  padding: 12px var(--gutter-r) 24px var(--gutter-l);
 }
 .hint {
   color: var(--text-2);

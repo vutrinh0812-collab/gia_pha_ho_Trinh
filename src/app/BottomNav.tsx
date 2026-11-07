@@ -8,7 +8,7 @@ import styles from './BottomNav.module.css';
 
 /** Bottom navigation in the thumb zone (SPEC 5A.2): Sơ đồ · Ngày giỗ · Tìm kiếm · Cài đặt (the sidebar's items). */
 export function BottomNav() {
-  const { params, open } = useOverlays();
+  const { params, open, close } = useOverlays();
   const model = useClanStore((s) => s.model);
   const dueThisWeek = useMemo(() => (model ? upcomingAnniversaries(model, todaySolar(), 7).length : 0), [model]);
   const searching = params.has('tk');
@@ -37,7 +37,8 @@ export function BottomNav() {
         type="button"
         className={`${styles.item} ${searching ? styles.active : ''}`}
         aria-pressed={searching}
-        onClick={() => open('tk')}
+        // Search stays above this bar: tapping its tab again closes it.
+        onClick={() => (searching ? close('tk') : open('tk'))}
       >
         <SearchIcon />
         <span>Tìm kiếm</span>

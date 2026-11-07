@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useClanStore } from '@/store/clanStore';
+import { useCanEdit } from '@/store/adminStore';
+import { useAdminUi } from '@/store/adminUiStore';
 import { usePrefsStore } from '@/store/prefsStore';
 import { Sheet } from './ui/Sheet';
 import { ChevronIcon } from './ui/icons';
@@ -23,6 +25,8 @@ export function MoreSheet() {
   const model = useClanStore((s) => s.model);
   const { largeText, setLargeText, showMaternal, setShowMaternal } = usePrefsStore();
   const maternalOn = showMaternal ?? model?.settings.showMaternalDescendants ?? false;
+  const canEdit = useCanEdit();
+  const openAdmin = useAdminUi((s) => s.open);
 
   return (
     <Sheet label="Cài đặt" onClose={() => close('them')} header={<h2 className={styles.title}>Cài đặt</h2>}>
@@ -37,6 +41,25 @@ export function MoreSheet() {
               </Link>
             </li>
           ))}
+          {canEdit && (
+            <li>
+              {/* Adding a generation above or below (D68): moved here from the top of Sơ đồ. */}
+              <button
+                type="button"
+                className={styles.link}
+                onClick={() => {
+                  close('them');
+                  openAdmin('generations', '');
+                }}
+              >
+                <span className={styles.linkLabel}>
+                  Tùy chỉnh nhánh gia phả
+                  <span className={styles.linkHint}>Thêm đời trên hoặc đời dưới</span>
+                </span>
+                <ChevronIcon width={20} height={20} />
+              </button>
+            </li>
+          )}
           {desktop && (
             <li>
               <button type="button" className={styles.link} onClick={() => open('phim')}>

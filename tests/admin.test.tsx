@@ -153,10 +153,11 @@ describe('admin editing (demo backend)', () => {
     await waitFor(() => expect(useClanStore.getState().model?.settings.title).toBe('Gia Phả Họ Trịnh Làng An Hòa'));
   });
 
-  it('adds a generation below from the tree ("Thêm đời")', async () => {
+  it('adds a generation below from Cài đặt ("Tùy chỉnh nhánh gia phả"), no longer from the tree', async () => {
     await signIn();
-    renderAt('/so-do');
-    fireEvent.click(await screen.findByRole('button', { name: /Thêm đời trên \/ dưới/ }, { timeout: 5000 }));
+    renderAt('/so-do?them=1');
+    fireEvent.click(await screen.findByRole('button', { name: /Tùy chỉnh nhánh gia phả/ }, { timeout: 5000 }));
+    expect(screen.queryByRole('button', { name: /Thêm đời trên \/ dưới/ })).toBeNull();
     const sheet = await screen.findByRole('dialog', { name: 'Thêm đời' }, { timeout: 5000 });
     const model = useClanStore.getState().model!;
     const deepest = model.persons.find((p) => p.isBloodline && model.generationOf(p.id) === model.gens.maxGeneration)!;
@@ -172,7 +173,7 @@ describe('admin editing (demo backend)', () => {
     await signIn();
     renderAt('/admin');
     const before = useClanStore.getState().model!;
-    fireEvent.click(await screen.findByRole('button', { name: /Thêm đời trên \/ dưới/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Tùy chỉnh nhánh gia phả/ }));
     const sheet = await screen.findByRole('dialog', { name: 'Thêm đời' }, { timeout: 5000 });
     fireEvent.click(within(sheet).getByRole('button', { name: 'Thêm tổ tiên ở đời trên' }));
     const form = await screen.findByRole('dialog', { name: /Thêm cha của/ });

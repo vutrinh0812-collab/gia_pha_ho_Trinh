@@ -579,3 +579,12 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - Dấu "·" chỉ hiện **giữa hai phần trên cùng một dòng**, không bao giờ ở đầu hay cuối dòng. Cách làm: mỗi phần vẽ dấu "·" trong khoảng trống phía trước nó; phần đầu mỗi dòng nằm sát mép trái nên dấu của nó rơi ra ngoài và bị cắt (`overflow: hidden`).
   - Không cắt tên bằng "…". Trên màn rất hẹp (320px), một tên vợ/chồng dài hơn cả dòng sẽ tự xuống dòng bên trong.
 - Đã kiểm tra trên iPhone 13 (390px) và iPhone SE (320px): không dòng nào bắt đầu bằng "·", không tên nào bị cắt.
+
+### D68. "Thêm đời trên / dưới" chuyển vào Cài đặt; tìm kiếm trên điện thoại giữ thanh dưới
+- **"Tùy chỉnh nhánh gia phả"** (thay cho nút "Thêm đời trên / dưới" ở đầu Sơ đồ, D50):
+  - Là một mục trong **Cài đặt**, ngay dưới "Chế độ Admin", kèm dòng nhỏ "Thêm đời trên hoặc đời dưới". Chỉ hiện với người được sửa (admin, hoặc khi mọi người được chỉnh sửa, D62). Bấm vào thì Cài đặt đóng lại và mở bảng "Thêm đời" như trước.
+  - Đã bỏ nút này ở đầu cả Cây dọc lẫn sơ đồ ngang, nên đầu Sơ đồ gọn hơn khi đang là admin.
+  - Trang Quản trị đổi tên mục tương ứng thành "Tùy chỉnh nhánh gia phả".
+- **Tìm kiếm trên điện thoại không che thanh dưới nữa:** khung tìm kiếm dừng ngay trên thanh Sơ đồ · Ngày giỗ · Tìm kiếm · Cài đặt.
+  - Đang tìm vẫn chạm được các mục khác: Sơ đồ / Ngày giỗ chuyển trang và đóng tìm kiếm, Cài đặt mở thay cho tìm kiếm, chạm lại "Tìm kiếm" thì đóng tìm kiếm.
+  - Trên điện thoại, khung tìm kiếm không còn là hộp thoại chặn (`aria-modal` chỉ bật trên máy tính, nơi tìm kiếm vẫn là hộp giữa màn hình trên nền tối).

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useOverlays } from '@/app/useOverlays';
 import { BackIcon } from '@/app/ui/icons';
+import { useIsDesktop } from '@/app/useMediaQuery';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
 import { lifeSpan } from '@/lib/format';
 import { search } from '@/lib/search';
@@ -27,6 +28,8 @@ export function describe(model: ClanModel, p: PersonRec): string {
 export function SearchOverlay() {
   const model = useClanStore((s) => s.model);
   const { close, goToPerson } = useOverlays();
+  // On a phone the bottom bar stays usable next to the search, so it is not a modal there.
+  const desktop = useIsDesktop();
   /** A result opens that person's branch on "Sơ đồ" and goes to them. */
   const pick = (id: string) => goToPerson(id, { replace: true });
   const [query, setQuery] = useState('');
@@ -54,7 +57,7 @@ export function SearchOverlay() {
   return (
     <>
     <div className={styles.scrim} onClick={() => close('tk')} aria-hidden="true" />
-    <div className={styles.overlay} role="dialog" aria-modal="true" aria-label="Tìm kiếm">
+    <div className={styles.overlay} role="dialog" aria-modal={desktop} aria-label="Tìm kiếm">
       <form className={styles.bar} role="search" onSubmit={(e) => {
         e.preventDefault();
         const first = results[0];

@@ -80,7 +80,7 @@ function AdminHome() {
       <ul className={styles.links}>
         <li>
           <button type="button" className={styles.linkCard} onClick={() => openAdmin('generations', '')}>
-            <span className={styles.linkTitle}>Thêm đời trên / dưới</span>
+            <span className={styles.linkTitle}>Tùy chỉnh nhánh gia phả</span>
             <span className={styles.linkText}>Thêm tổ tiên ở đời trên cùng, hoặc thêm con để mở đời mới</span>
           </button>
         </li>
@@ -107,7 +107,7 @@ function AdminHome() {
       <ul className={styles.howto}>
         <li>Nhấn giữ vào tên người đó (trên điện thoại), hoặc mở “Xem chi tiết” rồi bấm “Sửa” hay “Thao tác”.</li>
         <li>“Thao tác” có: thêm con, thêm vợ hoặc chồng, thêm cha cho người ở Đời 1, đổi thứ tự anh chị em (hoặc các gia đình ở Đời 1), xóa.</li>
-        <li>Thêm cả một đời: dùng “Thêm đời trên / dưới” ở trên, hoặc nút cùng tên trên màn Sơ đồ.</li>
+        <li>Thêm cả một đời: dùng “Tùy chỉnh nhánh gia phả” ở trên, hoặc mục cùng tên trong Cài đặt.</li>
         <li>Người còn con không xóa được; hãy xóa hoặc chuyển các con trước.</li>
       </ul>
       <EditPermission />
