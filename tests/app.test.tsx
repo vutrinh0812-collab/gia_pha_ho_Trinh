@@ -132,6 +132,8 @@ describe('other pages', () => {
     // D72: the title written on the sheet is typed here; the PDF is one click away.
     expect(screen.getByRole('textbox', { name: 'Tiêu đề' })).toHaveValue(useClanStore.getState().model!.settings.title);
     expect(screen.getByRole('button', { name: 'Tải PDF khổ A1' })).toBeInTheDocument();
+    // D73: no tick boxes for colophon, couplets, spouses… on the print page.
+    expect(screen.queryByRole('checkbox', { name: /Lạc khoản|Câu đối|Dâu, rể/ })).toBeNull();
   });
 
   it('old /themes links open "In ấn"', async () => {

@@ -39,8 +39,15 @@ export const PDF_FONTS: Record<string, Array<{ weight: number; italic?: boolean;
     { weight: 400, file: 'lora-400.ttf' },
     { weight: 600, file: 'lora-600.ttf' },
     { weight: 700, file: 'lora-700.ttf' },
+    { weight: 400, italic: true, file: 'lora-400-italic.ttf' },
+    { weight: 600, italic: true, file: 'lora-600-italic.ttf' },
+    { weight: 700, italic: true, file: 'lora-700-italic.ttf' },
   ],
-  'Dancing Script': [{ weight: 700, file: 'dancing-script-700.ttf' }],
+  'Dancing Script': [
+    { weight: 400, file: 'dancing-script-400.ttf' },
+    { weight: 600, file: 'dancing-script-600.ttf' },
+    { weight: 700, file: 'dancing-script-700.ttf' },
+  ],
 };
 
 /** Used for any family that is not bundled (an imported pack's own font): it has every Vietnamese letter. */

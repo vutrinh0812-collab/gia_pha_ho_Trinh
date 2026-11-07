@@ -2,21 +2,22 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { render } from '@testing-library/react';
 import { FALLBACK_FAMILY, PDF_FONTS, nearestFont, preparePosterSvg, styleKey } from '@/features/print/exportPdf';
-import { PosterSvg } from '@/features/print/PosterSvg';
+import { PRINT_SPACING, PosterSvg } from '@/features/print/PosterSvg';
 import { buildClanModel } from '@/lib/clanModel';
 import { loadDemoSnapshot } from '@/lib/data/demoSource';
 import { computeTreeLayout } from '@/features/tree/layout';
 import { PRINT_THEMES, getTheme } from '@/themes/registry';
 
 const model = buildClanModel(loadDemoSnapshot())!;
-const layout = computeTreeLayout(model, {
+const filters = {
   branch: null,
   fromGen: null,
   toGen: null,
   showSpouses: true,
   showMaternal: false,
-  collapsed: new Set(),
-});
+  collapsed: new Set<string>(),
+};
+const layout = computeTreeLayout(model, filters);
 
 describe('PDF export (D72)', () => {
   it('bundles a font file for every family a print theme uses', () => {
@@ -64,7 +65,7 @@ describe('"Sơn mài rồng vàng": frame preset with its own title board (D72)'
     expect(theme.frame.enabled).toBe(false);
   });
 
-  it('writes the typed title and subtitle inside the board', () => {
+  it('bends the typed title and subtitle along the scroll, inside the board (D73)', () => {
     const { container } = render(
       <PosterSvg theme={theme} model={model} layout={layout} title="GIA PHẢ HỌ TRỊNH" subtitle="Đời thứ nhất đến đời thứ bảy" />,
     );
@@ -72,21 +73,58 @@ describe('"Sơn mài rồng vàng": frame preset with its own title board (D72)'
     expect(board).not.toBeNull();
     const bx = Number(board.getAttribute('x'));
     const bw = Number(board.getAttribute('width'));
-    const texts = Array.from(container.querySelectorAll('text'));
-    const title = texts.find((t) => t.textContent === 'GIA PHẢ HỌ TRỊNH')!;
-    const sub = texts.find((t) => t.textContent === 'Đời thứ nhất đến đời thứ bảy')!;
-    for (const t of [title, sub]) {
-      const x = Number(t.getAttribute('x'));
-      const y = Number(t.getAttribute('y'));
-      expect(x).toBeCloseTo(bx + bw / 2, 1); // centred on the board
-      expect(y).toBeGreaterThan(36.9);
-      expect(y).toBeLessThan(36.9 + bw * theme.titleBoard!.aspect);
+    const top = 36.9;
+    const bottom = top + bw * theme.titleBoard!.aspect;
+    for (const text of ['GIA PHẢ HỌ TRỊNH', 'Đời thứ nhất đến đời thứ bảy']) {
+      const line = container.querySelector(`g[aria-label="${text}"]`)!;
+      expect(line, text).not.toBeNull();
+      const letters = Array.from(line.querySelectorAll('text'));
+      expect(letters.map((l) => l.textContent).join('')).toBe(text.replace(/ /g, ''));
+      const xs = letters.map((l) => Number(l.getAttribute('x')));
+      const ys = letters.map((l) => Number(l.getAttribute('y')));
+      for (let i = 0; i < letters.length; i++) {
+        expect(xs[i]).toBeGreaterThan(bx);
+        expect(xs[i]).toBeLessThan(bx + bw);
+        expect(ys[i]).toBeGreaterThan(top);
+        expect(ys[i]).toBeLessThan(bottom);
+      }
+      // An arch: the middle letters sit higher than the ends, which lean outwards.
+      const mid = ys[Math.floor(ys.length / 2)]!;
+      expect(ys[0]!).toBeGreaterThan(mid);
+      expect(ys[ys.length - 1]!).toBeGreaterThan(mid);
+      expect(letters[0]!.getAttribute('transform')).toMatch(/^rotate\(-/);
+      expect(letters[letters.length - 1]!.getAttribute('transform')).toMatch(/^rotate\([0-9]/);
     }
-    expect(Number(sub.getAttribute('y'))).toBeGreaterThan(Number(title.getAttribute('y')));
+  });
+
+  it('writes no "Thủy tổ" line under the title (D73)', () => {
+    const { container } = render(<PosterSvg theme={theme} model={model} layout={layout} title="Gia phả" />);
+    expect(container.textContent).not.toMatch(/Thủy tổ|gia đình ở đời 1/);
   });
 
   it('hides the subtitle when it is left empty', () => {
     const { container } = render(<PosterSvg theme={theme} model={model} layout={layout} title="Gia phả" subtitle="" />);
     expect(Array.from(container.querySelectorAll('text')).some((t) => t.textContent === model.settings.subtitle)).toBe(false);
+  });
+});
+
+describe('fuller print layout (D73)', () => {
+  const theme = getTheme('son-mai-rong-vang')!;
+  const build = (spacing: Parameters<typeof computeTreeLayout>[2]) => computeTreeLayout(model, filters, spacing);
+
+  it('keeps generations closer than on screen, with shorter connector bars', () => {
+    const screen = computeTreeLayout(model, filters);
+    const print = build({ ...PRINT_SPACING, lineScale: 1 });
+    expect(print.metrics.vgap).toBeLessThan(screen.metrics.vgap);
+    const gap = (l: typeof screen) => l.rows[1]!.top - (l.rows[0]!.top + l.rows[0]!.height);
+    expect(gap(print)).toBeLessThan(gap(screen));
+  });
+
+  it('fills a wide tree with taller cards instead of long lines', () => {
+    const { container } = render(<PosterSvg theme={theme} model={model} layout={build} title="Gia phả" />);
+    const cards = Array.from(container.querySelectorAll('g[transform^="translate"] > rect')).map((r) => Number(r.getAttribute('height')));
+    const flat = build({ ...PRINT_SPACING, lineScale: 1 });
+    const flatTallest = Math.max(...flat.nodes.filter((n) => n.vertical).map((n) => n.h));
+    expect(Math.max(...cards)).toBeGreaterThan(flatTallest * 1.5);
   });
 });

@@ -62,37 +62,9 @@
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     align-items: start;
   }
-  .controls .toggles {
-    grid-column: 1 / -1;
-  }
   .titleFields {
     grid-template-columns: 1fr 1fr;
   }
-}
-.toggles {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-}
-.toggles legend {
-  font-size: 0.875rem;
-  color: var(--text-2);
-  padding: 0;
-  margin-bottom: 4px;
-}
-.check {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-}
-.check input {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--accent);
 }
 .themeGrid {
   list-style: none;

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
-import { computeTreeLayout, type TreeLayout } from '../tree/layout';
+import { computeTreeLayout, type LayoutMetrics, type TreeLayout } from '../tree/layout';
 
 export interface BranchOption {
   person: PersonRec;
@@ -37,6 +37,38 @@ export function usePrintLayout(model: ClanModel, focusId: string | null, showSpo
       }),
     [model, focusId, showSpouses],
   );
+}
+
+/**
+ * The tree to print as a builder (D73): the sheet asks for the spacing it needs to fill
+ * the paper; results are cached, so the theme thumbnails and the preview share them.
+ */
+export function usePrintLayoutBuilder(
+  model: ClanModel,
+  focusId: string | null,
+  showSpouses: boolean,
+): (spacing: Partial<LayoutMetrics>) => TreeLayout {
+  return useMemo(() => {
+    const cache = new Map<string, TreeLayout>();
+    const filters = {
+      branch: null,
+      fromGen: null,
+      toGen: null,
+      showSpouses,
+      showMaternal: model.settings.showMaternalDescendants,
+      collapsed: new Set<string>(),
+      focusId,
+    };
+    return (spacing) => {
+      const key = JSON.stringify(spacing);
+      let l = cache.get(key);
+      if (!l) {
+        l = computeTreeLayout(model, filters, spacing);
+        cache.set(key, l);
+      }
+      return l;
+    };
+  }, [model, focusId, showSpouses]);
 }
 
 export function branchLine(model: ClanModel, focusId: string | null): string | null {

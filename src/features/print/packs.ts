@@ -51,6 +51,8 @@ export interface PackJson {
     tiLe?: number;
     /** Text area inside the picture, as fractions 0–1 of its width/height (default: the middle). */
     vungChu?: { tren: number; duoi: number; trai: number; phai: number };
+    /** Arched board: radius of the arc the text follows, as a multiple of the board width (D73). */
+    doCong?: number;
   };
 }
 
@@ -71,7 +73,7 @@ export const SAMPLE_PACK: PackJson & { _huongDan: string[] } = {
     'hinhNen.cachPhu: "cover" (phủ kín, cắt bớt mép), "stretch" (kéo giãn vừa khít), "contain" (giữ nguyên ảnh).',
     'vungNoiDungMm: khoảng cách (mm) từ mép giấy vào vùng trống bên trong khung, nơi đặt tiêu đề và cây gia phả.',
     'nen: giao diện có sẵn để lấy màu và chữ mặc định: truyen-thong-do, son-mai-vang, son-mai-rong-vang, men-lam, giay-do.',
-    'bangTieuDe (không bắt buộc): ảnh bảng tiêu đề riêng, nền trong suốt (PNG). trenMm, rongMm: mép trên và chiều rộng trên tờ A1 (mm), tự căn giữa; traiMm nếu muốn đặt lệch. vungChu: vùng viết chữ bên trong ảnh, tính theo tỉ lệ 0–1 của ảnh. Chữ tiêu đề nhập ở trang In ấn.',
+    'bangTieuDe (không bắt buộc): ảnh bảng tiêu đề riêng, nền trong suốt (PNG). trenMm, rongMm: mép trên và chiều rộng trên tờ A1 (mm), tự căn giữa; traiMm nếu muốn đặt lệch. vungChu: vùng viết chữ bên trong ảnh, tính theo tỉ lệ 0–1 của ảnh. doCong: nếu bảng cong, chữ uốn theo cung tròn có bán kính bằng doCong × chiều rộng bảng (ví dụ 2). Chữ tiêu đề nhập ở trang In ấn.',
     'mau, chu, oNguoi, duongNoi: chỉ ghi những gì muốn đổi; bỏ trống thì dùng của giao diện nền. Màu viết dạng #rrggbb.',
     'Các trường bắt đầu bằng _ (như _huongDan) được bỏ qua.',
   ],
@@ -134,6 +136,8 @@ export function validatePack(raw: unknown): PackJson {
     if (!isNum(bt.rongMm, 10, 841)) throw new Error('"bangTieuDe.rongMm" phải là số mm từ 10 đến 841.');
     if (bt.traiMm !== undefined && !isNum(bt.traiMm, 0, 841)) throw new Error('"bangTieuDe.traiMm" phải là số mm từ 0 đến 841.');
     if (bt.tiLe !== undefined && !isNum(bt.tiLe, 0.02, 10)) throw new Error('"bangTieuDe.tiLe" (cao ÷ rộng) phải là số dương.');
+    if (bt.doCong !== undefined && !isNum(bt.doCong, 0.5, 100))
+      throw new Error('"bangTieuDe.doCong" (bán kính cung chữ ÷ chiều rộng bảng) phải là số từ 0,5 đến 100.');
     const vc = bt.vungChu as Record<string, unknown> | undefined;
     if (vc !== undefined) {
       for (const k of ['tren', 'duoi', 'trai', 'phai'])
@@ -184,6 +188,7 @@ export function packTheme(pack: StoredPack): Theme {
             topMm: j.bangTieuDe.trenMm,
             widthMm: j.bangTieuDe.rongMm,
             leftMm: j.bangTieuDe.traiMm,
+            arcRadius: j.bangTieuDe.doCong,
             textBox: j.bangTieuDe.vungChu
               ? {
                   top: j.bangTieuDe.vungChu.tren,

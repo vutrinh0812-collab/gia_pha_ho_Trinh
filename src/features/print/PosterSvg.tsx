@@ -3,11 +3,11 @@
  * 841 × 594. Shared by the theme preview (/themes) and the print page (/print);
  * phase 6 adds auto-fit with vertical name boxes and the PDF/SVG/PNG export.
  */
-import { useId } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import type { ClanModel } from '@/lib/clanModel';
 import { lifeSpan } from '@/lib/format';
-import type { Theme } from '@/themes/types';
-import { VGAP, V_PAD_X, verticalMetrics, type TreeLayout } from '../tree/layout';
+import type { FontSpec, Theme } from '@/themes/types';
+import { V_PAD_X, verticalMetrics, type LayoutMetrics, type TreeLayout } from '../tree/layout';
 
 export const A1 = { landscape: { w: 841, h: 594 }, portrait: { w: 594, h: 841 } } as const;
 const SAFE = 15; // mm, printer-safe margin
@@ -29,14 +29,29 @@ export const DEFAULT_POSTER_OPTIONS: PosterOptions = {
   showSpouses: true,
   showOtherNames: false,
   showCouplets: true,
-  showColophon: true,
+  showColophon: false,
   showGenerations: true,
 };
+
+/** Builds the tree with a given spacing (the print page passes one, so the sheet can fit it). */
+export type LayoutBuilder = (spacing: Partial<LayoutMetrics>) => TreeLayout;
+
+/**
+ * Spacing on the sheet (D73): generations closer together, shorter connectors and
+ * sibling gaps than on screen; the room left is given to the cards' line spacing.
+ */
+export const PRINT_SPACING: Partial<LayoutMetrics> = { vgap: 34, barOffset: 15, siblingGap: 8, cousinGap: 18 };
+/** Line spacing in the cards stays comfortable to read; beyond it, generations move apart a little. */
+const MAX_LINE_SCALE = 3.0;
+const MAX_PRINT_VGAP = 100;
+/** Card text grows with the spacing, up to this much, so the cards read from further away. */
+const MAX_TEXT_SCALE = 1.3;
 
 interface Props {
   theme: Theme;
   model: ClanModel;
-  layout: TreeLayout;
+  /** A ready layout, or a builder: then the cards' line spacing is chosen to fill the sheet (D73). */
+  layout: TreeLayout | LayoutBuilder;
   options?: Partial<PosterOptions>;
   /** Shown under the title when the sheet is one branch ("Chi ông …"). */
   branchLine?: string | null;
@@ -80,6 +95,100 @@ function fit(text: string, maxW: number, size: number): string {
   return text.length <= max ? text : `${text.slice(0, Math.max(1, max - 1))}…`;
 }
 
+const ital = (f: FontSpec) => (f.italic ? 'italic' : undefined);
+
+let measureCtx: CanvasRenderingContext2D | null | undefined;
+/**
+ * Widths of each letter of `text` (in units of the font size), measured by the browser
+ * with the real font so letters can be laid one by one on an arc. Each letter's width
+ * includes the kerning with the one before. Without a canvas (tests), an estimate.
+ */
+export function letterWidths(text: string, f: FontSpec): number[] {
+  const letters = Array.from(text.normalize('NFC'));
+  if (measureCtx === undefined) {
+    try {
+      measureCtx = typeof document !== 'undefined' ? document.createElement('canvas').getContext('2d') : null;
+    } catch {
+      measureCtx = null;
+    }
+  }
+  const ctx = measureCtx;
+  if (!ctx) return letters.map((l) => (l === ' ' ? 0.28 : 0.56));
+  ctx.font = `${f.italic ? 'italic ' : ''}${f.weight} 100px "${f.family}"`;
+  const out: number[] = [];
+  let before = 0;
+  let prefix = '';
+  for (const l of letters) {
+    prefix += l;
+    const now = ctx.measureText(prefix).width / 100;
+    out.push(now - before);
+    before = now;
+  }
+  return out;
+}
+
+/** Re-renders once web fonts have loaded, so measured letter widths use the real font. */
+function useFontsLoaded(): number {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    const fonts = typeof document !== 'undefined' ? document.fonts : undefined;
+    if (!fonts) return;
+    let alive = true;
+    const bump = () => alive && setN((v) => v + 1);
+    void fonts.ready.then(bump);
+    fonts.addEventListener?.('loadingdone', bump);
+    return () => {
+      alive = false;
+      fonts.removeEventListener?.('loadingdone', bump);
+    };
+  }, []);
+  return n;
+}
+
+/**
+ * A line of text bent along an arc (D73), letter by letter: each letter is placed at its
+ * distance along the arc and turned to follow it. Built from plain rotated <text>
+ * elements, which every renderer and the PDF export understand (unlike <textPath>).
+ * The arc's highest point is at (cx, y); its centre is `radius` below.
+ */
+function ArcText(props: { text: string; cx: number; y: number; radius: number; size: number; font: FontSpec; fill: string }) {
+  const { text, cx, y, radius, size, font, fill } = props;
+  const letters = Array.from(text.normalize('NFC'));
+  const widths = letterWidths(text, font).map((w) => w * size);
+  const total = widths.reduce((a, b) => a + b, 0);
+  let along = -total / 2;
+  return (
+    <g aria-label={text}>
+      {letters.map((l, i) => {
+        const mid = along + widths[i]! / 2;
+        along += widths[i]!;
+        if (l === ' ') return null;
+        const a = mid / radius;
+        const x = cx + radius * Math.sin(a);
+        const ly = y + radius - radius * Math.cos(a);
+        return (
+          <text
+            key={i}
+            x={x}
+            y={ly}
+            transform={`rotate(${(a * 180) / Math.PI} ${x} ${ly})`}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontFamily={font.family}
+            fontWeight={font.weight}
+            fontStyle={ital(font)}
+            fontSize={size}
+            fill={fill}
+            aria-hidden="true"
+          >
+            {l}
+          </text>
+        );
+      })}
+    </g>
+  );
+}
+
 export function PosterSvg({ theme, model, layout, options, branchLine, className, title, subtitle }: Props) {
   const o = { ...DEFAULT_POSTER_OPTIONS, ...options };
   const uid = useId().replace(/:/g, '');
@@ -99,6 +208,7 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
   // ---- Header: banner + title, subtitle, root ancestor ----
   // A title board (D72) is a picture placed in mm on the sheet; the title and subtitle
   // are fitted inside its text box. Otherwise the theme's SVG banner or plain text.
+  useFontsLoaded();
   const board = theme.titleBoard;
   const titleText = title ?? s.title;
   const subText = subtitle !== undefined ? subtitle?.trim() || null : s.subtitle;
@@ -113,21 +223,21 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
     h: (board.textBox.bottom - board.textBox.top) * bannerH,
   };
   const titleZoneH = tb ? (subText ? tb.h * 0.62 : tb.h) : 0;
+  const em = (text: string, f: FontSpec) => Math.max(0.5, letterWidths(text, f).reduce((a, b) => a + b, 0));
   const titleSize = tb
-    ? Math.min(t.title.sizePt * PT, tb.w / (Math.max(titleText.length, 1) * 0.6), titleZoneH * 0.72)
+    ? Math.min(t.title.sizePt * PT, (tb.w * 0.94) / em(titleText, t.title), titleZoneH * 0.72)
     : Math.min(t.title.sizePt * PT, (bannerW * 0.78) / (titleText.length * 0.52), 30);
   const titleY = tb ? tb.y + titleZoneH / 2 : theme.ornaments.titleBanner ? headerTop + bannerH / 2 : headerTop + titleSize * 0.8;
   const subSize = tb && subText
-    ? Math.min(titleSize * 0.5, tb.w / (subText.length * 0.52), (tb.h - titleZoneH) * 0.6)
+    ? Math.min(titleSize * 0.5, (tb.w * 0.94) / em(subText, t.heading), (tb.h - titleZoneH) * 0.6)
     : t.heading.sizePt * PT * 0.62;
   const subY = tb
     ? tb.y + titleZoneH + (tb.h - titleZoneH) / 2
     : (theme.ornaments.titleBanner ? headerTop + bannerH : headerTop + titleSize * 1.3) + subSize * 1.5;
-  const root = model.get(model.rootId);
-  const rootSize = t.heading.sizePt * PT;
-  const rootY = board ? headerTop + bannerH + rootSize * 1.5 : subY + (subText ? subSize * 1.2 : 0) + rootSize * 1.4;
-  const branchY = rootY + (branchLine ? subSize * 1.5 : 0);
-  const headerBottom = branchY + 8;
+  // No "Thủy tổ: …" line under the title any more (D73): the tree starts with the founder.
+  const headerEnd = board ? headerTop + bannerH : subText ? subY + subSize * 0.4 : titleY + titleSize * 0.5;
+  const branchY = headerEnd + subSize * 1.6;
+  const headerBottom = (branchLine ? branchY : headerEnd) + 8;
 
   // ---- Couplets (vertical, word by word) ----
   const showCouplets = o.showCouplets && theme.ornaments.showCouplets && (s.coupletLeft || s.coupletRight);
@@ -176,16 +286,39 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
     w: box.w - (showCouplets ? 2 * (coupletW + 10) : 0) - genW,
     h: box.y + box.h - headerBottom - colophonH - 4,
   };
-  const b = layout.bounds;
+  // A wide tree is limited by the paper width and would leave the sheet half empty.
+  // Rather than spreading the generations apart (long connector lines), open up the
+  // line spacing inside the cards until the tree fills the height (D73). The tree's
+  // height grows linearly with the line spacing, so two trial layouts find it.
+  const fitted = useMemo(() => {
+    if (typeof layout !== 'function') return layout;
+    const at = (lineScale: number, vgap = PRINT_SPACING.vgap!) => layout({ ...PRINT_SPACING, vgap, lineScale });
+    const size = (l: TreeLayout) => ({ w: Math.max(1, l.bounds.maxX - l.bounds.minX), h: Math.max(1, l.bounds.maxY - l.bounds.minY + 30) });
+    const one = at(1);
+    const s1 = size(one);
+    const widthScale = Math.min(area.w / s1.w, 0.36);
+    const room = (area.h * 0.97) / widthScale;
+    if (s1.h >= room) return one;
+    // 1. Open up the cards' line spacing (the tree's height grows linearly with it).
+    const slope = size(at(2)).h - s1.h;
+    const k = slope > 0 ? Math.min(MAX_LINE_SCALE, 1 + (room - s1.h) / slope) : 1;
+    const lineScale = k > 1.05 ? Math.floor(k * 20) / 20 : 1;
+    const filled = at(lineScale);
+    const left = room - size(filled).h;
+    const gaps = filled.rows.length - 1;
+    if (left <= 0 || gaps < 1) return filled;
+    // 2. Still room: a little more space between generations, never as long as on screen.
+    const vgap = Math.min(MAX_PRINT_VGAP, PRINT_SPACING.vgap! + Math.floor(left / gaps));
+    return vgap > PRINT_SPACING.vgap! ? at(lineScale, vgap) : filled;
+  }, [layout, area.w, area.h]);
+  const lineScale = fitted.metrics?.lineScale ?? 1;
+  const textScale = Math.min(MAX_TEXT_SCALE, lineScale);
+  const vgap = fitted.metrics?.vgap ?? 76;
+  const b = fitted.bounds;
   const lw = Math.max(1, b.maxX - b.minX);
   const lh = Math.max(1, b.maxY - b.minY + 30);
   const scale = Math.min(area.w / lw, area.h / lh, 0.36);
-  // A wide tree is limited by the paper width and leaves the page half empty:
-  // spread the generations apart (nodes keep their size) to fill the height.
-  const gaps = Math.max(1, layout.rows.length - 1);
-  const stretch = Math.max(0, Math.min(4 * VGAP, ((area.h * 0.96) / scale - lh) / gaps));
-  const mapY = rowStretch(layout.rows, stretch);
-  const treeH = lh + stretch * (layout.rows.length - 1);
+  const treeH = lh;
   const ox = area.x + (area.w - lw * scale) / 2 - b.minX * scale;
   const oy = area.y + (area.h - treeH * scale) / 2 + 6 * scale;
   const u = (mm: number) => mm / scale; // mm → tree units
@@ -289,9 +422,21 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
         <Ornament svg={theme.ornaments.titleBanner} x={(W - bannerW) / 2} y={headerTop} width={bannerW} height={bannerH} />
       )}
       {board && <image href={board.href} x={bannerX} y={headerTop} width={bannerW} height={bannerH} preserveAspectRatio="none" />}
+      {board?.arcRadius && tb ? (
+        <ArcText
+          text={titleText}
+          cx={tb.x + tb.w / 2}
+          y={titleY}
+          radius={board.arcRadius * bannerW}
+          size={titleSize}
+          font={t.title}
+          fill={c.bannerText ?? c.textPrimary}
+        />
+      ) : (
       <text
         x={tb ? tb.x + tb.w / 2 : W / 2}
         y={titleY}
+        fontStyle={ital(t.title)}
         textAnchor="middle"
         dominantBaseline="central"
         fontFamily={t.title.family}
@@ -302,12 +447,26 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
       >
         {titleText}
       </text>
+      )}
       {theme.ornaments.seal && (
         <Seal x={W / 2 + Math.min(titleText.length * titleSize * 0.27, bannerW / 2) + 10} y={titleY - 13} size={26} color={theme.ornaments.seal.color} name={s.clanName} font={t.heading.family} />
       )}
-      {subText && (
+      {subText && board?.arcRadius && tb && (
+        // Same centre as the title's arc, so the two lines curve together.
+        <ArcText
+          text={subText}
+          cx={tb.x + tb.w / 2}
+          y={subY}
+          radius={board.arcRadius * bannerW - (subY - titleY)}
+          size={subSize}
+          font={{ ...t.heading, weight: 400 }}
+          fill={c.bannerText ?? c.textSecondary}
+        />
+      )}
+      {subText && !board?.arcRadius && (
         <text
           x={tb ? tb.x + tb.w / 2 : W / 2}
+          fontStyle={ital(t.heading)}
           y={subY}
           textAnchor="middle"
           dominantBaseline={tb ? 'central' : undefined}
@@ -317,13 +476,6 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
           fill={tb ? (c.bannerText ?? c.textSecondary) : c.textSecondary}
         >
           {subText}
-        </text>
-      )}
-      {root && (
-        <text x={W / 2} y={rootY} textAnchor="middle" fontFamily={t.heading.family} fontWeight={t.heading.weight} fontSize={rootSize} fill={c.accent}>
-          {model.founders.length > 1
-            ? `Gồm ${model.founders.length} gia đình ở đời 1`
-            : `Thủy tổ: ${root.fullName}${lifeSpan(root) ? ` (${lifeSpan(root)})` : ''}`}
         </text>
       )}
       {branchLine && (
@@ -337,16 +489,16 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
       {showCouplets && s.coupletRight && coupletColumn(s.coupletRight, box.x + box.w - coupletW)}
 
       {/* Generation bands and labels */}
-      {layout.rows.map((r, i) => {
-        const y = oy + (mapY(r.top) - (VGAP + stretch) / 2) * scale;
-        const h = (r.height + VGAP + stretch) * scale;
+      {fitted.rows.map((r, i) => {
+        const y = oy + (r.top - vgap / 2) * scale;
+        const h = (r.height + vgap) * scale;
         return (
           <g key={r.gen}>
             {i % 2 === 1 && <rect x={area.x - genW} y={y} width={area.w + genW} height={h} fill={c.generationBand} />}
             {o.showGenerations && (
               <text
                 x={area.x - genW / 2}
-                y={oy + (mapY(r.top) + r.height / 2) * scale}
+                y={oy + (r.top + r.height / 2) * scale}
                 textAnchor="middle"
                 dominantBaseline="central"
                 fontFamily={t.heading.family}
@@ -364,29 +516,30 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
       {/* Tree */}
       <g transform={`translate(${ox} ${oy}) scale(${scale})`}>
         <g fill="none" stroke={theme.connector.color} strokeWidth={u(theme.connector.width)}>
-          {layout.families.map((f) => (
-            <path key={f.parentId} d={stretch ? stretchPath(f.d, mapY) : f.d} />
+          {fitted.families.map((f) => (
+            <path key={f.parentId} d={f.d} />
           ))}
         </g>
-        {layout.nodes.map((n) => {
+        {fitted.nodes.map((n) => {
           const p = n.person;
           if (n.vertical) {
             // Lower generations: couple column, the person's name then each spouse's, top to bottom.
-            const vm = verticalMetrics(p, o.showSpouses ? n.spouses : [], { years: o.showYears });
+            const vm = verticalMetrics(p, o.showSpouses ? n.spouses : [], { years: o.showYears, lineScale });
             const vh = vm.height;
             const vr = u(theme.node.radius);
             return (
-              <g key={n.id} transform={`translate(${n.x} ${mapY(n.y)})`}>
+              <g key={n.id} transform={`translate(${n.x} ${n.y})`}>
                 <rect width={n.w} height={vh} rx={vr} fill={theme.node.fill} stroke={theme.colors.frame} strokeWidth={u(theme.node.borderWidth)} />
                 {vm.sections.map((sec) => (
                   <line key={sec.spouseId} x1={2} x2={n.w - 2} y1={sec.top} y2={sec.top} stroke={theme.colors.frame} strokeWidth={u(theme.node.borderWidth) * 0.6} strokeDasharray="2 2" />
                 ))}
                 {vm.lines.map((l, i) => {
                   const big = l.kind === 'word' || l.kind === 'spouseWord';
-                  const size = l.kind === 'word' ? 14 : l.kind === 'spouseWord' ? 12.5 : 10;
-                  // A static sheet cannot measure text: condense words estimated wider than the card.
+                  const size = (l.kind === 'word' ? 14 : l.kind === 'spouseWord' ? 12.5 : 10) * textScale;
+                  // Condense only a word measured wider than the card (never stretch a short one).
                   const maxW = n.w - 2 * V_PAD_X;
-                  const squeeze = l.text.length * size * (big ? 0.62 : 0.56) > maxW;
+                  const spec = big ? t.name : t.body;
+                  const squeeze = letterWidths(l.text, spec).reduce((a, w) => a + w, 0) * size > maxW;
                   const fill =
                     l.kind === 'word' ? nameColor(p.gender === 'male', p.isBloodline) : l.kind === 'spouseWord' ? c.spouse : c.textSecondary;
                   return (
@@ -397,7 +550,7 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
                       textAnchor="middle"
                       fontFamily={big ? t.name.family : t.body.family}
                       fontWeight={l.kind === 'word' ? t.name.weight : l.kind === 'spouseWord' ? 600 : undefined}
-                      fontStyle={l.kind === 'role' ? 'italic' : undefined}
+                      fontStyle={l.kind === 'role' || (big ? t.name.italic : t.body.italic) ? 'italic' : undefined}
                       fontSize={size}
                       fill={fill}
                       textLength={squeeze ? maxW : undefined}
@@ -424,7 +577,7 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
           const sw = u(theme.node.borderWidth);
           let y = n.caption ? 30 : 24;
           return (
-            <g key={n.id} transform={`translate(${n.x} ${mapY(n.y)})`}>
+            <g key={n.id} transform={`translate(${n.x} ${n.y})`}>
               <rect width={n.w} height={h} rx={r} fill={theme.node.fill} stroke={theme.colors.frame} strokeWidth={sw} />
               {theme.node.borderStyle === 'double' && (
                 <rect x={3} y={3} width={n.w - 6} height={h - 6} rx={Math.max(0, r - 3)} fill="none" stroke={theme.colors.frame} strokeWidth={sw * 0.6} />
@@ -434,7 +587,7 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
                   {fit(n.caption, n.w - 16, 10)}
                 </text>
               )}
-              <text x={n.w / 2} y={y} textAnchor="middle" fontFamily={t.name.family} fontWeight={t.name.weight} fontSize={15} fill={nameColor(p.gender === 'male', p.isBloodline)}>
+              <text x={n.w / 2} y={y} textAnchor="middle" fontFamily={t.name.family} fontWeight={t.name.weight} fontStyle={ital(t.name)} fontSize={15} fill={nameColor(p.gender === 'male', p.isBloodline)}>
                 {fit(p.fullName, n.w - 14, 15)}
               </text>
               {other && (
@@ -443,12 +596,12 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
                 </text>
               )}
               {years && (
-                <text x={n.w / 2} y={(y += 15)} textAnchor="middle" fontFamily={t.body.family} fontSize={11.5} fill={c.textSecondary}>
+                <text x={n.w / 2} y={(y += 15)} textAnchor="middle" fontFamily={t.body.family} fontStyle={ital(t.body)} fontSize={11.5} fill={c.textSecondary}>
                   {years}
                 </text>
               )}
               {spouses.map((sp) => (
-                <text key={sp.person.id} x={n.w / 2} y={(y += 15)} textAnchor="middle" fontFamily={t.name.family} fontWeight={600} fontSize={12} fill={c.spouse}>
+                <text key={sp.person.id} x={n.w / 2} y={(y += 15)} textAnchor="middle" fontFamily={t.name.family} fontWeight={600} fontStyle={ital(t.name)} fontSize={12} fill={c.spouse}>
                   {fit(`${sp.role}: ${sp.person.fullName}`, n.w - 12, 12)}
                 </text>
               ))}
@@ -496,32 +649,5 @@ function Seal({ x, y, size, color, name, font }: { x: number; y: number; size: n
         </text>
       ))}
     </g>
-  );
-}
-
-/**
- * Monotone map of tree y-coordinates that adds `extra` units between consecutive
- * generation rows: points inside row i move down by extra·i, points in the gap
- * below it are interpolated towards row i+1.
- */
-export function rowStretch(rows: ReadonlyArray<{ top: number; height: number }>, extra: number): (y: number) => number {
-  if (!extra || rows.length < 2) return (y) => y;
-  const sorted = [...rows].sort((a, b) => a.top - b.top);
-  return (y) => {
-    let i = -1;
-    while (i + 1 < sorted.length && sorted[i + 1]!.top <= y) i++;
-    if (i < 0) return y;
-    const row = sorted[i]!;
-    const bottom = row.top + row.height;
-    const next = sorted[i + 1];
-    if (y <= bottom || !next) return y + extra * i;
-    return y + extra * i + (extra * (y - bottom)) / Math.max(1e-6, next.top - bottom);
-  };
-}
-
-/** Applies `mapY` to the y-values of an "M x,y / V y / H x" connector path. */
-export function stretchPath(d: string, mapY: (y: number) => number): string {
-  return d.replace(/M(-?[\d.]+),(-?[\d.]+)|V(-?[\d.]+)/g, (_m, x: string, y: string, v: string) =>
-    v !== undefined ? `V${mapY(Number(v))}` : `M${x},${mapY(Number(y))}`,
   );
 }

@@ -625,3 +625,18 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - **Còn thiếu:** viền hoa văn dạng lặp (SVG pattern) của các giao diện vẽ sẵn, như viền của "Truyền thống đỏ", không hiện trong PDF (góc và các trang trí khác vẫn có). "Sơn mài rồng vàng" không bị ảnh hưởng vì khung là ảnh.
 - **Sửa nhỏ trang In ấn:** các ô chọn không còn tràn sang cột bên (lưới 2 cột).
 - Bản xem thử một file (`build-preview.mjs`) nhúng luôn hai ảnh khung để giao diện mới hiện được trong artifact.
+
+### D73. Bản in đầy đặn hơn; bỏ dòng thừa và các ô tick; chữ mềm và tiêu đề uốn cong cho "Sơn mài rồng vàng"
+- **Bố cục bản in đầy đặn hơn** (mọi giao diện in):
+  - Trước đây, khi cây rộng hơn tờ giấy, các đời bị kéo giãn xa nhau, đường nối dài thêm tới 4 lần, còn ô người vẫn thấp.
+  - Giờ bản in dùng **khoảng cách riêng** (`PRINT_SPACING`): các đời gần nhau hơn (34 thay vì 76 đơn vị), thanh nối và khoảng giữa anh chị em ngắn hơn. Sơ đồ trên màn hình không đổi (`SCREEN_METRICS`).
+  - Phần giấy còn trống được lấp **trong ô người**: các dòng chữ trong ô dọc giãn ra, tối đa 3 lần (`lineScale`, có trong `verticalMetrics` và `computeTreeLayout`). Chữ trong ô cũng to lên theo, tối đa 1,3 lần, để đọc được từ xa. Nếu vẫn còn chỗ thì mới tăng nhẹ khoảng cách giữa các đời, tối đa 100 đơn vị (bản cũ có thể tới 380).
+  - Cách tính: chiều cao cây tăng tuyến tính theo độ giãn dòng, nên chỉ cần dựng thử hai lần là biết độ giãn vừa khít. Trang In ấn truyền cho bản in một hàm dựng cây có bộ nhớ đệm (`usePrintLayoutBuilder`).
+  - Chữ quá rộng so với ô thì được ép hẹp theo bề rộng đo thật, không còn ước lượng theo số ký tự. Nhờ vậy chữ ngắn không bao giờ bị kéo giãn.
+  - Dữ liệu mẫu (297 người, 7 đời): cây chiếm khoảng 70% chiều cao vùng in (trước khoảng 45%). Ô người cao hơn, chữ to hơn khoảng 30%.
+- **Bỏ dòng "Thủy tổ: …"** (và "Gồm N gia đình ở đời 1") dưới tiêu đề. **Không in lạc khoản**, và ô "Dòng phụ dưới tiêu đề" để trống sẵn, nên các dòng như "Từ sổ gia phả gia đình" không còn tự hiện. Ai cần thì tự gõ dòng phụ.
+- **Bỏ các ô tick** (năm sinh, dâu rể, tên húy, câu đối, lạc khoản, cột đời) ở trang In ấn. Bản in luôn có năm sinh–mất, dâu/rể, câu đối của giao diện và cột "Đời"; không có tên húy và lạc khoản.
+- **"Sơn mài rồng vàng": chữ mềm mại.** Tiêu đề và dòng phụ dùng Dancing Script (chữ viết tay thư pháp). Tên người và năm sinh–mất dùng Lora nghiêng, mềm nhưng vẫn rõ ở cỡ nhỏ. PDF có thêm phông Lora nghiêng và Dancing Script 400/600.
+- **Tiêu đề uốn theo cuốn thư:** `TitleBoard.arcRadius` (trong JSON gói tự nhập là `bangTieuDe.doCong`) là bán kính cung chữ, tính bằng số lần chiều rộng bảng. Với cuốn thư này là 1,96, đo từ độ cong của lòng cuốn thư.
+  - Chữ được đặt **từng ký tự** dọc theo cung và xoay theo cung, bề rộng mỗi chữ đo bằng phông thật, đo lại sau khi phông tải xong. Dòng phụ uốn theo cung đồng tâm.
+  - Không dùng `<textPath>`, vì thư viện xuất PDF không hỗ trợ. Cách đặt từng chữ hiện đúng cả trên màn hình lẫn trong PDF.

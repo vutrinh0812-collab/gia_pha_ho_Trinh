@@ -47,6 +47,23 @@ export const SPOUSE_LINE = 15;
 /** Distance of the children bar above the child row. */
 const BAR_OFFSET = 26;
 
+/**
+ * Spacing of the layout (tree units). The screen uses the defaults; the printed poster
+ * (D73) packs generations closer, with shorter connectors, and opens up the lines
+ * inside the cards (`lineScale`) to fill the sheet instead.
+ */
+export interface LayoutMetrics {
+  /** Gap between generation rows. */
+  vgap: number;
+  /** Children bar, above the child row. */
+  barOffset: number;
+  siblingGap: number;
+  cousinGap: number;
+  /** Line spacing inside the vertical cards (1 = screen). */
+  lineScale: number;
+}
+export const SCREEN_METRICS: LayoutMetrics = { vgap: VGAP, barOffset: BAR_OFFSET, siblingGap: SIBLING_GAP, cousinGap: COUSIN_GAP, lineScale: 1 };
+
 const ORDINALS = ['cả', 'hai', 'ba', 'tư', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười'];
 
 export interface TreeFilters {
@@ -134,6 +151,8 @@ export interface TreeLayout {
   rows: TreeRow[];
   branchLabels: BranchLabel[];
   bounds: Bounds;
+  /** The spacing the layout was computed with. */
+  metrics: LayoutMetrics;
 }
 
 interface Datum {
@@ -190,25 +209,28 @@ const words = (name: string) => name.trim().split(/\s+/).filter(Boolean);
 export function verticalMetrics(
   p: PersonRec,
   spouses: readonly TreeSpouse[],
-  opts: { years?: boolean } = {},
+  opts: { years?: boolean; lineScale?: number } = {},
 ): VerticalMetrics {
+  // `lineScale` makes every line slot taller, the text staying centred in its slot.
+  const k = opts.lineScale ?? 1;
   const lines: VerticalLine[] = [];
   const sections: VerticalSection[] = [];
-  let y = V.padTop;
-  if (p.birthOrder) {
-    lines.push({ kind: 'caption', text: toRoman(p.birthOrder), y: y + 10 });
-    y += V.caption;
-  }
-  for (const w of words(p.fullName)) lines.push({ kind: 'word', text: w, y: (y += V.word) - 4 });
-  if (opts.years !== false) for (const yr of yearsOf(p)) lines.push({ kind: 'year', text: yr, y: (y += V.year) - 2 });
+  const slot = (size: number, lift: number) => {
+    y += size * k;
+    return y - lift - (size * (k - 1)) / 2;
+  };
+  let y = V.padTop * k;
+  if (p.birthOrder) lines.push({ kind: 'caption', text: toRoman(p.birthOrder), y: slot(V.caption, 5) });
+  for (const w of words(p.fullName)) lines.push({ kind: 'word', text: w, y: slot(V.word, 4) });
+  if (opts.years !== false) for (const yr of yearsOf(p)) lines.push({ kind: 'year', text: yr, y: slot(V.year, 2) });
   for (const s of spouses) {
-    y += V.spouseGap / 2;
+    y += (V.spouseGap * k) / 2;
     sections.push({ top: y, spouseId: s.person.id });
-    y += V.spouseGap / 2;
-    lines.push({ kind: 'role', text: s.role.toLowerCase(), y: (y += V.spouseRole) - 3 });
-    for (const w of words(s.person.fullName)) lines.push({ kind: 'spouseWord', text: w, y: (y += V.spouseWord) - 4 });
+    y += (V.spouseGap * k) / 2;
+    lines.push({ kind: 'role', text: s.role.toLowerCase(), y: slot(V.spouseRole, 3) });
+    for (const w of words(s.person.fullName)) lines.push({ kind: 'spouseWord', text: w, y: slot(V.spouseWord, 4) });
   }
-  return { lines, sections, height: y + V.padBottom };
+  return { lines, sections, height: y + V.padBottom * k };
 }
 
 export function isShown(model: ClanModel, p: PersonRec, f: TreeFilters): boolean {
@@ -313,7 +335,8 @@ export function branchOpenIds(model: ClanModel, focusId: string, f: TreeFilters)
   return open;
 }
 
-export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout {
+export function computeTreeLayout(model: ClanModel, f: TreeFilters, spacing: Partial<LayoutMetrics> = {}): TreeLayout {
+  const m: LayoutMetrics = { ...SCREEN_METRICS, ...spacing };
   const info = new Map<string, { spouses: TreeSpouse[]; shownKids: PersonRec[] }>();
   const rowH = new Map<number, number>();
   const branchOpen = f.focusId ? branchOpenIds(model, f.focusId, f) : null;
@@ -325,7 +348,7 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
     const kids = shownChildren(model, p.id, f);
     info.set(p.id, { spouses, shownKids: kids });
     const vertical = isVerticalGen(gen);
-    const h = vertical ? verticalMetrics(p, spouses).height : BASE_H + spouses.length * SPOUSE_LINE;
+    const h = vertical ? verticalMetrics(p, spouses, { lineScale: m.lineScale }).height : BASE_H + spouses.length * SPOUSE_LINE;
     rowH.set(gen, Math.max(rowH.get(gen) ?? 0, h));
     return { id: p.id, gen, w: vertical ? VNODE_W : NODE_W, h, children: isCollapsed(p.id) ? [] : kids.map(build) };
   };
@@ -339,19 +362,19 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
   for (const gen of gens) {
     const height = rowH.get(gen)!;
     rows.push({ gen, top, height });
-    top += height + VGAP;
+    top += height + m.vgap;
   }
   const rowTop = new Map(rows.map((r) => [r.gen, r.top]));
   // A new clan shows at least MIN_GENERATIONS rows so the next generation is visibly waiting to be filled.
   const padRows = !f.branch && f.fromGen === null && f.toGen === null && !f.focusId;
   while (padRows && rows.length > 0 && rows[rows.length - 1]!.gen < MIN_GENERATIONS) {
     const last = rows[rows.length - 1]!;
-    rows.push({ gen: last.gen + 1, empty: true, top: last.top + last.height + VGAP, height: BASE_H });
+    rows.push({ gen: last.gen + 1, empty: true, top: last.top + last.height + m.vgap, height: BASE_H });
   }
 
   const layout = flextree<Datum>({
-    nodeSize: (n) => (n.data.id === VIRTUAL_ROOT ? [0, 0] : [n.data.w, (rowH.get(n.data.gen) ?? 0) + VGAP]),
-    spacing: (a, b) => (a.parent === b.parent ? SIBLING_GAP : COUSIN_GAP),
+    nodeSize: (n) => (n.data.id === VIRTUAL_ROOT ? [0, 0] : [n.data.w, (rowH.get(n.data.gen) ?? 0) + m.vgap]),
+    spacing: (a, b) => (a.parent === b.parent ? m.siblingGap : m.cousinGap),
   });
   const root = layout.hierarchy(virtual, (d) => d.children);
   layout(root);
@@ -399,7 +422,7 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
     const kids = p.childIds.map((id) => byId.get(id)!);
     const px = p.x + p.w / 2;
     const childTop = kids[0]!.y;
-    const barY = childTop - BAR_OFFSET;
+    const barY = childTop - m.barOffset;
     const centers = kids.map((k) => k.x + k.w / 2);
     const lo = Math.min(px, ...centers);
     const hi = Math.max(px, ...centers);
@@ -432,7 +455,7 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
       hi = Math.max(hi, c.x + c.w);
       stack.push(...c.childIds);
     }
-    branchLabels.push({ label, x: (lo + hi) / 2, y: n.y - VGAP / 2 });
+    branchLabels.push({ label, x: (lo + hi) / 2, y: n.y - m.vgap / 2 });
   }
 
   const bounds: Bounds = nodes.length
@@ -444,7 +467,7 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters): TreeLayout 
       }
     : { minX: 0, minY: 0, maxX: 0, maxY: 0 };
 
-  return { nodes, byId, families, rows, branchLabels, bounds };
+  return { nodes, byId, families, rows, branchLabels, bounds, metrics: m };
 }
 
 /** Collapses every node below the top shown generation, so only two generations remain. */

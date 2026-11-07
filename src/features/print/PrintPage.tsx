@@ -7,17 +7,8 @@ import type { Theme } from '@/themes/types';
 import { BranchPicker } from './BranchPicker';
 import { deletePack, listPacks, packFromFiles, packTheme, samplePackFile, savePack, type StoredPack } from './packs';
 import { A1, DEFAULT_POSTER_OPTIONS, PosterSvg, type PosterOptions } from './PosterSvg';
-import { branchLine, usePrintLayout, useThemeFonts } from './usePrintScope';
+import { branchLine, usePrintLayoutBuilder, useThemeFonts } from './usePrintScope';
 import styles from './Print.module.css';
-
-const TOGGLES: Array<[keyof PosterOptions, string]> = [
-  ['showYears', 'Năm sinh, năm mất'],
-  ['showSpouses', 'Dâu, rể'],
-  ['showOtherNames', 'Tên húy'],
-  ['showCouplets', 'Câu đối'],
-  ['showColophon', 'Lạc khoản'],
-  ['showGenerations', 'Cột đánh dấu đời'],
-];
 
 /**
  * /print — "In ấn" (DECISIONS D62): pick a print theme or an imported frame package,
@@ -41,10 +32,11 @@ export default function PrintPage() {
   const [opts, setOpts] = useState<PosterOptions>(DEFAULT_POSTER_OPTIONS);
   // Text written on the title board (D72): starts from the clan settings, typed freely here.
   const [title, setTitle] = useState(model.settings.title);
-  const [subtitle, setSubtitle] = useState(model.settings.subtitle ?? '');
+  // Empty by default (D73): type a line here when the sheet needs one.
+  const [subtitle, setSubtitle] = useState('');
   const shownTitle = title.trim() || model.settings.title;
   useThemeFonts(themes);
-  const layout = usePrintLayout(model, focusId, opts.showSpouses);
+  const layout = usePrintLayoutBuilder(model, focusId, opts.showSpouses);
   const line = branchLine(model, focusId);
 
   const pick = (t: Theme) => {
@@ -221,15 +213,6 @@ export default function PrintPage() {
               <option value="portrait">Dọc (594 × 841 mm)</option>
             </select>
           </div>
-          <fieldset className={styles.toggles}>
-            <legend>Hiện trên bản in</legend>
-            {TOGGLES.map(([k, label]) => (
-              <label key={k} className={styles.check} htmlFor={`print-${k}`}>
-                <input id={`print-${k}`} type="checkbox" checked={opts[k] as boolean} onChange={(e) => setOpts((o) => ({ ...o, [k]: e.target.checked }))} />
-                {label}
-              </label>
-            ))}
-          </fieldset>
         </div>
       </section>
 

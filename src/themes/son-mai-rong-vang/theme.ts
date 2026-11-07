@@ -9,8 +9,9 @@ import frame from './khung-a1.jpg';
  * faintly in the middle and the two couplets painted on side boards (khung-a1.jpg, A1
  * landscape, 5600 × 3955 px ≈ 169 dpi). The title scroll is its own layer
  * (bang-tieu-de.png, transparent) so the title can be typed on the print page.
- * Colours are the preset's design tokens; fonts and everything else come from
- * "Sơn mài vàng".
+ * Colours are the preset's design tokens. Lettering is soft and flowing (D73):
+ * Dancing Script, a calligraphic script, for the title, bent along the scroll's arch;
+ * Lora italic for names and years, gentle yet readable at the size of the cards.
  */
 const theme: Theme = {
   ...base,
@@ -18,6 +19,15 @@ const theme: Theme = {
   name: 'Sơn mài rồng vàng',
   description:
     'Nền sơn mài tối, viền vàng kép, rồng và mây vàng ở bốn góc, câu đối vẽ sẵn hai bên; cuốn thư tiêu đề mạ vàng, chữ tiêu đề nhập tùy ý.',
+  fontsCss:
+    'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap&subset=vietnamese',
+  typography: {
+    title: { family: 'Dancing Script', weight: 700, sizePt: 72 },
+    heading: { family: 'Dancing Script', weight: 600, sizePt: 24 },
+    name: { family: 'Lora', weight: 600, sizePt: 11, italic: true },
+    body: { family: 'Lora', weight: 400, sizePt: 8, italic: true },
+    couplet: { family: 'Dancing Script', weight: 700, sizePt: 34 },
+  },
   colors: {
     ...base.colors,
     background: '#1a1210',
@@ -47,6 +57,8 @@ const theme: Theme = {
     topMm: 36.9,
     widthMm: 306.7,
     textBox: { top: 0.18, bottom: 0.76, left: 0.17, right: 0.83 },
+    // The scroll arches by ~7 mm over ±92 mm from its middle: a circle of ~600 mm.
+    arcRadius: 1.96,
   },
   // Below the title, between the painted couplet boards (they end at 100 / 741 mm).
   contentInsetMm: { top: 36.9, right: 110, bottom: 36, left: 110 },

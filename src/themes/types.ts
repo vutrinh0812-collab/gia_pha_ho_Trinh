@@ -101,4 +101,9 @@ export interface TitleBoard {
   leftMm?: number;
   /** Area for the text inside the picture, as fractions (0–1) of its width and height. */
   textBox: { top: number; bottom: number; left: number; right: number };
+  /**
+   * The board is curved (an arched scroll): the text follows an arc of this radius,
+   * given as a multiple of the board's width (D73). Left out: straight text.
+   */
+  arcRadius?: number;
 }
