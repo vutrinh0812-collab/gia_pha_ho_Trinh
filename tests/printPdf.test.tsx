@@ -207,6 +207,25 @@ describe('title fitted from its ink inside the board (D79)', () => {
   }
 });
 
+describe('the PDF draws what the screen shows (D82)', () => {
+  it('narrows long words with a transform the PDF export understands, never textLength', () => {
+    for (const theme of PRINT_THEMES) {
+      const { container, unmount } = render(<PosterSvg theme={theme} model={model} layout={layout} title="Gia phả" />);
+      expect(container.querySelector('[textLength], [lengthAdjust]'), theme.id).toBeNull();
+      // Narrowed words keep their centre: x stays at the card's middle under a pure x-scale.
+      for (const t of Array.from(container.querySelectorAll('text[transform^="matrix("]'))) {
+        const [k, b, c, d, e, f] = t.getAttribute('transform')!.slice(7, -1).split(' ').map(Number);
+        expect(k).toBeGreaterThan(0);
+        expect(k).toBeLessThan(1);
+        expect([b, c, d, f]).toEqual([0, 0, 1, 0]);
+        const x = Number(t.getAttribute('x'));
+        expect(k! * x + e!).toBeCloseTo(x, 6);
+      }
+      unmount();
+    }
+  });
+});
+
 describe('the founder on the sheet\'s axis (D81)', () => {
   const area = { x: 38, w: 765 };
   const axis = 420.5;

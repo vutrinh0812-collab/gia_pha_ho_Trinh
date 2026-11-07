@@ -250,6 +250,9 @@ Hỏi người dùng (khuyên phương án 1 nếu preset dành cho mọi ngư�
    liệu chữ như bước 7 mục 5, không đè họa tiết, cây
    nằm gọn trong vùng. Nếu đổi cách đặt chữ trong `PosterSvg`, xuất lại cả các giao diện có bảng
    tiêu đề khác (ví dụ "Sơn mài rồng vàng") và so trước/sau.
+   **So app với PDF**: dựng chính SVG của trang In ấn và trang PDF ở cùng 100 dpi rồi chồng lên
+   nhau (app đỏ, PDF xanh): chữ phải trùng trong khoảng 1 px. Bản xuất PDF (svg2pdf) bỏ qua
+   `textLength`/`lengthAdjust`, filter, `textPath`: không dùng chúng trong bản in (D82).
 3. Gửi ảnh toàn tờ, ảnh phóng to và file PDF cho người dùng. ▶ DỪNG: hỏi chỉnh gì thêm.
 4. Ghi một mục DECISIONS.md mới (số D tiếp theo): preset, các lựa chọn đã chốt, kích thước ảnh,
    token, phông, các hạn chế còn lại.

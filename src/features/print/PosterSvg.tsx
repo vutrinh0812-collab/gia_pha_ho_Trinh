@@ -706,7 +706,11 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
                   // Condense only a word measured wider than the card (never stretch a short one).
                   const maxW = n.w - 2 * V_PAD_X;
                   const spec = big ? t.name : t.body;
-                  const squeeze = letterWidths(l.text, spec).reduce((a, w) => a + w, 0) * size > maxW;
+                  // Narrowed by a horizontal scale about the card's middle, not `textLength`, which
+                  // the PDF export ignores (the word then overflowed on paper only, D82).
+                  const natural = letterWidths(l.text, spec).reduce((a, w) => a + w, 0) * size;
+                  const k = natural > maxW ? maxW / natural : 1;
+                  const squeeze = k < 1 ? `matrix(${k} 0 0 1 ${(n.w / 2) * (1 - k)} 0)` : undefined;
                   const fill =
                     l.kind === 'word' ? nameColor(p.gender === 'male', p.isBloodline) : l.kind === 'spouseWord' ? c.spouse : c.textSecondary;
                   return (
@@ -724,8 +728,7 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
                           fontStyle={l.kind === 'role' || (big ? t.name.italic : t.body.italic) ? 'italic' : undefined}
                           fontSize={size}
                           fill={rim ?? fill}
-                          textLength={squeeze ? maxW : undefined}
-                          lengthAdjust={squeeze ? 'spacingAndGlyphs' : undefined}
+                          transform={squeeze}
                         >
                           {l.text}
                         </text>

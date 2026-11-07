@@ -731,3 +731,12 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - Để làm được, cây có thể thu nhỏ tối đa 10%.
   - Nếu cây lệch quá nhiều, cây giữ nguyên cỡ và ô thủy tổ được đưa sát trục nhất có thể mà cây vẫn nằm trong vùng.
 - **Dữ liệu mẫu**: thủy tổ trước lệch khoảng 24 mm sang phải, giờ nằm đúng dưới tượng Phật và tiêu đề. Cây nhỏ đi vài phần trăm; lề hai bên không còn bằng nhau.
+
+## D82 — PDF co chữ dài giống hệt bản xem trên app
+
+- **Lỗi**: trong ô dọc, chữ dài hơn bề rộng ô (ví dụ "Phương") được co lại bằng `textLength` + `lengthAdjust`. Trình duyệt hiểu hai thuộc tính này, nhưng bản xuất PDF (svg2pdf) bỏ qua. Vì vậy trên giấy chữ giữ nguyên bề rộng, tràn ra khỏi ô và chồng lên nhau, khác với bản xem trước.
+- **Sửa**: co ngang bằng phép biến đổi `matrix(k 0 0 1 cx·(1−k) 0)` quanh tâm ô, với `k = bề rộng ô ÷ bề rộng đo được của chữ`. Màn hình và PDF đều hiểu phép này. Không còn dùng `textLength` trong bản in. Kiểm thử chạy với mọi giao diện in: không phần tử nào còn `textLength` hoặc `lengthAdjust`, chữ bị co vẫn giữ tâm.
+- **Đã đo lại** bằng cách dựng chính SVG của app và trang PDF ở 100 dpi rồi chồng lên nhau:
+  - tiêu đề, dòng phụ, ô ngang, ô dọc lệch nhau không quá 0,25 mm (một điểm ảnh khi dựng ảnh);
+  - chữ bị co trong ô dọc giờ trùng khít.
+- **Bài học cho skill**: chỉ dùng những gì svg2pdf hỗ trợ. Không dùng `textLength`, filter, `textPath`. Soát bằng cách chồng ảnh app với ảnh PDF.
