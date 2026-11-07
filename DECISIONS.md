@@ -722,3 +722,12 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - Soát trên PDF thật: vùng bảng ở 300 dpi, ô ngang và ô dọc ở 600 dpi.
   - Các bước sau đánh số lại (8–12).
 - **Hạn chế**: gói JSON tự nhập chưa có trường cho `textRelief`. Hiệu ứng trên tên trong ô rất tinh, chỉ thấy khi nhìn gần, và đó là chủ ý để không làm dày nét chữ nhỏ.
+
+## D81 — Thủy tổ đứng trên trục giữa tờ
+
+- **Vấn đề**: khung bao của cây đã nằm giữa vùng in, nhưng khi hai bên nhánh không rộng bằng nhau thì ô thủy tổ (đỉnh cây) lệch khỏi trục của bảng tiêu đề. Cả cây trông bị lệch.
+- **Cách mới** (`placeTree` trong `PosterSvg.tsx`, mọi giao diện in):
+  - Đặt tâm hàng trên cùng của cây (thủy tổ) đúng trục giữa: trục của bảng tiêu đề nếu có, nếu không thì giữa vùng in.
+  - Để làm được, cây có thể thu nhỏ tối đa 10%.
+  - Nếu cây lệch quá nhiều, cây giữ nguyên cỡ và ô thủy tổ được đưa sát trục nhất có thể mà cây vẫn nằm trong vùng.
+- **Dữ liệu mẫu**: thủy tổ trước lệch khoảng 24 mm sang phải, giờ nằm đúng dưới tượng Phật và tiêu đề. Cây nhỏ đi vài phần trăm; lề hai bên không còn bằng nhau.

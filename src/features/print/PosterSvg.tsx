@@ -142,6 +142,27 @@ export function inkHeights(text: string, f: FontSpec): { above: number; below: n
   return { above: m.actualBoundingBoxAscent / 100, below: Math.max(0, m.actualBoundingBoxDescent / 100) };
 }
 
+/**
+ * Places the tree across its area so the founder (`rootCx`, tree units) sits on the sheet's
+ * axis, under the title (D81). A lopsided tree is shrunk up to 10% to make room; if that
+ * is not enough, it keeps its size and the founder comes as near the axis as the area allows.
+ */
+export function placeTree(
+  area: { x: number; w: number },
+  b: { minX: number; maxX: number },
+  rootCx: number,
+  scale: number,
+  axis: number,
+): { scale: number; ox: number } {
+  const left = Math.max(1e-6, rootCx - b.minX);
+  const right = Math.max(1e-6, b.maxX - rootCx);
+  const centred = Math.min(scale, (axis - area.x) / left, (area.x + area.w - axis) / right);
+  if (centred >= scale * 0.9) return { scale: centred, ox: axis - rootCx * centred };
+  const lo = area.x - b.minX * scale;
+  const hi = area.x + area.w - b.maxX * scale;
+  return { scale, ox: Math.min(hi, Math.max(lo, axis - rootCx * scale)) };
+}
+
 /** A line of the title board: its text (as written), font, width in ems and ink heights. */
 export interface BoardLine {
   text: string;
@@ -453,9 +474,13 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
   const b = fitted.bounds;
   const lw = Math.max(1, b.maxX - b.minX);
   const lh = Math.max(1, b.maxY - b.minY + 30);
-  const scale = Math.min(area.w / lw, area.h / lh, 0.36);
+  // The founder sits on the sheet's axis, under the title (D81), not the middle of a lopsided tree.
+  const topY = Math.min(...fitted.nodes.map((n) => n.y));
+  const top = fitted.nodes.filter((n) => n.y === topY);
+  const rootCx = top.length ? (Math.min(...top.map((n) => n.x)) + Math.max(...top.map((n) => n.x + n.w))) / 2 : (b.minX + b.maxX) / 2;
+  const axis = board ? bannerX + bannerW / 2 : area.x + area.w / 2;
+  const { scale, ox } = placeTree(area, b, rootCx, Math.min(area.w / lw, area.h / lh, 0.36), axis);
   const treeH = lh;
-  const ox = area.x + (area.w - lw * scale) / 2 - b.minX * scale;
   const oy = area.y + (area.h - treeH * scale) / 2 + 6 * scale;
   const u = (mm: number) => mm / scale; // mm → tree units
 

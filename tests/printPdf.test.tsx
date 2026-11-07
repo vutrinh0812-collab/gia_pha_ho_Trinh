@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { render } from '@testing-library/react';
 import { FALLBACK_FAMILY, PDF_FONTS, nearestFont, preparePosterSvg, styleKey } from '@/features/print/exportPdf';
-import { PRINT_SPACING, PosterSvg, Relief, fitBoardText, type BoardLine } from '@/features/print/PosterSvg';
+import { PRINT_SPACING, PosterSvg, Relief, fitBoardText, placeTree, type BoardLine } from '@/features/print/PosterSvg';
 import { buildClanModel } from '@/lib/clanModel';
 import { loadDemoSnapshot } from '@/lib/data/demoSource';
 import { computeTreeLayout } from '@/features/tree/layout';
@@ -205,6 +205,44 @@ describe('title fitted from its ink inside the board (D79)', () => {
       expect(f.subSize).toBeLessThanOrEqual(f.titleSize * 0.5 + 1e-6);
     });
   }
+});
+
+describe('the founder on the sheet\'s axis (D81)', () => {
+  const area = { x: 38, w: 765 };
+  const axis = 420.5;
+
+  it('shrinks a slightly lopsided tree a little so the founder sits under the title', () => {
+    // Founder at 550 of a 0–1000 tree: needs about 9% shrink to stand on the axis.
+    const p = placeTree(area, { minX: 0, maxX: 1000 }, 550, 0.765, axis);
+    expect(p.scale).toBeLessThan(0.765);
+    expect(axis - 550 * p.scale - p.ox).toBeCloseTo(0, 6);
+    expect(p.ox).toBeGreaterThanOrEqual(area.x - 1e-6); // left edge inside
+    expect(p.ox + 1000 * p.scale).toBeLessThanOrEqual(area.x + area.w + 1e-6);
+    expect(p.scale).toBeGreaterThanOrEqual(0.765 * 0.9 - 1e-9);
+  });
+
+  it('a very lopsided tree keeps its size and stays inside, the founder as near the axis as it can', () => {
+    const p = placeTree(area, { minX: 0, maxX: 1000 }, 900, 0.765, axis);
+    expect(p.scale).toBe(0.765);
+    expect(p.ox).toBeCloseTo(area.x, 6);
+  });
+
+  it('a narrow tree is simply centred on the founder', () => {
+    const p = placeTree(area, { minX: 0, maxX: 400 }, 100, 0.36, axis);
+    expect(p.scale).toBe(0.36);
+    expect(p.ox + 100 * 0.36).toBeCloseTo(axis, 6);
+  });
+
+  it('on the A1 sheet the founder card is under the middle of the title board', () => {
+    const theme = getTheme('do-son-sen-vang')!;
+    const { container } = render(<PosterSvg theme={theme} model={model} layout={layout} title="Gia phả" />);
+    const g = Array.from(container.querySelectorAll('g[transform*="scale("]')).find((e) => /^translate\([^)]*\) scale\(/.test(e.getAttribute('transform')!))!;
+    const [, ox, , k] = g.getAttribute('transform')!.match(/translate\(([-\d.e]+) ([-\d.e]+)\) scale\(([-\d.e]+)\)/)!.map(Number);
+    const top = Math.min(...layout.nodes.map((n) => n.y));
+    const roots = layout.nodes.filter((n) => n.y === top);
+    const rootCx = (Math.min(...roots.map((n) => n.x)) + Math.max(...roots.map((n) => n.x + n.w))) / 2;
+    expect(ox! + rootCx * k!).toBeCloseTo(841 / 2, 0);
+  });
 });
 
 describe('lettering in the material of its board (D80)', () => {
