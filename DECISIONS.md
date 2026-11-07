@@ -646,3 +646,9 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - Bản in A1 (mọi giao diện) không còn cột "Đời 1, 2…" bên trái: thứ tự trên dưới đã đủ, và cây được thêm chỗ ngang. Các dải màu xen kẽ theo đời vẫn giữ.
 - Theme có thể khai báo `coupletBoxes` (mm trên tờ A1): vùng chữ của hai bảng câu đối đã vẽ trong ảnh nền. Khi có, câu đối được viết thẳng vào đó (không vẽ thêm bảng, không chiếm chỗ của cây); cỡ chữ tự co theo chữ rộng nhất (đo thật) và số chữ. Câu đối lấy từ cài đặt dòng họ; nếu dòng họ để trống thì dùng `defaultText` của theme.
 - "Sơn mài rồng vàng": ảnh nền Canva được xuất lại với hai bảng câu đối trống, chữ do ứng dụng viết bằng **Water Brush** (thư pháp bút lông, có đủ dấu tiếng Việt, OFL) — phông được đóng gói cho PDF (`public/fonts/pdf/water-brush-400.ttf`). Họa tiết trống đồng giữa nền được làm rõ hơn 20% (tăng đúng phần chênh lệch của lớp trống: ảnh = có trống + 0,2 × (có trống − không trống)).
+
+## D75 — "Sơn mài rồng vàng": tiêu đề thư pháp như câu đối
+
+- Tiêu đề và dòng phụ trên cuốn thư dùng **Water Brush**, cùng phông thư pháp với câu đối (D74), vẫn uốn theo cung của cuốn thư.
+- Chữ bút lông có khoảng trắng rất hẹp và chữ hoa vung nét dài (thanh ngang của chữ T phủ lên chữ sau, như trong "Trịnh"). Khi đặt chữ theo cung: khoảng trắng tối thiểu 0,32 em; chữ hoa có nét tràn qua bề rộng của nó (đo bằng phông thật) được nhường thêm một phần chỗ; `letterSpacing` của phông tiêu đề được áp dụng cho từng chữ.
+- Thẻ ngang trong cây dùng đúng kiểu chữ như thẻ dọc (Lora nghiêng); số thứ tự anh em trên thẻ ngang cũng nghiêng cho đồng bộ.

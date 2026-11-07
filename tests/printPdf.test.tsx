@@ -79,6 +79,7 @@ describe('"Sơn mài rồng vàng": frame preset with its own title board (D72)'
       const line = container.querySelector(`g[aria-label="${text}"]`)!;
       expect(line, text).not.toBeNull();
       const letters = Array.from(line.querySelectorAll('text'));
+      expect(letters[0]!.getAttribute('font-family')).toBe('Water Brush');
       expect(letters.map((l) => l.textContent).join('')).toBe(text.replace(/ /g, ''));
       const xs = letters.map((l) => Number(l.getAttribute('x')));
       const ys = letters.map((l) => Number(l.getAttribute('y')));
@@ -122,10 +123,13 @@ describe('print sheet details (D74)', () => {
     const theme = getTheme('son-mai-rong-vang')!;
     expect(theme.typography.couplet.family).toBe('Water Brush');
     const { container } = render(<PosterSvg theme={theme} model={model} layout={layout} title="Gia phả" />);
-    const words = Array.from(container.querySelectorAll('text[font-family="Water Brush"]'));
+    const { left, right } = theme.coupletBoxes!;
+    const inBoards = (x: number) => (x > left.x && x < left.x + left.w) || (x > right.x && x < right.x + right.w);
+    const words = Array.from(container.querySelectorAll('text[font-family="Water Brush"]')).filter((w) =>
+      inBoards(Number(w.getAttribute('x'))),
+    );
     const wanted = [model.settings.coupletLeft, model.settings.coupletRight].join(' ').split(/\s+/).filter(Boolean);
     expect(words.map((w) => w.textContent)).toEqual(wanted);
-    const { left, right } = theme.coupletBoxes!;
     for (const w of words) {
       const x = Number(w.getAttribute('x'));
       const y = Number(w.getAttribute('y'));

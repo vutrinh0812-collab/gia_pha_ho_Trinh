@@ -128,6 +128,18 @@ export function letterWidths(text: string, f: FontSpec): number[] {
   return out;
 }
 
+/**
+ * How far a letter's ink reaches past its advance (in units of the font size), e.g. the
+ * long bar of a brush capital T that covers the next letters. 0 without a canvas.
+ */
+function inkOverhang(letter: string, f: FontSpec): number {
+  const ctx = measureCtx;
+  if (!ctx || letter === ' ') return 0;
+  ctx.font = `${f.italic ? 'italic ' : ''}${f.weight} 100px "${f.family}"`;
+  const m = ctx.measureText(letter);
+  return Math.max(0, (m.actualBoundingBoxRight - m.width) / 100);
+}
+
 /** Re-renders once web fonts have loaded, so measured letter widths use the real font. */
 function useFontsLoaded(): number {
   const [n, setN] = useState(0);
@@ -155,7 +167,15 @@ function useFontsLoaded(): number {
 function ArcText(props: { text: string; cx: number; y: number; radius: number; size: number; font: FontSpec; fill: string }) {
   const { text, cx, y, radius, size, font, fill } = props;
   const letters = Array.from(text.normalize('NFC'));
-  const widths = letterWidths(text, font).map((w) => w * size);
+  // Brush scripts have very narrow spaces: keep words clearly apart on the arc.
+  // A capital whose stroke sweeps far over the next letter (brush T) gets part of that room,
+  // so the letter after it stays readable.
+  const widths = letterWidths(text, font).map((w, i) => {
+    const l = letters[i]!;
+    if (l === ' ') return Math.max(w, 0.32) * size;
+    const sweep = l !== l.toLowerCase() ? Math.max(0, inkOverhang(l, font) - 0.12) * 0.6 : 0;
+    return (w + sweep + (font.letterSpacing ?? 0)) * size;
+  });
   const total = widths.reduce((a, b) => a + b, 0);
   let along = -total / 2;
   return (
@@ -589,7 +609,7 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
                 <rect x={3} y={3} width={n.w - 6} height={h - 6} rx={Math.max(0, r - 3)} fill="none" stroke={theme.colors.frame} strokeWidth={sw * 0.6} />
               )}
               {n.caption && (
-                <text x={n.w / 2} y={15} textAnchor="middle" fontFamily={t.body.family} fontSize={10} fill={c.textSecondary}>
+                <text x={n.w / 2} y={15} textAnchor="middle" fontFamily={t.body.family} fontStyle={ital(t.body)} fontSize={10} fill={c.textSecondary}>
                   {fit(n.caption, n.w - 16, 10)}
                 </text>
               )}
