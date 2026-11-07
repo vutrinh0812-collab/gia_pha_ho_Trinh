@@ -127,6 +127,78 @@ export function letterWidths(text: string, f: FontSpec): number[] {
 }
 
 /**
+ * How far the ink of `text` reaches above and below its baseline (units of the font size),
+ * measured with the real font, so Vietnamese tone marks over capitals (Ả, Ỗ, Ấ…) and
+ * descenders count (D79). Without a canvas (tests), a generous estimate.
+ */
+export function inkHeights(text: string, f: FontSpec): { above: number; below: number } {
+  letterWidths('', f); // creates the measuring canvas when there is one
+  const ctx = measureCtx;
+  const shown = (f.uppercase ? text.toLocaleUpperCase('vi') : text).normalize('NFC');
+  if (!ctx || !shown.trim()) return { above: 0.95, below: 0.25 };
+  ctx.font = `${f.italic ? 'italic ' : ''}${f.weight} 100px "${f.family}"`;
+  const m = ctx.measureText(shown);
+  if (!m.actualBoundingBoxAscent && !m.actualBoundingBoxDescent) return { above: 0.95, below: 0.25 };
+  return { above: m.actualBoundingBoxAscent / 100, below: Math.max(0, m.actualBoundingBoxDescent / 100) };
+}
+
+/** A line of the title board: its text (as written), font, width in ems and ink heights. */
+export interface BoardLine {
+  text: string;
+  font: FontSpec;
+  em: number;
+  above: number;
+  below: number;
+}
+
+/**
+ * Fits the title (and subtitle) inside a board's text box (D79). Both lines are sized from
+ * their real ink, tone marks included, plus how far an arc lifts or drops their ends, and
+ * the block is centred in the box with a margin, so nothing touches the board's edges.
+ * Returns font sizes and the baseline of each line at its middle.
+ * `radius` is in mm, signed as `TitleBoard.arcRadius` (negative: a sag, ends higher).
+ */
+export function fitBoardText(
+  tb: { x: number; y: number; w: number; h: number },
+  title: BoardLine,
+  sub: BoardLine | null,
+  maxTitle: number,
+  radius: number | null,
+): { titleSize: number; titleY: number; subSize: number; subY: number } {
+  const padY = tb.h * 0.07;
+  const room = { w: tb.w * 0.92, h: tb.h - 2 * padY };
+  const rise = (width: number) => {
+    // Height of the arc over half the line's width (0 when straight).
+    if (!radius) return 0;
+    const r = Math.abs(radius);
+    const half = Math.min(width / 2, r);
+    return r - Math.sqrt(r * r - half * half);
+  };
+  const lay = (size: number) => {
+    const subSize = sub ? Math.min(size * 0.5, room.w / sub.em) : 0;
+    const gap = sub ? size * 0.2 : 0;
+    const tRise = rise(size * title.em);
+    const sRise = sub ? rise(subSize * sub.em) : 0;
+    // Sag: the ends of the top line stick up. Arch: the ends of the bottom line hang down.
+    const top = radius && radius < 0 ? tRise : 0;
+    const bottom = radius && radius > 0 ? (sub ? sRise : tRise) : 0;
+    const height = top + size * (title.above + title.below) + (sub ? gap + subSize * (sub.above + sub.below) : 0) + bottom;
+    return { subSize, gap, top, height };
+  };
+  let size = Math.min(maxTitle, room.w / title.em);
+  for (let i = 0; i < 6; i++) {
+    const h = lay(size).height;
+    if (h <= room.h) break;
+    size *= room.h / h;
+  }
+  const l = lay(size);
+  const blockTop = tb.y + (tb.h - l.height) / 2;
+  const titleY = blockTop + l.top + size * title.above;
+  const subY = sub ? titleY + size * title.below + l.gap + l.subSize * sub.above : titleY;
+  return { titleSize: size, titleY, subSize: l.subSize, subY };
+}
+
+/**
  * How far a letter's ink reaches past its advance (in units of the font size), e.g. the
  * long bar of a brush capital T that covers the next letters. 0 without a canvas.
  */
@@ -192,7 +264,6 @@ function ArcText(props: { text: string; cx: number; y: number; radius: number; s
             y={ly}
             transform={`rotate(${(a * 180) / Math.PI} ${x} ${ly})`}
             textAnchor="middle"
-            dominantBaseline="central"
             fontFamily={font.family}
             fontWeight={font.weight}
             fontStyle={ital(font)}
@@ -243,19 +314,26 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
     w: (board.textBox.right - board.textBox.left) * bannerW,
     h: (board.textBox.bottom - board.textBox.top) * bannerH,
   };
-  const titleZoneH = tb ? (subText ? tb.h * 0.62 : tb.h) : 0;
   // Width in ems, letter spacing included so a spaced-out title still fits the board.
   const em = (text: string, f: FontSpec) =>
     Math.max(0.5, letterWidths(text, f).reduce((a, b) => a + b + (f.letterSpacing ?? 0), 0));
-  const titleSize = tb
-    ? Math.min(t.title.sizePt * PT, (tb.w * 0.94) / em(titleShown, t.title), titleZoneH * 0.72)
-    : Math.min(t.title.sizePt * PT, (bannerW * 0.78) / (titleShown.length * 0.52), 30);
-  const titleY = tb ? tb.y + titleZoneH / 2 : theme.ornaments.titleBanner ? headerTop + bannerH / 2 : headerTop + titleSize * 0.8;
-  const subSize = tb && subText
-    ? Math.min(titleSize * 0.5, (tb.w * 0.94) / em(subText, t.heading), (tb.h - titleZoneH) * 0.6)
-    : t.heading.sizePt * PT * 0.62;
-  const subY = tb
-    ? tb.y + titleZoneH + (tb.h - titleZoneH) / 2
+  const subFont = { ...t.heading, weight: 400 };
+  const line = (text: string, f: FontSpec): BoardLine => ({ text, font: f, em: em(text, f), ...inkHeights(text, f) });
+  // On a title board both lines sit on their baselines, sized and centred from their ink (D79).
+  const boardFit = tb
+    ? fitBoardText(
+        tb,
+        line(titleShown, t.title),
+        subText ? line(subText, subFont) : null,
+        t.title.sizePt * PT,
+        board?.arcRadius ? board.arcRadius * bannerW : null,
+      )
+    : null;
+  const titleSize = boardFit ? boardFit.titleSize : Math.min(t.title.sizePt * PT, (bannerW * 0.78) / (titleShown.length * 0.52), 30);
+  const titleY = boardFit ? boardFit.titleY : theme.ornaments.titleBanner ? headerTop + bannerH / 2 : headerTop + titleSize * 0.8;
+  const subSize = boardFit ? boardFit.subSize : t.heading.sizePt * PT * 0.62;
+  const subY = boardFit
+    ? boardFit.subY
     : (theme.ornaments.titleBanner ? headerTop + bannerH : headerTop + titleSize * 1.3) + subSize * 1.5;
   // No "Thủy tổ: …" line under the title any more (D73): the tree starts with the founder.
   const headerEnd = board ? headerTop + bannerH * (board.treeFrom ?? 1) : subText ? subY + subSize * 0.4 : titleY + titleSize * 0.5;
@@ -466,7 +544,7 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
         y={titleY}
         fontStyle={ital(t.title)}
         textAnchor="middle"
-        dominantBaseline="central"
+        dominantBaseline={tb ? undefined : 'central'}
         fontFamily={t.title.family}
         fontWeight={t.title.weight}
         fontSize={titleSize}
@@ -497,7 +575,6 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
           fontStyle={ital(t.heading)}
           y={subY}
           textAnchor="middle"
-          dominantBaseline={tb ? 'central' : undefined}
           fontFamily={t.heading.family}
           fontWeight={400}
           fontSize={subSize}

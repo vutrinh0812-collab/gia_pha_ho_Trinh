@@ -6,7 +6,7 @@ description: Thiết kế một preset khung tranh gia phả khổ A1 trên Canv
 # Thiết kế khung tranh gia phả trên Canva
 
 Quy trình này được đúc kết từ lần làm preset "Sơn mài rồng vàng" (DECISIONS D72–D77) và
-"Đỏ son sen vàng" (D78). Kết quả
+"Đỏ son sen vàng" (D78–D79). Kết quả
 cuối cùng là một giao diện in A1 trong ứng dụng: chọn được ở **Cài đặt → In ấn**, xuất được PDF
 A1 sắc nét, tiếng Việt đúng dấu.
 
@@ -111,25 +111,36 @@ thì chữ tiêu đề phải tối (`bannerText`, ví dụ nâu đồng #4a2a0c
 
 ## Bước 6 — Bố cục chữ tiêu đề trên bảng  ▶ DỪNG, 3 phương án
 
-Chữ tiêu đề phải ôm theo hình bảng: cuốn thư vồng lên, băng lụa võng xuống giữa hai cuộn, hoành
-phi thẳng. Làm khi ảnh bảng đã cố định (bước 3) và phông đã chọn (bước 5).
+Tiêu đề là chỗ người xem nhìn đầu tiên: chữ phải **nằm gọn trong mặt bảng, cách đều mép trên và
+mép dưới, ôm theo hình bảng** (cuốn thư vồng lên, băng lụa võng xuống giữa hai cuộn, hoành phi
+thẳng) và **hợp tinh thần khung** (khung trang nghiêm thì chữ khắc đậm, chữ hoa giãn; khung mềm
+thì thư pháp). Làm khi ảnh bảng đã cố định (bước 3) và phông đã chọn (bước 5).
 
 1. **Đo vùng chữ** (`textBox`, tỉ lệ 0–1 của ảnh bảng đã cắt sát): kẻ lưới 10% lên ảnh bảng
-   (nền đỏ phía sau) rồi đọc mặt phẳng để viết, tránh tòa sen, đầu cuộn, viền.
+   (nền đỏ phía sau) rồi lấy **mặt phẳng thật sự để viết**: bên trong đầu cuộn, dưới tòa
+   sen/trang trí, trên mép viền dưới. Không cần chừa lề: ứng dụng tự chừa 7% trên dưới, 4% hai bên.
 2. **Đo độ cong**: dò mép của mặt chữ (mép dưới với băng võng, mép trên với cuốn thư vồng) ở vài
    cột trong `textBox` (cột kênh alpha hoặc nơi độ sáng đổi nhiều nhất). Với độ lệch `s` giữa giữa
    bảng và hai đầu, ở nửa dây cung `c` (cả hai tính theo bề rộng bảng): bán kính = c² ÷ (2s).
    **Dấu**: dương = vồng (giữa cao hơn, ví dụ cuốn thư rồng vàng 1,96); âm = võng (giữa thấp hơn,
    ví dụ băng lụa sen vàng −2,0).
 3. **Dựng ≥ 3 phương án trên ảnh bảng thật** bằng
-   `node scripts/mau-tieu-de.cjs spec.json out.png` (cùng cách tính cỡ chữ và đặt chữ theo cung như
-   ứng dụng; có ô người mẫu bên dưới). Các trục để phối: thẳng / theo cung đo được; chữ thường /
-   chữ hoa giãn chữ (0,04–0,08 em); có hay không dòng phụ. Ví dụ ba phương án: võng + chữ thường,
-   thẳng + chữ hoa, võng + chữ hoa.
-4. Ghi vào theme: `titleBoard.arcRadius` (có dấu; bỏ trống = thẳng), `typography.title.uppercase`
-   (ứng dụng tự viết hoa, người dùng vẫn gõ bình thường), `typography.title.letterSpacing` (được
-   tính khi co chữ cho vừa bảng). Chữ có dấu đặt theo cung hơi nhấp nhô từng chữ: phóng to PDF
-   để xem lại.
+   `node scripts/mau-tieu-de.cjs spec.json out.png`. Script dùng **đúng cách đặt chữ của ứng dụng**
+   (`fitBoardText`, D79): đo phần mực thật của chữ, kể cả dấu thanh trên chữ hoa (Ả, Ỗ, Ấ) và độ
+   nhô của cung, rồi căn cả khối vào giữa; khung xanh đứt nét là `textBox`. Các trục để phối:
+   thẳng / theo cung đo được; chữ thường / chữ hoa giãn chữ (0,04–0,08 em). Ví dụ ba phương án:
+   võng + chữ thường, thẳng + chữ hoa, võng + chữ hoa.
+4. **Thử chữ khó trước khi chốt** (cùng script, trường `tieuDe_text` / `dongPhu_text`): tiêu đề
+   ngắn có dòng phụ; tiêu đề dài nhiều dấu chồng (ví dụ "Dòng Họ Nguyễn Hữu – Chi Trưởng Ấp Đông");
+   không có dòng phụ. Mọi chữ phải nằm trong khung xanh. Tiêu đề quá dài sẽ co rất nhỏ: cho người
+   dùng xem trường hợp này và khuyên giữ tiêu đề khoảng 20 ký tự, phần còn lại đưa xuống dòng phụ.
+5. Ghi vào theme: `titleBoard.textBox`, `titleBoard.arcRadius` (có dấu; bỏ trống = thẳng),
+   `typography.title.uppercase` (ứng dụng tự viết hoa, người dùng vẫn gõ bình thường),
+   `typography.title.letterSpacing` (được tính khi co chữ cho vừa bảng).
+6. **Bắt buộc soát trên PDF thật** (bước 11): phóng vùng bảng ở 300 dpi
+   (`pdftoppm -r 300 -x … -y …`; mm × 11,81 = px). Phải thấy: dấu cao nhất không chạm mép trên mặt
+   bảng; khoảng trống trên và dưới khối chữ gần bằng nhau; hai đầu dòng không lấn vào đầu cuộn;
+   tiêu đề và dòng phụ không dính nhau. Sai thì sửa `textBox` (đừng sửa cỡ chữ bằng tay), dựng lại.
 
 ## Bước 7 — Câu chữ  ▶ DỪNG
 
@@ -207,8 +218,10 @@ Hỏi người dùng (khuyên phương án 1 nếu preset dành cho mọi ngư�
    nó đổi cả file sang nháy kép).
 2. Chạy bản demo `npx vite --mode demo --port 5199` (MemoryRouter: vào bằng cách bấm Cài đặt →
    In ấn), chọn giao diện mới, gõ tiêu đề, bấm "Tải PDF khổ A1" bằng Playwright; xem PDF bằng
-   `pdftoppm` (toàn tờ ở 40 dpi, phóng các vùng: tiêu đề, câu đối, vài ô người). Kiểm tra: chữ
-   tiếng Việt đủ dấu, chữ nằm trong bảng, không đè họa tiết, cây nằm gọn trong vùng.
+   `pdftoppm` (toàn tờ ở 40 dpi, phóng các vùng: tiêu đề ở 300 dpi, câu đối, vài ô người). Kiểm
+   tra: chữ tiếng Việt đủ dấu, tiêu đề đạt đủ các điều ở bước 6 mục 6, không đè họa tiết, cây
+   nằm gọn trong vùng. Nếu đổi cách đặt chữ trong `PosterSvg`, xuất lại cả các giao diện có bảng
+   tiêu đề khác (ví dụ "Sơn mài rồng vàng") và so trước/sau.
 3. Gửi ảnh toàn tờ, ảnh phóng to và file PDF cho người dùng. ▶ DỪNG: hỏi chỉnh gì thêm.
 4. Ghi một mục DECISIONS.md mới (số D tiếp theo): preset, các lựa chọn đã chốt, kích thước ảnh,
    token, phông, các hạn chế còn lại.

@@ -678,3 +678,22 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - Lề vùng cây: 38 mm ba cạnh (trong sen góc, trên dải sen chân khung).
 - **Skill**: thêm bước 6 "Bố cục chữ tiêu đề trên bảng" (đo vùng chữ và độ cong có dấu, dựng ≥ 3 phương án trên ảnh bảng thật bằng `scripts/mau-tieu-de.cjs`); các bước sau đánh số lại. Ghi chú thêm cách lấy thành phần sắc nét khi ảnh Canva chỉ 1536 px.
 - **Còn hạn chế**: gói JSON tự nhập (`packs.ts`) chưa có trường cho `uppercase` và `treeFrom`. Chữ có dấu đặt theo cung hơi nhấp nhô từng chữ.
+
+## D79 — Tiêu đề trên bảng được đặt theo phần mực thật của chữ
+
+- **Lỗi**: trên băng lụa "Đỏ son sen vàng", khối tiêu đề bị dồn lên trên: dấu hỏi của "Ả" chạm mép trên mặt băng, phía dưới dòng phụ thì thừa chỗ. Nguyên nhân:
+  - chữ được căn theo đường giữa ước lượng (`dominant-baseline: central`), không tính dấu thanh trên chữ hoa;
+  - không tính độ nhô của cung (cung võng làm hai đầu dòng cao hơn giữa);
+  - vùng chữ chia cứng 62/38 cho tiêu đề và dòng phụ.
+- **Cách mới** (`fitBoardText` trong `PosterSvg.tsx`, dùng cho mọi giao diện có bảng tiêu đề):
+  - đo phần mực thật của từng dòng bằng phông thật (`inkHeights`: `actualBoundingBoxAscent/Descent`), dấu thanh và chân chữ đều được tính;
+  - cộng độ nhô của cung: với cung võng tính ở đầu dòng trên, với cung vồng tính ở đầu dòng dưới;
+  - tiêu đề ≤ 92% bề ngang vùng chữ; dòng phụ ≤ một nửa cỡ tiêu đề; khoảng cách giữa hai dòng 0,2 lần cỡ tiêu đề;
+  - cả khối được co cho vừa chiều cao trừ lề 7% trên và 7% dưới, rồi căn giữa;
+  - chữ đứng trên đường chân (baseline), không căn theo đường giữa nữa, nên PDF và màn hình giống nhau.
+- **Ảnh hưởng tới "Sơn mài rồng vàng"**: tiêu đề và dòng phụ nhỏ đi một chút, nhưng nằm gọn giữa lòng cuốn thư (trước đây dòng phụ sát viền dưới).
+- **Kiểm thử**: `fitBoardText` được thử với chữ thẳng, cung võng và cung vồng. Mực chữ, kể cả độ nhô của cung, phải nằm trong vùng chữ trừ lề, cách đều trên dưới; hai dòng không chạm nhau.
+- **Skill**: bước 6 thêm hai việc bắt buộc:
+  - thử chữ khó bằng `mau-tieu-de.cjs` (script đặt chữ đúng như ứng dụng, có khung vùng chữ): tiêu đề dài nhiều dấu chồng, không có dòng phụ;
+  - soát vùng bảng trên PDF ở 300 dpi theo danh sách: dấu không chạm mép, trên dưới cách đều, không lấn đầu cuộn.
+- **Hạn chế**: tiêu đề rất dài (khoảng 40 ký tự) co nhỏ nhiều, dòng phụ khó đọc. Nên giữ tiêu đề khoảng 20 ký tự, phần còn lại đưa xuống dòng phụ.

@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { render } from '@testing-library/react';
 import { FALLBACK_FAMILY, PDF_FONTS, nearestFont, preparePosterSvg, styleKey } from '@/features/print/exportPdf';
-import { PRINT_SPACING, PosterSvg } from '@/features/print/PosterSvg';
+import { PRINT_SPACING, PosterSvg, fitBoardText, type BoardLine } from '@/features/print/PosterSvg';
 import { buildClanModel } from '@/lib/clanModel';
 import { loadDemoSnapshot } from '@/lib/data/demoSource';
 import { computeTreeLayout } from '@/features/tree/layout';
@@ -177,6 +177,34 @@ describe('"Đỏ son sen vàng": relief Buddha above a gold silk ribbon (D78)', 
     // Without it the tree area begins under the tails: the (centred) tree sits lower.
     expect(top).toBeLessThan(treeTop({ ...theme, titleBoard: { ...b, treeFrom: undefined } }));
   });
+});
+
+describe('title fitted from its ink inside the board (D79)', () => {
+  const font = { family: 'X', weight: 700, sizePt: 80 };
+  // Capitals with tone marks reach high above the baseline (Ả, Ị).
+  const title: BoardLine = { text: 'GIA PHẢ HỌ TRỊNH', font, em: 9, above: 1.0, below: 0.22 };
+  const sub: BoardLine = { text: 'Đời thứ nhất đến đời thứ bảy', font, em: 14, above: 0.95, below: 0.25 };
+  const tb = { x: 100, y: 50, w: 150, h: 28 };
+  const rise = (r: number, w: number) => Math.abs(r) - Math.sqrt(r * r - (w / 2) ** 2);
+
+  for (const radius of [null, -800, 800]) {
+    it(`keeps every line, tone marks and arc included, inside the box with a margin (arc ${radius ?? 'none'})`, () => {
+      const f = fitBoardText(tb, title, sub, 80 * 0.3528, radius);
+      const tRise = radius ? rise(radius, f.titleSize * title.em) : 0;
+      const sRise = radius ? rise(radius, f.subSize * sub.em) : 0;
+      const inkTop = f.titleY - f.titleSize * title.above - (radius && radius < 0 ? tRise : 0);
+      const inkBottom = f.subY + f.subSize * sub.below + (radius && radius > 0 ? sRise : 0);
+      expect(inkTop).toBeGreaterThanOrEqual(tb.y + tb.h * 0.07 - 1e-6);
+      expect(inkBottom).toBeLessThanOrEqual(tb.y + tb.h * 0.93 + 1e-6);
+      // Centred: the same room above and below the block.
+      expect(inkTop - tb.y).toBeCloseTo(tb.y + tb.h - inkBottom, 5);
+      // The two lines do not touch, and both fit the width.
+      expect(f.subY - f.subSize * sub.above).toBeGreaterThan(f.titleY + f.titleSize * title.below);
+      expect(f.titleSize * title.em).toBeLessThanOrEqual(tb.w * 0.92 + 1e-6);
+      expect(f.subSize * sub.em).toBeLessThanOrEqual(tb.w * 0.92 + 1e-6);
+      expect(f.subSize).toBeLessThanOrEqual(f.titleSize * 0.5 + 1e-6);
+    });
+  }
 });
 
 describe('print sheet details (D74)', () => {
