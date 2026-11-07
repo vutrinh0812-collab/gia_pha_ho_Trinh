@@ -54,8 +54,6 @@ interface Props {
   /** A ready layout, or a builder: then the cards' line spacing is chosen to fill the sheet (D73). */
   layout: TreeLayout | LayoutBuilder;
   options?: Partial<PosterOptions>;
-  /** Shown under the title when the sheet is one branch ("Chi ông …"). */
-  branchLine?: string | null;
   className?: string;
   /** Typed on the print page; default: the clan's title and subtitle (D72). */
   title?: string;
@@ -210,7 +208,7 @@ function ArcText(props: { text: string; cx: number; y: number; radius: number; s
   );
 }
 
-export function PosterSvg({ theme, model, layout, options, branchLine, className, title, subtitle }: Props) {
+export function PosterSvg({ theme, model, layout, options, className, title, subtitle }: Props) {
   const o = { ...DEFAULT_POSTER_OPTIONS, ...options };
   const uid = useId().replace(/:/g, '');
   const { w: W, h: H } = A1[o.orientation];
@@ -257,8 +255,8 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
     : (theme.ornaments.titleBanner ? headerTop + bannerH : headerTop + titleSize * 1.3) + subSize * 1.5;
   // No "Thủy tổ: …" line under the title any more (D73): the tree starts with the founder.
   const headerEnd = board ? headerTop + bannerH : subText ? subY + subSize * 0.4 : titleY + titleSize * 0.5;
-  const branchY = headerEnd + subSize * 1.6;
-  const headerBottom = (branchLine ? branchY : headerEnd) + 8;
+  // No caption line for a single branch either (D76): the sheet shows just that branch.
+  const headerBottom = headerEnd + 8;
 
   // ---- Couplets (vertical, word by word) ----
   // Either on boards the app draws beside the tree, or written into boards painted in
@@ -502,11 +500,6 @@ export function PosterSvg({ theme, model, layout, options, branchLine, className
           fill={tb ? (c.bannerText ?? c.textSecondary) : c.textSecondary}
         >
           {subText}
-        </text>
-      )}
-      {branchLine && (
-        <text x={W / 2} y={branchY} textAnchor="middle" fontFamily={t.heading.family} fontWeight={400} fontStyle="italic" fontSize={subSize} fill={c.textSecondary}>
-          {branchLine}
         </text>
       )}
 

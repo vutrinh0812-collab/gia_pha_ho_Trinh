@@ -652,3 +652,7 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - Tiêu đề và dòng phụ trên cuốn thư dùng **Water Brush**, cùng phông thư pháp với câu đối (D74), vẫn uốn theo cung của cuốn thư.
 - Chữ bút lông có khoảng trắng rất hẹp và chữ hoa vung nét dài (thanh ngang của chữ T phủ lên chữ sau, như trong "Trịnh"). Khi đặt chữ theo cung: khoảng trắng tối thiểu 0,32 em; chữ hoa có nét tràn qua bề rộng của nó (đo bằng phông thật) được nhường thêm một phần chỗ; `letterSpacing` của phông tiêu đề được áp dụng cho từng chữ.
 - Thẻ ngang trong cây dùng đúng kiểu chữ như thẻ dọc (Lora nghiêng); số thứ tự anh em trên thẻ ngang cũng nghiêng cho đồng bộ.
+
+## D76 — In theo chi: không có dòng chú thích
+
+- Khi in một chi, bản in không còn dòng "Chi ông … (đời …): đầy đủ con cháu; các nhánh khác thu gọn" dưới tiêu đề. Cây đã tự cho thấy chi được in; nếu cần ghi rõ thì gõ vào tiêu đề hoặc dòng phụ ở trang In ấn. Phần đầu tờ gọn hơn, cây có thêm chỗ.

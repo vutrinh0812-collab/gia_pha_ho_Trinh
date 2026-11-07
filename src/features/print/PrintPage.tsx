@@ -7,7 +7,7 @@ import type { Theme } from '@/themes/types';
 import { BranchPicker } from './BranchPicker';
 import { deletePack, listPacks, packFromFiles, packTheme, samplePackFile, savePack, type StoredPack } from './packs';
 import { A1, DEFAULT_POSTER_OPTIONS, PosterSvg, type PosterOptions } from './PosterSvg';
-import { branchLine, usePrintLayoutBuilder, useThemeFonts } from './usePrintScope';
+import { usePrintLayoutBuilder, useThemeFonts } from './usePrintScope';
 import styles from './Print.module.css';
 
 /**
@@ -37,7 +37,6 @@ export default function PrintPage() {
   const shownTitle = title.trim() || model.settings.title;
   useThemeFonts(themes);
   const layout = usePrintLayoutBuilder(model, focusId, opts.showSpouses);
-  const line = branchLine(model, focusId);
 
   const pick = (t: Theme) => {
     setThemeId(t.id);
@@ -132,7 +131,6 @@ export default function PrintPage() {
                     model={model}
                     layout={layout}
                     options={{ ...opts, orientation: t.preferredOrientation ?? opts.orientation }}
-                    branchLine={line}
                     title={shownTitle}
                     subtitle={subtitle}
                   />
@@ -234,7 +232,6 @@ export default function PrintPage() {
           model={model}
           layout={layout}
           options={opts}
-          branchLine={line}
           title={shownTitle}
           subtitle={subtitle}
         />

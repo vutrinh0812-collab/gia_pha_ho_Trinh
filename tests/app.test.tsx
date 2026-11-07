@@ -136,6 +136,14 @@ describe('other pages', () => {
     expect(screen.queryByRole('checkbox', { name: /Lạc khoản|Câu đối|Dâu, rể/ })).toBeNull();
   });
 
+  it('printing one branch adds no caption line under the title (D76)', async () => {
+    const model = useClanStore.getState().model!;
+    const someone = model.persons.find((p) => model.generationOf(p.id) === 3)!;
+    renderAt(`/print?goc=${someone.id}`);
+    expect(await screen.findByRole('heading', { level: 1, name: 'In ấn' }, { timeout: 5000 })).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/đầy đủ con cháu|các nhánh khác thu gọn/);
+  });
+
   it('old /themes links open "In ấn"', async () => {
     renderAt('/themes');
     expect(await screen.findByRole('heading', { level: 1, name: 'In ấn' }, { timeout: 5000 })).toBeInTheDocument();

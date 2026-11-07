@@ -71,11 +71,4 @@ export function usePrintLayoutBuilder(
   }, [model, focusId, showSpouses]);
 }
 
-export function branchLine(model: ClanModel, focusId: string | null): string | null {
-  const p = focusId ? model.get(focusId) : undefined;
-  if (!p) return null;
-  const gen = model.generationOf(p.id);
-  return `Chi ${p.gender === 'male' ? 'ông' : 'bà'} ${p.fullName}${gen ? ` (đời ${gen})` : ''}: đầy đủ con cháu; các nhánh khác thu gọn`;
-}
-
 export { useThemeFonts } from '@/themes/fonts';
