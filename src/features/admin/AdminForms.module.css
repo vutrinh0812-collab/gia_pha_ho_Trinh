@@ -170,9 +170,20 @@
   width: 112px;
   height: 112px;
   border-radius: 50%;
-  object-fit: cover;
+  overflow: hidden;
   border: 3px solid var(--surface);
   box-shadow: 0 0 0 2px var(--burnt-sienna, #b3532d), 0 4px 12px rgb(0 0 0 / 15%);
+}
+.photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 300ms ease;
+}
+/* Same black and white as the avatar of the deceased (D69); the ring keeps its colour. */
+.photo img[data-deceased] {
+  filter: grayscale(1);
 }
 .photoPlaceholder {
   flex: none;

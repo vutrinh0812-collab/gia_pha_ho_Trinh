@@ -49,6 +49,13 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: filter 300ms ease;
+}
+/* The deceased (D69): their photo shows in black and white, as on an altar portrait.
+   Display only: the stored photo keeps its colours, so unticking "Đã mất" brings them back. */
+.avatar[data-deceased] img,
+.lightboxImg[data-deceased] {
+  filter: grayscale(1);
 }
 
 /* Full-screen high-resolution photo viewer */

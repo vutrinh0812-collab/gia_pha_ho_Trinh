@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Sheet } from '@/app/ui/Sheet';
 import { getAdminBackend } from '@/lib/admin/backend';
 import {
@@ -79,6 +79,8 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
     setDraft((d) => ({ ...d, otherNames: { ...d.otherNames, [key]: value || undefined } }));
 
   const deceased = draft.death?.isDeceased === true;
+  /** Death details while "Đã mất" is unticked, so ticking it again in this form brings them back. */
+  const lastDeath = useRef(draft.death);
   const deathLunar = draft.death?.lunar;
   const gio = draft.deathAnniversaryLunar;
 
@@ -161,7 +163,11 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
               <label htmlFor="f-photo">Ảnh đại diện</label>
               <div className={styles.photoRow}>
                 {draft.photoUrl ? (
-                  <img src={draft.photoUrl} alt="Ảnh đại diện" className={styles.photo} />
+                  <span className={styles.photo}>
+                    {/* Turns black and white as soon as "Đã mất" is ticked, like the avatar will;
+                        the ring stays in colour. */}
+                    <img src={draft.photoUrl} alt="Ảnh đại diện" data-deceased={deceased || undefined} />
+                  </span>
                 ) : (
                   <div className={styles.photoPlaceholder} aria-hidden="true">
                     <span>{(draft.fullName || person.fullName || '?').trim().charAt(0).toUpperCase()}</span>
@@ -286,7 +292,14 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
               id="f-deceased"
               type="checkbox"
               checked={deceased}
-              onChange={(e) => set('death', e.target.checked ? { ...draft.death, isDeceased: true } : undefined)}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  set('death', { ...lastDeath.current, isDeceased: true });
+                } else {
+                  lastDeath.current = draft.death;
+                  set('death', undefined);
+                }
+              }}
             />
             Đã mất
           </label>

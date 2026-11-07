@@ -588,3 +588,9 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - **Tìm kiếm trên điện thoại không che thanh dưới nữa:** khung tìm kiếm dừng ngay trên thanh Sơ đồ · Ngày giỗ · Tìm kiếm · Cài đặt.
   - Đang tìm vẫn chạm được các mục khác: Sơ đồ / Ngày giỗ chuyển trang và đóng tìm kiếm, Cài đặt mở thay cho tìm kiếm, chạm lại "Tìm kiếm" thì đóng tìm kiếm.
   - Trên điện thoại, khung tìm kiếm không còn là hộp thoại chặn (`aria-modal` chỉ bật trên máy tính, nơi tìm kiếm vẫn là hộp giữa màn hình trên nền tối).
+
+### D69. Ảnh người đã mất hiện đen trắng
+- Khi người đó được đánh dấu **"Đã mất"**, ảnh đại diện **tự hiện đen trắng** (`filter: grayscale(1)`) ở mọi nơi: Cây dọc, hồ sơ, thẻ gia đình, trang Ngày giỗ, và cả ảnh lớn khi bấm vào ảnh. Vòng viền màu son quanh ảnh giữ nguyên màu.
+- **Chỉ đổi cách hiển thị**, ảnh lưu trên máy chủ vẫn giữ màu. Bỏ dấu "Đã mất" thì ảnh có màu trở lại.
+- Trong form "Sửa thông tin", ảnh xem trước đổi đen trắng ngay khi đánh dấu "Đã mất", để admin thấy trước kết quả.
+- **Sửa kèm:** trước đây bỏ dấu "Đã mất" rồi đánh dấu lại trong cùng form thì mất năm mất, ngày mất âm lịch… đã nhập. Giờ form nhớ các thông tin đó cho tới khi đóng.

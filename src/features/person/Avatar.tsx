@@ -119,7 +119,12 @@ export function Avatar({ person, size, ring, highPriority, zoomable }: Props) {
               <CloseIcon width={24} height={24} />
             </button>
             <figure className={styles.lightboxFigure} onClick={(e) => e.stopPropagation()}>
-              <img src={person.photoUrl} alt={person.fullName} className={styles.lightboxImg} />
+              <img
+                src={person.photoUrl}
+                alt={person.fullName}
+                className={styles.lightboxImg}
+                data-deceased={deceased || undefined}
+              />
               <figcaption className={styles.lightboxCaption}>{person.fullName}</figcaption>
             </figure>
           </div>,
