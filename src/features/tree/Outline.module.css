@@ -474,12 +474,10 @@
   color: var(--text-2);
   font-weight: 500;
 }
-.years,
 .spouse {
   position: relative;
   min-width: 0;
 }
-.years::before,
 .spouse::before {
   content: '·';
   position: absolute;
@@ -487,12 +485,7 @@
   width: var(--sep);
   text-align: center;
 }
-/* Each part moves to the next line whole (flex-wrap). Only a spouse too long for a whole
-   line on a very narrow screen wraps inside itself; nothing is cut off. */
-.years {
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
+/* A spouse too long for a whole line on a very narrow screen wraps inside itself; nothing is cut off. */
 .spouse {
   color: var(--text-2);
 }

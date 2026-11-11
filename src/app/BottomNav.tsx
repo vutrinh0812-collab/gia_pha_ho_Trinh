@@ -2,11 +2,11 @@ import { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 import { todaySolar, upcomingAnniversaries } from '@/lib/anniversaries';
 import { useClanStore } from '@/store/clanStore';
-import { CalendarIcon, SearchIcon, SettingsIcon, TreeIcon } from './ui/icons';
+import { CalendarIcon, PrintIcon, SearchIcon, SettingsIcon, TreeIcon } from './ui/icons';
 import { useOverlays } from './useOverlays';
 import styles from './BottomNav.module.css';
 
-/** Bottom navigation in the thumb zone (SPEC 5A.2): Sơ đồ · Ngày giỗ · Tìm kiếm · Cài đặt (the sidebar's items). */
+/** Bottom navigation in the thumb zone (SPEC 5A.2): Sơ đồ · Ngày giỗ · Tìm kiếm · In ấn · Cài đặt (the sidebar's items; In ấn has its own tab, D87). */
 export function BottomNav() {
   const { params, open, close } = useOverlays();
   const model = useClanStore((s) => s.model);
@@ -43,6 +43,10 @@ export function BottomNav() {
         <SearchIcon />
         <span>Tìm kiếm</span>
       </button>
+      <NavLink to="/print" className={tabClass}>
+        <PrintIcon />
+        <span>In ấn</span>
+      </NavLink>
       <button
         type="button"
         className={`${styles.item} ${more ? styles.active : ''}`}

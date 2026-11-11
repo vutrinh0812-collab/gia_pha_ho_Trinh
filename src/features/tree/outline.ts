@@ -6,7 +6,6 @@
  * no zooming, one-thumb scrolling. Uses the same filters as the chart (layout.ts).
  */
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
-import { lifeSpan } from '@/lib/format';
 import {
   countShownDescendants,
   nodeCaption,
@@ -26,7 +25,6 @@ export interface OutlineRow {
   parentId: string | null;
   /** "bà hai" (which mother) when the parent had children in several marriages; no birth order (D70). */
   caption: string | null;
-  years: string;
   spouses: TreeSpouse[];
   hasChildren: boolean;
   open: boolean;
@@ -63,7 +61,6 @@ export function buildOutline(model: ClanModel, filters: OutlineFilters, open: Re
       parentId,
       // Only "bà hai" (which mother): the order of the rows already shows the birth order (D70).
       caption: nodeCaption(model, p, f, false),
-      years: lifeSpan(p),
       spouses: f.showSpouses ? spousesOf(model, p) : [],
       hasChildren: kids.length > 0,
       open: isOpen,

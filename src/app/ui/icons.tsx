@@ -146,6 +146,13 @@ export const CalendarIcon = (p: IconProps) => (
     <path d="M4 10h16M9 3v4M15 3v4" />
   </Icon>
 );
+export const PrintIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M7 9V4h10v5" />
+    <rect x="4" y="9" width="16" height="7" rx="2" />
+    <path d="M7 14h10v6H7z" />
+  </Icon>
+);
 export const EditIcon = (p: IconProps) => (
   <Icon {...p}>
     <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" />

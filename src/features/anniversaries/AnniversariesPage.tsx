@@ -60,10 +60,8 @@ export function AnniversariesPage() {
         ) : (
           <ul className={styles.list}>
             {items.map((a) => {
-              const gen = model.generationOf(a.person.id);
               const spouse = spouseSummary(model, a.person);
               const meta = [
-                gen ? `Đời ${gen}` : null,
                 spouse,
                 a.person.branchLabel ?? null,
                 a.yearsSince !== null ? `mất ${a.yearsSince} năm` : null,
@@ -106,23 +104,14 @@ export function AnniversariesPage() {
           </div>
           <ul className={styles.yearList}>
             {allYear.map((p) => {
-              const gen = model.generationOf(p.id);
               const lunar = p.deathAnniversaryLunar!;
               const spouse = spouseSummary(model, p);
-              const details = [`Giỗ ${lunar.day}/${lunar.month} âm lịch`, gen ? `Đời ${gen}` : null, spouse].filter(Boolean);
+              const details = [`Giỗ ${lunar.day}/${lunar.month} âm lịch`, spouse].filter(Boolean);
               return (
                 <li key={p.id}>
                   <button type="button" className={styles.yearItem} onClick={() => open('ct', p.id)}>
-                    {p.photoUrl ? (
-                      <Avatar person={p} size={56} ring />
-                    ) : (
-                      gen && (
-                        <span className={styles.seal} aria-hidden="true">
-                          <span className={styles.sealLabel}>Đời</span>
-                          <span className={styles.sealNum}>{gen}</span>
-                        </span>
-                      )
-                    )}
+                    {/* No generation seal (D87): the portrait, or the grey silhouette. */}
+                    <Avatar person={p} size={56} ring={Boolean(p.photoUrl)} />
                     <span className={styles.yearText}>
                       <span className={styles.yearName}>{p.fullName}</span>
                       <span className={styles.yearMeta}>{details.join(' · ')}</span>

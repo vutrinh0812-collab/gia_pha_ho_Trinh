@@ -31,10 +31,13 @@ describe('home', () => {
     renderAt('/');
     expect(await outline()).toBeInTheDocument();
     const nav = screen.getByRole('navigation', { name: 'Điều hướng chính' });
-    for (const label of ['Sơ đồ', 'Ngày giỗ', 'Tìm kiếm', 'Cài đặt']) {
+    for (const label of ['Sơ đồ', 'Ngày giỗ', 'Tìm kiếm', 'In ấn', 'Cài đặt']) {
       expect(within(nav).getByText(label)).toBeInTheDocument();
     }
     expect(within(nav).queryByText('Gia đình')).not.toBeInTheDocument();
+    // "In ấn" is its own tab (D87) and opens the print page.
+    fireEvent.click(within(nav).getByText('In ấn'));
+    expect(await screen.findByRole('heading', { level: 1, name: 'In ấn' }, { timeout: 5000 })).toBeInTheDocument();
   });
 
   it('old family links (/?p=id) go to that person on the tree', async () => {

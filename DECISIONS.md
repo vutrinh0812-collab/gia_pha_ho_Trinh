@@ -774,3 +774,9 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - Ngưỡng "dài" hạ từ 16 xuống **12 ký tự**: nửa thẻ trên điện thoại chỉ chứa khoảng 12 ký tự chữ đậm.
   - Mục ngắn chỉ ở nửa thẻ khi có **một mục ngắn khác ghép cùng hàng**; đứng cạnh mục dài hoặc lẻ cuối thì chiếm cả hàng.
 - Đã đo ở 360 và 375 px: "khoảng năm 1843" một dòng; chỉ những mục thật sự dài (ngày mất kèm âm lịch, quê quán đầy đủ) mới hai dòng.
+
+## D87 — Cây dọc không ghi năm; Ngày giỗ không ghi đời; "In ấn" có mục riêng trên thanh điều hướng
+
+- **Cây dọc** (Sơ đồ → Dọc): mỗi dòng chỉ còn tên và vợ/chồng, bỏ năm sinh – năm mất cho gọn. Năm vẫn có trong hồ sơ, sơ đồ ngang và bản in.
+- **Ngày giỗ**: bỏ "Đời N" ở cả "Sắp tới" và "Cả năm"; ở "Cả năm" con dấu "Đời N" (khi chưa có ảnh) thay bằng hình người xám như các nơi khác (D60).
+- **In ấn**: không còn nằm trong "Cài đặt". Thanh dưới trên điện thoại có 5 mục: Sơ đồ · Ngày giỗ · Tìm kiếm · **In ấn** (biểu tượng máy in) · Cài đặt; thanh bên trên máy tính cũng có mục "In ấn".

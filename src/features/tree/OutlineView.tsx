@@ -303,8 +303,8 @@ interface RowProps {
 function Row({ row: r, mark, dim, onToggle, onSelect }: RowProps) {
   const p = r.person;
   const role = p.gender === 'female' ? 'female' : 'male';
-  const meta: { key: string; text: string; years?: boolean }[] = [
-    ...(r.years ? [{ key: 'years', text: r.years, years: true }] : []),
+  const meta: { key: string; text: string }[] = [
+    // The vertical tree shows no years (D87): names and spouses only; years are in the profile.
     ...r.spouses.map((s) => ({ key: s.person.id, text: `${s.role}: ${s.person.fullName}` })),
   ];
   const isRoot = r.depth === 0;
@@ -361,11 +361,10 @@ function Row({ row: r, mark, dim, onToggle, onSelect }: RowProps) {
             <span className={styles.name}>{p.fullName}</span>
           </span>
           {meta.length > 0 && (
-            // Years first (short, never left alone on a line), then each spouse. Each part wraps
-            // whole; the "·" between parts only shows between two parts on the same line.
+            // Each spouse; each part wraps whole, the "·" only shows between two parts on one line.
             <span className={styles.line2}>
               {meta.map((m) => (
-                <span key={m.key} className={m.years ? styles.years : styles.spouse}>
+                <span key={m.key} className={styles.spouse}>
                   {m.text}
                 </span>
               ))}

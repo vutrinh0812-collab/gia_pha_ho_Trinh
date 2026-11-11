@@ -11,12 +11,9 @@ import styles from './MoreSheet.module.css';
 import { InstallCard } from './InstallCard';
 import { useIsDesktop } from './useMediaQuery';
 
-// D62: Ngày giỗ is in the navigation; "Giao diện in" and "In khổ A1" are one page;
-// sharing and the data check were removed.
-const LINKS = [
-  { to: '/print', label: 'In ấn' },
-  { to: '/admin', label: 'Chế độ Admin' },
-];
+// D62: Ngày giỗ is in the navigation; sharing and the data check were removed.
+// D87: "In ấn" has its own item in the navigation too.
+const LINKS = [{ to: '/admin', label: 'Chế độ Admin' }];
 
 /** "Cài đặt" menu: secondary pages and viewing preferences. */
 export function MoreSheet() {

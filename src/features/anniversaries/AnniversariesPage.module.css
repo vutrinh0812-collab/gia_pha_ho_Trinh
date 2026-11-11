@@ -203,31 +203,6 @@
   background: var(--surface-2);
 }
 
-/* Traditional circular Đời seal */
-.seal {
-  flex: none;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 2px solid var(--seal-red, #b93829);
-  box-shadow: inset 0 0 0 2px var(--surface), inset 0 0 0 3px rgb(185 56 41 / 45%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--seal-red, #b93829);
-  line-height: 1;
-}
-.sealLabel {
-  font-size: 0.68rem;
-  font-weight: 600;
-}
-.sealNum {
-  font-size: 1.15rem;
-  font-weight: 800;
-  margin-top: 1px;
-}
-
 .yearText {
   min-width: 0;
   display: flex;

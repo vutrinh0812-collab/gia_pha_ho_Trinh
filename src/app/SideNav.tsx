@@ -4,7 +4,7 @@ import { todaySolar, upcomingAnniversaries } from '@/lib/anniversaries';
 import { useClanStore } from '@/store/clanStore';
 import { AdminStatus } from './AdminStatus';
 import { BrandMark } from './BrandMark';
-import { CalendarIcon, SearchIcon, SettingsIcon, TreeIcon } from './ui/icons';
+import { CalendarIcon, PrintIcon, SearchIcon, SettingsIcon, TreeIcon } from './ui/icons';
 import { useOverlays } from './useOverlays';
 import styles from './SideNav.module.css';
 
@@ -49,6 +49,11 @@ export function SideNav() {
                   {dueThisWeek}
                 </span>
               )}
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/print" className={link}>
+              <PrintIcon width={18} height={18} /> <span>In ấn</span>
             </NavLink>
           </li>
           <li>
