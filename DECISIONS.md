@@ -751,3 +751,12 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - Người xem không có quyền sửa vẫn thấy như cũ.
 - **Bố cục nút khi đang sửa**: "Sửa thông tin" chiếm trọn một hàng; hàng dưới là "Thêm người thân" và nút "Xong" nhỏ. Bố cục giống nhau ở mọi bề rộng, không cắt chữ (đã xem ở khung hồ sơ trên máy tính và ở màn hình điện thoại rộng 375 px).
 - **Kiểm thử**: hồ sơ mở ra không có nút sửa nào; bấm "Chỉnh sửa hồ sơ" thì có; bấm "Xong" thì hết. Các bài kiểm thử sửa và thêm người thân đã đổi theo thao tác mới.
+
+## D84 — Một nút "Chỉnh sửa hồ sơ" mở thẳng biểu mẫu đầy đủ (thay D83)
+
+- **Trước (D83)**: bấm "Chỉnh sửa hồ sơ" thì trang hồ sơ chuyển sang chế độ sửa (nút máy ảnh, bút chì, "+ Bổ sung", "+ Thêm", hàng nút "Sửa thông tin" / "Thêm người thân" / "Xong"); bấm tiếp "Sửa thông tin" mới mở biểu mẫu. Hai nơi để sửa, rối và thừa một bước.
+- **Giờ**:
+  - Trang hồ sơ chỉ để đọc. Người có quyền sửa thấy đúng một nút **"Chỉnh sửa hồ sơ"**, bấm là mở ngay biểu mẫu "Sửa thông tin" đầy đủ (ảnh đại diện, tên, ngày sinh, ngày mất, giỗ, nghề nghiệp, ghi chú…).
+  - Cuối biểu mẫu có mục **"Người thân và thao tác khác"**: Thêm con, Thêm vợ/chồng, Thêm cha (với thủy tổ), Đổi thứ tự anh chị em, Xóa. Nếu đã sửa mà chưa lưu, bấm các nút này sẽ hỏi lại trước khi bỏ thay đổi.
+  - Bỏ hẳn nút máy ảnh, bút chì và các ô "+ …" trên trang hồ sơ.
+- **Kiểm thử**: trang hồ sơ không có nút sửa nào ngoài "Chỉnh sửa hồ sơ"; bấm vào mở biểu mẫu có mục người thân. Các bài sửa và thêm con đi qua biểu mẫu này. Đã xem ở màn hình điện thoại rộng 375 px.

@@ -2,29 +2,24 @@
  * A person's profile, laid out like a social-network profile page: cover band,
  * round portrait, name and key facts on top, then cards for the details, the
  * biography and the family. Used in the detail sheet and on /nguoi/:id.
- * Opened, it shows only what is known. Editors press "Chỉnh sửa hồ sơ" first (D83): then
- * the portrait button, the "+ …" chips for empty fields and relatives, and the pencils appear.
+ * It shows only what is known. Editors get one button, "Chỉnh sửa hồ sơ", which opens the whole
+ * edit form: fields, portrait, relatives and other actions in one place (D84).
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BirthIcon,
-  CameraIcon,
   EditIcon,
   MemorialIcon,
   PersonIcon,
   PlaceIcon,
-  PlusIcon,
   WorkIcon,
 } from '@/app/ui/icons';
-import { getAdminBackend } from '@/lib/admin/backend';
-import { editPerson, personContent } from '@/lib/admin/changes';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
 import { formatDateInfo, lifeSpan, spouseRole, toRoman, visibleNotes } from '@/lib/format';
 import { daysBetween, nextLunarAnniversary, type SolarDate } from '@/lib/lunar';
-import { useAdminStore, useCanEdit } from '@/store/adminStore';
+import { useCanEdit } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
-import { resizeImage } from '../admin/resizeImage';
 import { Avatar } from './Avatar';
 import styles from './Profile.module.css';
 
@@ -52,16 +47,6 @@ interface ProfileProps {
 export function Profile({ model, person, variant, onPick }: ProfileProps) {
   const isAdmin = useCanEdit();
   const openAdmin = useAdminUi((s) => s.open);
-  const [note, setNote] = useState<string | null>(null);
-  const [photoError, setPhotoError] = useState<string | null>(null);
-  // Read first, edit on request (D83): editing controls only after "Chỉnh sửa hồ sơ".
-  const [editing, setEditing] = useState(false);
-  useEffect(() => {
-    setEditing(false);
-    setNote(null);
-    setPhotoError(null);
-  }, [person.id]);
-  const canEdit = isAdmin && editing;
   const edit = () => openAdmin('edit', person.id);
 
   const fam = model.family(person.id);
@@ -80,7 +65,7 @@ export function Profile({ model, person, variant, onPick }: ProfileProps) {
   ].filter(Boolean);
 
   return (
-    <article className={styles.profile} data-variant={variant} data-editing={canEdit || undefined} aria-label={`Trang của ${person.fullName}`}>
+    <article className={styles.profile} data-variant={variant} aria-label={`Trang của ${person.fullName}`}>
       <header className={styles.top}>
         <div className={styles.identity}>
           <div className={styles.portrait} data-has-photo={Boolean(person.photoUrl) || undefined}>
@@ -90,20 +75,6 @@ export function Profile({ model, person, variant, onPick }: ProfileProps) {
             ) : (
               <Avatar person={person} size={variant === 'page' ? 120 : 96} ring />
             )}
-            {canEdit && (
-              <PhotoButton
-                model={model}
-                person={person}
-                onSuccess={(msg) => {
-                  setPhotoError(null);
-                  setNote(msg);
-                }}
-                onError={(msg) => {
-                  setNote(null);
-                  setPhotoError(msg);
-                }}
-              />
-            )}
           </div>
           <div className={styles.titleBlock}>
             {variant === 'page' ? <h1 className={styles.name}>{person.fullName}</h1> : <h2 className={styles.name}>{person.fullName}</h2>}
@@ -112,43 +83,20 @@ export function Profile({ model, person, variant, onPick }: ProfileProps) {
           </div>
         </div>
         {/* Only editors act on a profile; family links are in the "Gia đình" card below (D57).
-            Reading comes first: the editing controls appear after "Chỉnh sửa hồ sơ" (D83). */}
-        {isAdmin && !editing && (
+            One button opens the whole edit form (D84). */}
+        {isAdmin && (
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={() => setEditing(true)}>
+            <button type="button" className={styles.secondary} onClick={edit}>
               <EditIcon width={18} height={18} /> Chỉnh sửa hồ sơ
             </button>
           </div>
-        )}
-        {canEdit && (
-          <div className={`${styles.actions} ${styles.editActions}`} role="group" aria-label="Chỉnh sửa hồ sơ">
-            <button type="button" className={styles.primary} onClick={edit}>
-              <EditIcon width={18} height={18} /> Sửa thông tin
-            </button>
-            <button type="button" className={styles.secondary} onClick={() => openAdmin('menu', person.id)}>
-              <PlusIcon width={18} height={18} /> Thêm người thân
-            </button>
-            <button type="button" className={`${styles.secondary} ${styles.done}`} onClick={() => setEditing(false)}>
-              Xong
-            </button>
-          </div>
-        )}
-        {photoError && (
-          <p className={styles.errorNote} role="alert">
-            {photoError}
-          </p>
-        )}
-        {note && (
-          <p className={styles.note} role="status">
-            {note}
-          </p>
         )}
       </header>
 
       <div className={styles.body}>
         <Anniversary person={person} />
-        <About person={person} parent={parent} isAdmin={canEdit} onEdit={edit} />
-        <FamilyCard model={model} person={person} isAdmin={canEdit} onPick={onPick} />
+        <About person={person} parent={parent} />
+        <FamilyCard model={model} person={person} onPick={onPick} />
         {children.length > 0 && (
           <p className={styles.printLink}>
             <Link to={`/print?goc=${encodeURIComponent(person.id)}`}>In gia phả theo chi của {person.fullName} →</Link>
@@ -156,68 +104,6 @@ export function Profile({ model, person, variant, onPick }: ProfileProps) {
         )}
       </div>
     </article>
-  );
-}
-
-/** Admin: change the portrait right from the profile or family center card. */
-export function PhotoButton({
-  model,
-  person,
-  onSuccess,
-  onError,
-}: {
-  model: ClanModel;
-  person: PersonRec;
-  onSuccess?(msg: string): void;
-  onError(msg: string): void;
-}) {
-  const apply = useAdminStore((s) => s.apply);
-  const input = useRef<HTMLInputElement>(null);
-  const [can, setCan] = useState(false);
-  const [busy, setBusy] = useState(false);
-  useEffect(() => {
-    let live = true;
-    void getAdminBackend().then((b) => live && setCan(Boolean(b.uploadPhoto)));
-    return () => {
-      live = false;
-    };
-  }, []);
-  if (!can) return null;
-
-  const onFile = async (file: File | undefined) => {
-    if (!file) return;
-    setBusy(true);
-    try {
-      const backend = await getAdminBackend();
-      const { image, thumb } = await resizeImage(file);
-      const url = await backend.uploadPhoto!(person.id, image, thumb);
-      const ok = await apply(editPerson(model, person.id, { ...personContent(person), photoUrl: url }), 'Đã đổi ảnh.');
-      if (ok) onSuccess?.('Đã cập nhật ảnh đại diện.');
-    } catch (e) {
-      onError(e instanceof Error ? e.message : 'Không tải được ảnh lên.');
-    } finally {
-      setBusy(false);
-      if (input.current) input.current.value = '';
-    }
-  };
-
-  return (
-    <>
-      <button
-        type="button"
-        className={styles.photoButton}
-        onClick={(e) => {
-          e.stopPropagation();
-          input.current?.click();
-        }}
-        disabled={busy}
-        aria-label={person.photoUrl ? 'Đổi ảnh đại diện' : 'Thêm ảnh đại diện'}
-        title={person.photoUrl ? 'Đổi ảnh đại diện' : 'Thêm ảnh đại diện'}
-      >
-        {busy ? <span className={styles.spinner} /> : <CameraIcon width={18} height={18} />}
-      </button>
-      <input ref={input} type="file" accept="image/*" hidden onChange={(e) => void onFile(e.target.files?.[0])} />
-    </>
   );
 }
 
@@ -249,24 +135,7 @@ function Anniversary({ person }: { person: PersonRec }) {
   );
 }
 
-/** Admin: a compact row of "+ …" chips for what can be added, with a short label in front. */
-function AddRow({ label, items }: { label: string; items: Array<{ key: string; text: string; name: string; onClick(): void }> }) {
-  return (
-    <div className={styles.addRow} role="group" aria-label={label}>
-      <span className={styles.addLabel} aria-hidden="true">
-        {label}:
-      </span>
-      {items.map((it) => (
-        <button key={it.key} type="button" className={styles.addButton} onClick={it.onClick} aria-label={it.name}>
-          <PlusIcon width={14} height={14} aria-hidden="true" />
-          {it.text}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function Card({ title, area, onEdit, children }: { title: string; area: 'about' | 'bio' | 'family'; onEdit?: () => void; children: ReactNode }) {
+function Card({ title, area, children }: { title: string; area: 'about' | 'bio' | 'family'; children: ReactNode }) {
   return (
     <section className={styles.card} data-area={area} aria-label={title}>
       <div className={styles.cardHead}>
@@ -275,11 +144,6 @@ function Card({ title, area, onEdit, children }: { title: string; area: 'about' 
           <h3>{title}</h3>
           <span className={styles.diamond} aria-hidden="true">◆</span>
         </div>
-        {onEdit && (
-          <button type="button" className={styles.cardEdit} onClick={onEdit} aria-label={`Sửa: ${title}`} title="Sửa">
-            <EditIcon width={16} height={16} />
-          </button>
-        )}
       </div>
       {children}
     </section>
@@ -289,29 +153,18 @@ function Card({ title, area, onEdit, children }: { title: string; area: 'about' 
 /** Characters above which a fact ("Con của …", a place) spans the full width of the card. */
 const WIDE_FACT = 16;
 
-function About({
-  person,
-  parent,
-  isAdmin,
-  onEdit,
-}: {
-  person: PersonRec;
-  parent: PersonRec | undefined;
-  isAdmin: boolean;
-  onEdit(): void;
-}) {
+function About({ person, parent }: { person: PersonRec; parent: PersonRec | undefined }) {
   const deceased = person.death?.isDeceased === true;
-  // `add` is the full name of the admin's button, `short` the text on its chip.
-  const rows: Array<{ icon: ReactNode; label: string; value: string | null | undefined; add?: string; short?: string }> = [
-    { icon: <BirthIcon />, label: 'Sinh', value: formatDateInfo(person.birth), add: 'Thêm ngày sinh', short: 'Ngày sinh' },
-    { icon: <PlaceIcon />, label: 'Quê quán, nơi sinh', value: person.birth?.place, add: 'Thêm nơi sinh', short: 'Nơi sinh' },
+  const rows: Array<{ icon: ReactNode; label: string; value: string | null | undefined }> = [
+    { icon: <BirthIcon />, label: 'Sinh', value: formatDateInfo(person.birth) },
+    { icon: <PlaceIcon />, label: 'Quê quán, nơi sinh', value: person.birth?.place },
     ...(deceased
       ? [
           { icon: <MemorialIcon />, label: 'Mất', value: formatDateInfo(person.death) || 'Đã mất, chưa rõ ngày' },
-          { icon: <PlaceIcon />, label: 'An táng', value: person.burialPlace, add: 'Thêm nơi an táng', short: 'Nơi an táng' },
+          { icon: <PlaceIcon />, label: 'An táng', value: person.burialPlace },
         ]
       : []),
-    { icon: <WorkIcon />, label: 'Nghề nghiệp', value: person.occupation, add: 'Thêm nghề nghiệp', short: 'Nghề nghiệp' },
+    { icon: <WorkIcon />, label: 'Nghề nghiệp', value: person.occupation },
     {
       icon: <PersonIcon />,
       label: 'Con của',
@@ -319,12 +172,11 @@ function About({
     },
   ];
   const shown = rows.filter((r) => r.value);
-  const missing = isAdmin ? rows.filter((r) => !r.value && r.add) : [];
   const bio = visibleNotes(person.notes);
   const hasBio = Boolean(bio);
   return (
-    <Card title="Giới thiệu & tiểu sử" area="about" onEdit={isAdmin ? onEdit : undefined}>
-      {shown.length === 0 && !hasBio && !isAdmin && <p className={styles.empty}>Chưa có thông tin.</p>}
+    <Card title="Giới thiệu & tiểu sử" area="about">
+      {shown.length === 0 && !hasBio && <p className={styles.empty}>Chưa có thông tin.</p>}
       {shown.length > 0 && (
         <ul className={styles.facts}>
           {shown.map((r) => (
@@ -345,15 +197,6 @@ function About({
           <p className={styles.bio}>{bio}</p>
         </div>
       )}
-      {(missing.length > 0 || (isAdmin && !hasBio)) && (
-        <AddRow
-          label="Bổ sung"
-          items={[
-            ...missing.map((r) => ({ key: r.label, text: r.short!, name: r.add!, onClick: onEdit })),
-            ...(isAdmin && !hasBio ? [{ key: 'bio', text: 'Tiểu sử', name: 'Viết tiểu sử, ghi chú', onClick: onEdit }] : []),
-          ]}
-        />
-      )}
     </Card>
   );
 }
@@ -361,15 +204,12 @@ function About({
 function FamilyCard({
   model,
   person,
-  isAdmin,
   onPick,
 }: {
   model: ClanModel;
   person: PersonRec;
-  isAdmin: boolean;
   onPick(p: PersonRec): void;
 }) {
-  const openAdmin = useAdminUi((s) => s.open);
   const fam = model.family(person.id);
   if (!fam) return null;
   const groups: Array<{ label: string; people: Array<{ p: PersonRec; caption?: string }> }> = [];
@@ -390,7 +230,7 @@ function FamilyCard({
     groups.push({ label: `Các con (${children.length})`, people: children.map((c) => ({ p: c, caption: c.birthOrder ? toRoman(c.birthOrder) : undefined })) });
   }
   if (fam.siblings.length) groups.push({ label: `Anh chị em (${fam.siblings.length})`, people: fam.siblings.map((p) => ({ p })) });
-  if (!groups.length && !isAdmin) return null;
+  if (!groups.length) return null;
 
   return (
     <Card title="Gia đình" area="family">
@@ -433,24 +273,6 @@ function FamilyCard({
           </div>
         );
       })}
-      {isAdmin && (
-        <AddRow
-          label="Thêm"
-          items={[
-            { key: 'child', text: 'Con', name: 'Thêm con', onClick: () => openAdmin('addChild', person.id) },
-            ...(person.isBloodline
-              ? [
-                  {
-                    key: 'spouse',
-                    text: person.gender === 'male' ? 'Vợ' : 'Chồng',
-                    name: person.gender === 'male' ? 'Thêm vợ' : 'Thêm chồng',
-                    onClick: () => openAdmin('addSpouse', person.id),
-                  },
-                ]
-              : []),
-          ]}
-        />
-      )}
     </Card>
   );
 }

@@ -9,6 +9,7 @@ import { useAdminUi } from '@/store/adminUiStore';
 import { useClanStore } from '@/store/clanStore';
 import { GenerationsSheet } from './GenerationsSheet';
 import { PersonForm } from './PersonForm';
+import { personActions } from './personActions';
 import styles from './AdminForms.module.css';
 
 /** Admin panels: the action menu, the person form, reordering siblings, deleting. Lazy-loaded. */
@@ -34,19 +35,9 @@ export default function AdminLayer() {
 
 function ActionMenu({ model, person }: { model: ClanModel; person: PersonRec }) {
   const { open, close } = useAdminUi();
-  const parentUnion = model.index.parentUnionOf(person.id);
-  const siblings = parentUnion ? model.index.childrenOf(parentUnion.id).length : 0;
-  const isRoot = model.founders.some((f) => f.id === person.id);
-  const canReorder = parentUnion ? siblings > 1 : isRoot && model.founders.length > 1;
   const items: Array<[string, () => void, boolean?]> = [
     ['Sửa thông tin', () => open('edit', person.id)],
-    ['Thêm con', () => open('addChild', person.id)],
-    ...(person.isBloodline ? ([[person.gender === 'male' ? 'Thêm vợ' : 'Thêm chồng', () => open('addSpouse', person.id)]] as Array<[string, () => void]>) : []),
-    ...(isRoot ? ([[(model.founders.length > 1 ? 'Thêm cha chung (đời trên đời 1)' : 'Thêm cha (đời trên thủy tổ)'), () => open('addFather', person.id)]] as Array<[string, () => void]>) : []),
-    ...(canReorder
-      ? ([[parentUnion ? 'Đổi thứ tự anh chị em' : 'Đổi thứ tự các gia đình đời 1', () => open('reorder', person.id)]] as Array<[string, () => void]>)
-      : []),
-    ['Xóa', () => open('delete', person.id), true],
+    ...personActions(model, person).map((a): [string, () => void, boolean?] => [a.label, () => open(a.kind, person.id), a.danger]),
   ];
   return (
     <Sheet label={`Thao tác với ${person.fullName}`} onClose={close} header={<h2 className={styles.title}>{person.fullName}</h2>}>

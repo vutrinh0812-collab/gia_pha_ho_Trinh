@@ -79,7 +79,6 @@ describe('admin editing (demo backend)', () => {
     renderAt('/?p=p0007&ct=p0007');
     const sheet = await screen.findByRole('dialog', { name: /Thông tin/ });
     fireEvent.click(within(sheet).getByRole('button', { name: 'Chỉnh sửa hồ sơ' }));
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Sửa thông tin' }));
     const form = await screen.findByRole('dialog', { name: /Sửa thông tin/ });
     fireEvent.change(within(form).getByLabelText('Nghề nghiệp'), { target: { value: 'Thầy lang' } });
     fireEvent.click(within(form).getByRole('button', { name: 'Lưu' }));
@@ -102,14 +101,12 @@ describe('admin editing (demo backend)', () => {
     expect((within(birth).getAllByLabelText('Ngày')[1] as HTMLSelectElement).value).toBe('1');
   });
 
-  it('adds a child from the action menu', async () => {
+  it('adds a child from the edit form', async () => {
     await signIn();
     renderAt('/nguoi/p0007');
     fireEvent.click(await screen.findByRole('button', { name: 'Chỉnh sửa hồ sơ' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Thêm người thân' }));
-    // The action menu (the profile also has a "+ Con" chip with the same name).
-    const menu = await screen.findByRole('dialog', { name: /Thao tác|Thêm|Trịnh/ });
-    fireEvent.click(within(menu).getByRole('button', { name: 'Thêm con' }));
+    const edit = await screen.findByRole('dialog', { name: /Sửa thông tin/ });
+    fireEvent.click(within(edit).getByRole('button', { name: 'Thêm con' }));
     const form = await screen.findByRole('dialog', { name: /Thêm con/ });
     fireEvent.change(within(form).getByLabelText('Họ và tên'), { target: { value: 'Trịnh Văn Thử Nghiệm' } });
     fireEvent.click(within(form).getByRole('button', { name: 'Lưu' }));
@@ -253,9 +250,8 @@ describe('editing open to everyone (D62)', () => {
     // A viewer: no password, but the edit buttons are there and saving works.
     renderAt('/nguoi/p0007');
     fireEvent.click(await screen.findByRole('button', { name: 'Chỉnh sửa hồ sơ' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Thêm người thân' }));
-    const menu = await screen.findByRole('dialog', { name: /Thao tác/ });
-    fireEvent.click(within(menu).getByRole('button', { name: 'Thêm con' }));
+    const edit = await screen.findByRole('dialog', { name: /Sửa thông tin/ });
+    fireEvent.click(within(edit).getByRole('button', { name: 'Thêm con' }));
     const form = await screen.findByRole('dialog', { name: /Thêm con/ });
     fireEvent.change(within(form).getByLabelText('Họ và tên'), { target: { value: 'Trịnh Văn Khách Thêm' } });
     fireEvent.click(within(form).getByRole('button', { name: 'Lưu' }));
@@ -277,31 +273,21 @@ describe('editing open to everyone (D62)', () => {
     renderAt('/nguoi/p0007');
     expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Chỉnh sửa hồ sơ' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Thêm người thân' })).not.toBeInTheDocument();
   });
 
-  it('a profile opens for reading; editing controls appear only after "Chỉnh sửa hồ sơ" (D83)', async () => {
+  it('a profile has one edit button, which opens the whole edit form (D84)', async () => {
     await signIn();
     renderAt('/nguoi/p0007');
     await screen.findByRole('heading', { level: 1 });
-    const editButtons = () => [
-      ...screen.queryAllByRole('button', { name: /ảnh đại diện/ }),
-      ...screen.queryAllByRole('button', { name: /^Sửa: / }),
-      ...screen.queryAllByRole('group', { name: /Bổ sung|Thêm/ }),
-      ...screen.queryAllByRole('button', { name: 'Thêm người thân' }),
-      ...screen.queryAllByRole('button', { name: 'Sửa thông tin' }),
-    ];
-    // Reading: only what is known, and the one button to start editing.
-    expect(editButtons()).toHaveLength(0);
+    // Reading: no pencils, chips or photo button on the profile itself.
+    expect(screen.queryAllByRole('button', { name: /ảnh đại diện|^Sửa: |Thêm người thân|Sửa thông tin/ })).toHaveLength(0);
+    expect(screen.queryAllByRole('group', { name: /Bổ sung|Thêm/ })).toHaveLength(0);
     fireEvent.click(screen.getByRole('button', { name: 'Chỉnh sửa hồ sơ' }));
-    // Editing: the form, relatives, pencils and "+ …" chips (the photo button needs a photo backend).
-    expect(screen.getByRole('button', { name: 'Sửa thông tin' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Thêm người thân' })).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /^Sửa: / }).length).toBeGreaterThan(0);
-    expect(screen.getByRole('group', { name: 'Thêm' })).toBeInTheDocument();
-    // "Xong" goes back to reading.
-    fireEvent.click(screen.getByRole('button', { name: 'Xong' }));
-    expect(editButtons()).toHaveLength(0);
-    expect(screen.getByRole('button', { name: 'Chỉnh sửa hồ sơ' })).toBeInTheDocument();
+    // The form holds the fields and, at the end, relatives and other actions.
+    const form = await screen.findByRole('dialog', { name: /Sửa thông tin/ });
+    expect(within(form).getByLabelText('Họ và tên')).toBeInTheDocument();
+    const more = within(form).getByRole('group', { name: 'Người thân và thao tác khác' });
+    expect(within(more).getByRole('button', { name: 'Thêm con' })).toBeInTheDocument();
+    expect(within(more).getByRole('button', { name: 'Xóa' })).toBeInTheDocument();
   });
 });

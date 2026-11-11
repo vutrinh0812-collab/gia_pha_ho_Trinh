@@ -16,7 +16,9 @@ import type { ClanModel, PersonRec } from '@/lib/clanModel';
 import { childrenGroupLabel, toRoman } from '@/lib/format';
 import type { Gender, PersonFields } from '@/lib/types';
 import { useAdminStore } from '@/store/adminStore';
+import { useAdminUi } from '@/store/adminUiStore';
 import { DateFields } from './DateFields';
+import { personActions } from './personActions';
 import { resizeImage } from './resizeImage';
 import styles from './AdminForms.module.css';
 
@@ -57,7 +59,15 @@ function titleOf(mode: FormMode, person: PersonRec): string {
 
 /** The person form (SPEC §6, 5A.2): full screen on a phone, grouped fields, partial dates. */
 export function PersonForm({ mode, model, person, onDone }: Props) {
-  const [draft, setDraft] = useState<PersonFields>(() => initialDraft(mode, person));
+  const [initial] = useState<PersonFields>(() => initialDraft(mode, person));
+  const [draft, setDraft] = useState<PersonFields>(initial);
+  const openAdmin = useAdminUi((s) => s.open);
+  /** Leaving the form for another action: unsaved changes are lost, so ask first. */
+  const goTo = (kind: Parameters<typeof openAdmin>[0]) => {
+    const dirty = JSON.stringify(clean(draft)) !== JSON.stringify(clean(initial));
+    if (dirty && !window.confirm('Các thay đổi chưa lưu sẽ bị bỏ. Tiếp tục?')) return;
+    openAdmin(kind, person.id);
+  };
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const apply = useAdminStore((s) => s.apply);
@@ -368,6 +378,26 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
             <textarea id="f-notes" rows={4} value={draft.notes ?? ''} onChange={(e) => set('notes', e.target.value)} />
           </div>
         </fieldset>
+
+        {/* One place to edit a person (D84): relatives and other actions sit at the end of the form. */}
+        {mode === 'edit' && (
+          <fieldset className={styles.fieldset}>
+            <legend className={styles.legend}>Người thân và thao tác khác</legend>
+            <div className={styles.actionChips}>
+              {personActions(model, person).map((a) => (
+                <button
+                  key={a.kind}
+                  type="button"
+                  className={styles.actionChip}
+                  data-danger={a.danger || undefined}
+                  onClick={() => goTo(a.kind)}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        )}
       </form>
     </Sheet>
   );

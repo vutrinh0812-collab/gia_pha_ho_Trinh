@@ -70,7 +70,7 @@ export function GenerationsSheet({ model }: { model: ClanModel }) {
         </section>
 
         <p className={styles.note}>
-          Muốn sửa một người: chạm vào người đó trên sơ đồ, mở chi tiết, rồi bấm “Sửa thông tin” hoặc “Thao tác khác…”.
+          Muốn sửa một người: chạm vào người đó trên sơ đồ, mở chi tiết, rồi bấm “Chỉnh sửa hồ sơ”.
         </p>
       </div>
     </Sheet>

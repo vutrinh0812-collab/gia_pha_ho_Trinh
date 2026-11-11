@@ -357,3 +357,28 @@
   margin: 0;
   font-size: 1.0625rem;
 }
+/* End of the edit form (D84): add relatives, reorder, delete — chips that wrap on a phone. */
+.actionChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.actionChip {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.actionChip:hover {
+  background: var(--accent-soft);
+}
+.actionChip[data-danger] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
