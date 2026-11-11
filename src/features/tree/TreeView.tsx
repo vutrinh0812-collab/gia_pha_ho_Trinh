@@ -15,7 +15,10 @@ import { useIsDesktop } from '@/app/useMediaQuery';
 import type { ClanModel } from '@/lib/clanModel';
 import { useClanStore } from '@/store/clanStore';
 import { usePrefsStore, type TreeLayoutPref } from '@/store/prefsStore';
-import { collapseAllIds, computeTreeLayout, type TreeFilters } from './layout';
+import { collapseAllIds, computeTreeLayout, type LayoutMetrics, type TreeFilters } from './layout';
+
+/** The on-screen tree shows only names and birth years (no birth order, no spouse roles). */
+const TREE_SPACING: Partial<LayoutMetrics> = { labels: false };
 import { TreeCanvas, type TreeCanvasApi } from './TreeCanvas';
 import { OutlineView } from './OutlineView';
 import { GenRangeSlider } from './GenRangeSlider';
@@ -79,7 +82,7 @@ function ChartView({ model, tp, onLayout }: { model: ClanModel; tp: TreeParams; 
     () => ({ branch, fromGen, toGen, showSpouses, showMaternal, collapsed }),
     [branch, fromGen, toGen, showSpouses, showMaternal, collapsed],
   );
-  const layout = useMemo(() => computeTreeLayout(model, filters), [model, filters]);
+  const layout = useMemo(() => computeTreeLayout(model, filters, TREE_SPACING), [model, filters]);
 
   const pathIds = useMemo(() => {
     if (!lineageId || !model.get(lineageId)) return null;

@@ -1,6 +1,6 @@
 import { memo, useLayoutEffect, useRef } from 'react';
-import { birthYear, visibleNotes } from '@/lib/format';
-import { VGAP, V_PAD_X, verticalMetrics, type TreeNode, type VerticalLineKind } from './layout';
+import { birthYear } from '@/lib/format';
+import { V_PAD_X, verticalMetrics, type TreeNode, type VerticalLineKind } from './layout';
 import type { Lod } from './lod';
 import styles from './Tree.module.css';
 
@@ -21,23 +21,6 @@ const CHAR_W = 0.53;
 function fit(text: string, maxW: number, size: number): string {
   const max = Math.floor(maxW / (size * CHAR_W));
   return text.length <= max ? text : `${text.slice(0, Math.max(1, max - 1))}…`;
-}
-
-function extraLines(node: TreeNode, lod: Lod): string[] {
-  if (lod < 3 || node.vertical) return [];
-  const p = node.person;
-  const lines: string[] = [];
-  const o = p.otherNames;
-  const names = [o?.huy && `Húy ${o.huy}`, o?.tu && `Tự ${o.tu}`, o?.hieu && `Hiệu ${o.hieu}`].filter(Boolean).join(' · ');
-  if (names) lines.push(names);
-  if (p.deathAnniversaryLunar) lines.push(`Giỗ ${p.deathAnniversaryLunar.day}/${p.deathAnniversaryLunar.month} âm lịch`);
-  if (lod >= 4) {
-    if (p.burialPlace) lines.push(`An táng: ${p.burialPlace}`);
-    if (p.occupation) lines.push(`Nghề: ${p.occupation}`);
-    const notes = visibleNotes(p.notes);
-    if (notes) lines.push(notes);
-  }
-  return lines;
 }
 
 const V_CLASS: Record<VerticalLineKind, string | undefined> = {
@@ -89,11 +72,11 @@ function sectionPath(w: number, top: number, h: number, r: number): string {
 }
 
 /**
- * Couple column: birth order, the name one word per line, the years; below a divider,
- * on a tinted section, each spouse's role and name the same way.
+ * Couple column: the name one word per line, the birth year; below a divider, on a
+ * tinted section, each spouse's name and birth year the same way.
  */
 function VerticalContent({ node, lod }: { node: TreeNode; lod: Lod }) {
-  const m = verticalMetrics(node.person, node.spouses);
+  const m = verticalMetrics(node.person, node.spouses, { labels: false });
   const cx = node.w / 2;
   const showSmall = lod >= 2;
   return (
@@ -119,7 +102,10 @@ function VerticalContent({ node, lod }: { node: TreeNode; lod: Lod }) {
   );
 }
 
-/** One family box: bloodline person (+ spouses below), content by level of detail. */
+/**
+ * One family box: bloodline person (+ spouses below), content by level of detail.
+ * Only names and birth years are shown; everything else is on the person's profile.
+ */
 export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, onSelect, onToggle }: Props) {
   const p = node.person;
   const role = p.gender === 'male' ? 'male' : 'female';
@@ -128,11 +114,7 @@ export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, o
   const w = node.w;
   const textW = w - 22;
 
-  const extraFont = lod >= 4 ? 8 : 10.5;
-  const extraLine = lod >= 4 ? 10 : 13;
-  const maxExtra = Math.floor((VGAP - 18) / extraLine);
-  const extras = extraLines(node, lod).slice(0, maxExtra);
-  const cardH = extras.length ? node.h + extras.length * extraLine + 6 : node.h;
+  const cardH = node.h;
 
   const label = `${p.fullName}, đời ${node.gen}${node.collapsed ? `, đang thu gọn ${node.hiddenCount} người` : ''}`;
 
@@ -143,7 +125,6 @@ export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, o
       data-deceased={deceased || undefined}
       data-dim={dim || undefined}
       data-mark={mark === 'none' ? undefined : mark}
-      data-raised={extras.length > 0 || undefined}
       transform={`translate(${node.x},${node.y})`}
       role="button"
       tabIndex={0}
@@ -172,27 +153,22 @@ export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, o
           </text>
         ) : (
           <>
-            {node.caption && (
-              <text className={styles.caption} x={12} y={17}>
-                {fit(node.caption, textW, 12)}
-              </text>
-            )}
-            <text className={styles.name} x={12} y={36}>
+            <text className={styles.name} x={12} y={28}>
               {fit(p.fullName, textW, 14)}
             </text>
             {years && (
-              <text className={styles.years} x={12} y={53}>
+              <text className={styles.years} x={12} y={45}>
                 {years}
               </text>
             )}
             {(() => {
-              let y = 53;
+              let y = years ? 45 : 28;
               return node.spouses.map((s) => {
                 const sYears = birthYear(s.person);
                 return (
                   <g key={s.person.id}>
                     <text className={styles.spouse} x={12} y={(y += 15)}>
-                      {fit(`${s.role}: ${s.person.fullName}`, textW, 13)}
+                      {fit(s.person.fullName, textW, 13)}
                     </text>
                     {sYears && (
                       <text className={styles.years} x={12} y={(y += 15)}>
@@ -203,17 +179,6 @@ export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, o
                 );
               });
             })()}
-            {extras.map((line, i) => (
-              <text
-                key={i}
-                className={styles.extra}
-                style={{ fontSize: extraFont }}
-                x={12}
-                y={node.h + 4 + extraLine * (i + 1) - 3}
-              >
-                {fit(line, textW, extraFont)}
-              </text>
-            ))}
           </>
         )}
       </g>

@@ -227,4 +227,15 @@ describe('vertical cards for the lower generations', () => {
       expect(Math.max(...ys)).toBeLessThan(n.h);
     }
   });
+
+  it('on screen shows only names and birth years (no birth order, no spouse roles)', () => {
+    const screen = computeTreeLayout(model, base, { labels: false });
+    const married = screen.nodes.filter((x) => x.vertical && x.spouses.length > 0);
+    expect(married.length).toBeGreaterThan(0);
+    for (const n of married) {
+      const m = verticalMetrics(n.person, n.spouses, { labels: false });
+      expect(m.height).toBe(n.h);
+      expect(m.lines.every((l) => l.kind === 'word' || l.kind === 'spouseWord' || l.kind === 'year')).toBe(true);
+    }
+  });
 });

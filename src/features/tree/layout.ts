@@ -61,8 +61,13 @@ export interface LayoutMetrics {
   cousinGap: number;
   /** Line spacing inside the vertical cards (1 = screen). */
   lineScale: number;
+  /**
+   * Birth order and spouse roles ("vợ hai") in the vertical cards. The on-screen tree
+   * turns them off: it shows only names and birth years.
+   */
+  labels: boolean;
 }
-export const SCREEN_METRICS: LayoutMetrics = { vgap: VGAP, barOffset: BAR_OFFSET, siblingGap: SIBLING_GAP, cousinGap: COUSIN_GAP, lineScale: 1 };
+export const SCREEN_METRICS: LayoutMetrics = { vgap: VGAP, barOffset: BAR_OFFSET, siblingGap: SIBLING_GAP, cousinGap: COUSIN_GAP, lineScale: 1, labels: true };
 
 const ORDINALS = ['cả', 'hai', 'ba', 'tư', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười'];
 
@@ -206,7 +211,7 @@ const words = (name: string) => name.trim().split(/\s+/).filter(Boolean);
 export function verticalMetrics(
   p: PersonRec,
   spouses: readonly TreeSpouse[],
-  opts: { years?: boolean; lineScale?: number } = {},
+  opts: { years?: boolean; lineScale?: number; labels?: boolean } = {},
 ): VerticalMetrics {
   // `lineScale` makes every line slot taller, the text staying centred in its slot.
   const k = opts.lineScale ?? 1;
@@ -217,14 +222,15 @@ export function verticalMetrics(
     return y - lift - (size * (k - 1)) / 2;
   };
   let y = V.padTop * k;
-  if (p.birthOrder) lines.push({ kind: 'caption', text: toRoman(p.birthOrder), y: slot(V.caption, 5) });
+  const labels = opts.labels !== false;
+  if (labels && p.birthOrder) lines.push({ kind: 'caption', text: toRoman(p.birthOrder), y: slot(V.caption, 5) });
   for (const w of words(p.fullName)) lines.push({ kind: 'word', text: w, y: slot(V.word, 4) });
   if (opts.years !== false) for (const yr of yearsOf(p)) lines.push({ kind: 'year', text: yr, y: slot(V.year, 2) });
   for (const s of spouses) {
     y += (V.spouseGap * k) / 2;
     sections.push({ top: y, spouseId: s.person.id });
     y += (V.spouseGap * k) / 2;
-    lines.push({ kind: 'role', text: s.role.toLowerCase(), y: slot(V.spouseRole, 3) });
+    if (labels) lines.push({ kind: 'role', text: s.role.toLowerCase(), y: slot(V.spouseRole, 3) });
     for (const w of words(s.person.fullName)) lines.push({ kind: 'spouseWord', text: w, y: slot(V.spouseWord, 4) });
     if (opts.years !== false) for (const yr of yearsOf(s.person)) lines.push({ kind: 'year', text: yr, y: slot(V.year, 2) });
   }
@@ -351,7 +357,7 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters, spacing: Par
     const kids = shownChildren(model, p.id, f);
     info.set(p.id, { spouses, shownKids: kids });
     const vertical = isVerticalGen(gen);
-    const h = vertical ? verticalMetrics(p, spouses, { lineScale: m.lineScale }).height : BASE_H + spouseLineCount(spouses) * SPOUSE_LINE;
+    const h = vertical ? verticalMetrics(p, spouses, { lineScale: m.lineScale, labels: m.labels }).height : BASE_H + spouseLineCount(spouses) * SPOUSE_LINE;
     rowH.set(gen, Math.max(rowH.get(gen) ?? 0, h));
     return { id: p.id, gen, w: vertical ? VNODE_W : NODE_W, h, children: isCollapsed(p.id) ? [] : kids.map(build) };
   };
