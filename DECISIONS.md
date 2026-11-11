@@ -760,3 +760,9 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
   - Cuối biểu mẫu có mục **"Người thân và thao tác khác"**: Thêm con, Thêm vợ/chồng, Thêm cha (với thủy tổ), Đổi thứ tự anh chị em, Xóa. Nếu đã sửa mà chưa lưu, bấm các nút này sẽ hỏi lại trước khi bỏ thay đổi.
   - Bỏ hẳn nút máy ảnh, bút chì và các ô "+ …" trên trang hồ sơ.
 - **Kiểm thử**: trang hồ sơ không có nút sửa nào ngoài "Chỉnh sửa hồ sơ"; bấm vào mở biểu mẫu có mục người thân. Các bài sửa và thêm con đi qua biểu mẫu này. Đã xem ở màn hình điện thoại rộng 375 px.
+
+## D85 — Tên trong hồ sơ trên điện thoại: nhỏ hơn khoảng 15%, nằm dưới ảnh
+
+- **Trước**: trên điện thoại, tên in hoa nằm cạnh ảnh đại diện, chỉ có khoảng 170 px bề ngang, nên tên ba chữ thường bị ngắt thành hai, ba dòng.
+- **Giờ** (màn hình hẹp hơn 560 px): tên nằm dưới ảnh, căn giữa, dùng cả bề ngang; chữ nhỏ đi khoảng 15% (trang hồ sơ 28 → 24 px, khung chi tiết 26 → 22 px). Đa số tên nằm trên một dòng; tên rất dài (bốn, năm chữ trên máy 360 px) vẫn xuống dòng và được chia đều hai dòng.
+- Máy tính bảng và máy tính không đổi.

@@ -77,6 +77,26 @@
 .profile[data-variant='page'] .name {
   font-size: clamp(1.75rem, 3.5vw, 2.25rem);
 }
+/* Phone (D85): beside the portrait the name had ~170px and broke over two or three lines.
+   Under the portrait, centred and ~14% smaller, most names fit on one line; very long
+   names still wrap (balanced). */
+@media (max-width: 559px) {
+  .identity {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  .identity .titleBlock {
+    align-self: stretch;
+  }
+  /* About 15% smaller: the page name 28px → 24px, the detail sheet 26px → 22px. */
+  .profile[data-variant='page'] .name {
+    font-size: 1.5rem;
+  }
+  .name {
+    font-size: 1.375rem;
+  }
+}
 .aka {
   margin: 4px 0 0;
   color: var(--text);
