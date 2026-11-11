@@ -1,4 +1,4 @@
-import { childrenGroupLabel, formatDateInfo, givenName, lifeSpan, spouseRole } from '@/lib/format';
+import { birthYear, childrenGroupLabel, formatDateInfo, givenName, lifeSpan, spouseRole } from '@/lib/format';
 
 describe('lifeSpan', () => {
   it('formats known, unknown and approximate years', () => {
@@ -42,5 +42,14 @@ describe('visibleNotes', () => {
     expect(visibleNotes('Làm ruộng. Sổ gia phả, trang 7.')).toBe('Làm ruộng.');
     expect(visibleNotes('Ghi trong sổ của chi Giáp.')).toBe('Ghi trong sổ của chi Giáp.');
     expect(visibleNotes(undefined)).toBeNull();
+  });
+});
+
+describe('birthYear', () => {
+  it('shows only the birth year, never the death year', () => {
+    expect(birthYear({ birth: { solar: '1890-05-01' } })).toBe('1890');
+    expect(birthYear({ birth: { solar: '1820', approximate: true } })).toBe('k. 1820');
+    expect(birthYear({ birth: { lunar: { year: 1842 } } })).toBe('1842');
+    expect(birthYear({})).toBe('');
   });
 });

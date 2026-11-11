@@ -1,5 +1,5 @@
 import { memo, useLayoutEffect, useRef } from 'react';
-import { formatDateInfo, lifeSpan, visibleNotes } from '@/lib/format';
+import { birthYear, formatDateInfo, visibleNotes } from '@/lib/format';
 import { VGAP, V_PAD_X, verticalMetrics, type TreeNode, type VerticalLineKind } from './layout';
 import type { Lod } from './lod';
 import styles from './Tree.module.css';
@@ -32,7 +32,6 @@ function extraLines(node: TreeNode, lod: Lod): string[] {
   if (names) lines.push(names);
   if (p.deathAnniversaryLunar) lines.push(`Giỗ ${p.deathAnniversaryLunar.day}/${p.deathAnniversaryLunar.month} âm lịch`);
   if (lod >= 4) {
-    if (p.birth?.place) lines.push(`Sinh tại ${p.birth.place}`);
     const birth = formatDateInfo(p.birth);
     if (birth && p.birth?.solar && p.birth.solar.length > 4) lines.push(`Sinh ${birth}`);
     if (p.burialPlace) lines.push(`An táng: ${p.burialPlace}`);
@@ -127,7 +126,7 @@ export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, o
   const p = node.person;
   const role = p.gender === 'male' ? 'male' : 'female';
   const deceased = p.death?.isDeceased === true;
-  const years = lifeSpan(p) || (deceased ? 'đã mất' : '');
+  const years = birthYear(p);
   const w = node.w;
   const textW = w - 22;
 
@@ -191,7 +190,7 @@ export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, o
             {(() => {
               let y = 53;
               return node.spouses.map((s) => {
-                const sYears = lifeSpan(s.person);
+                const sYears = birthYear(s.person);
                 return (
                   <g key={s.person.id}>
                     <text className={styles.spouse} x={12} y={(y += 15)}>

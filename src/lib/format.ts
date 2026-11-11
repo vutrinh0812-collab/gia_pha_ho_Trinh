@@ -23,6 +23,12 @@ export function yearOf(d: DateInfo | undefined): number | null {
   return d.lunar?.year ?? null;
 }
 
+/** Birth year alone, for the tree: "1890", "k. 1820", "" when unknown. */
+export function birthYear(p: Pick<PersonFields, 'birth'>): string {
+  const b = yearOf(p.birth);
+  return b === null ? '' : `${p.birth?.approximate ? 'k. ' : ''}${b}`;
+}
+
 /** "1890 – 1950", "k. 1820 – ?", "1990" (living), "" when nothing is known. */
 export function lifeSpan(p: Pick<PersonFields, 'birth' | 'death'>): string {
   const b = yearOf(p.birth);

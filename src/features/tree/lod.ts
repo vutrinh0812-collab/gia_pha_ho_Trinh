@@ -5,7 +5,7 @@
  *   L1 overview  – full names
  *   L2 standard  – + years, spouses, birth order   (the size the layout is computed for)
  *   L3 detail    – + other names, lunar death anniversary
- *   L4 full      – + birth place, burial place, occupation, short notes
+ *   L4 full      – + burial place, occupation, short notes
  *
  * Desktop (fine pointer) uses the d3-zoom scale k with the thresholds of the spec.
  * Touch screens use the on-screen size of the name text instead (SPEC 5A.1),
