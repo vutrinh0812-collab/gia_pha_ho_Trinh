@@ -780,3 +780,7 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - **Cây dọc** (Sơ đồ → Dọc): mỗi dòng chỉ còn tên và vợ/chồng, bỏ năm sinh – năm mất cho gọn. Năm vẫn có trong hồ sơ, sơ đồ ngang và bản in.
 - **Ngày giỗ**: bỏ "Đời N" ở cả "Sắp tới" và "Cả năm"; ở "Cả năm" con dấu "Đời N" (khi chưa có ảnh) thay bằng hình người xám như các nơi khác (D60).
 - **In ấn**: không còn nằm trong "Cài đặt". Thanh dưới trên điện thoại có 5 mục: Sơ đồ · Ngày giỗ · Tìm kiếm · **In ấn** (biểu tượng máy in) · Cài đặt; thanh bên trên máy tính cũng có mục "In ấn".
+
+## D88 — Cây dọc: bỏ con dấu "Đời 1" ở người đứng đầu
+
+- Dòng đầu cây dọc không còn con dấu tròn "Đời N"; tên thủy tổ in hoa lấy chỗ đó và nằm trên một dòng. Có ảnh thì vẫn hiện ảnh. Thanh "Đời 1–7" phía trên vẫn giữ để chọn khoảng đời.

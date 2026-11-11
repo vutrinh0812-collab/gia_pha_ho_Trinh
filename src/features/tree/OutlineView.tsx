@@ -345,16 +345,8 @@ function Row({ row: r, mark, dim, onToggle, onSelect }: RowProps) {
         <span className={styles.leaf} aria-hidden="true" />
       )}
       <button type="button" className={styles.person} onClick={() => onSelect(r.id)}>
-        {p.photoUrl ? (
-          <Avatar person={p} size={isRoot ? 56 : 38} ring={isRoot} />
-        ) : (
-          isRoot && (
-            <span className={styles.rootSeal} aria-hidden="true">
-              <span className={styles.rootSealLabel}>Đời</span>
-              <span className={styles.rootSealNum}>{r.gen}</span>
-            </span>
-          )
-        )}
+        {/* No "Đời 1" seal on the root (D88): a portrait only when there is one. */}
+        {p.photoUrl && <Avatar person={p} size={isRoot ? 56 : 38} ring={isRoot} />}
         <span className={styles.personContent}>
           <span className={styles.line1}>
             {r.caption && <span className={styles.caption}>{r.caption}</span>}
