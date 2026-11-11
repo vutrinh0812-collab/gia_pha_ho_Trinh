@@ -150,8 +150,30 @@ function Card({ title, area, children }: { title: string; area: 'about' | 'bio' 
   );
 }
 
-/** Characters above which a fact ("Con của …", a place) spans the full width of the card. */
-const WIDE_FACT = 16;
+/** Characters above which a fact ("Con của …", a place, "khoảng năm 1843") spans the full width
+ *  of the card: half a card on a phone holds about 12 bold characters (D86). */
+const WIDE_FACT = 12;
+
+/**
+ * Which facts take the whole row: long ones, and a short one that would sit alone on its row
+ * (next to a long one, or last) and be squeezed into half the card for nothing (D71, D86).
+ */
+export function wideFacts(values: Array<string | null | undefined>): boolean[] {
+  const wide = values.map((v) => (v?.length ?? 0) > WIDE_FACT);
+  let pending = -1; // a short fact still waiting for a partner on its row
+  wide.forEach((w, i) => {
+    if (w) {
+      if (pending >= 0) wide[pending] = true;
+      pending = -1;
+    } else if (pending >= 0) {
+      pending = -1;
+    } else {
+      pending = i;
+    }
+  });
+  if (pending >= 0) wide[pending] = true;
+  return wide;
+}
 
 function About({ person, parent }: { person: PersonRec; parent: PersonRec | undefined }) {
   const deceased = person.death?.isDeceased === true;
@@ -172,6 +194,7 @@ function About({ person, parent }: { person: PersonRec; parent: PersonRec | unde
     },
   ];
   const shown = rows.filter((r) => r.value);
+  const wide = wideFacts(shown.map((r) => r.value));
   const bio = visibleNotes(person.notes);
   const hasBio = Boolean(bio);
   return (
@@ -179,10 +202,10 @@ function About({ person, parent }: { person: PersonRec; parent: PersonRec | unde
       {shown.length === 0 && !hasBio && <p className={styles.empty}>Chưa có thông tin.</p>}
       {shown.length > 0 && (
         <ul className={styles.facts}>
-          {shown.map((r) => (
+          {shown.map((r, i) => (
             // A long value (a parent's full name, a long place name) takes the whole row, so it
-            // is not squeezed into half the card and broken over several lines (D71).
-            <li key={r.label} data-wide={(r.value?.length ?? 0) > WIDE_FACT || undefined}>
+            // is not squeezed into half the card and broken over several lines (D71, D86).
+            <li key={r.label} data-wide={wide[i] || undefined}>
               <span className={styles.factIcon}>{r.icon}</span>
               <span>
                 <span className={styles.factLabel}>{r.label}</span>

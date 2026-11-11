@@ -766,3 +766,11 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - **Trước**: trên điện thoại, tên in hoa nằm cạnh ảnh đại diện, chỉ có khoảng 170 px bề ngang, nên tên ba chữ thường bị ngắt thành hai, ba dòng.
 - **Giờ** (màn hình hẹp hơn 560 px): tên nằm dưới ảnh, căn giữa, dùng cả bề ngang; chữ nhỏ đi khoảng 15% (trang hồ sơ 28 → 24 px, khung chi tiết 26 → 22 px). Đa số tên nằm trên một dòng; tên rất dài (bốn, năm chữ trên máy 360 px) vẫn xuống dòng và được chia đều hai dòng.
 - Máy tính bảng và máy tính không đổi.
+
+## D86 — Hồ sơ: mục ngắn đứng một mình không bị bó vào nửa thẻ
+
+- **Lỗi**: "Sinh: khoảng năm 1843" (15 ký tự, dưới ngưỡng 16 của D71) bị xếp vào nửa trái thẻ, gãy thành "khoảng năm / 1843", trong khi nửa phải bỏ trống vì mục kế tiếp (quê quán) dài và chiếm cả hàng.
+- **Sửa** (`wideFacts` trong `Profile.tsx`):
+  - Ngưỡng "dài" hạ từ 16 xuống **12 ký tự**: nửa thẻ trên điện thoại chỉ chứa khoảng 12 ký tự chữ đậm.
+  - Mục ngắn chỉ ở nửa thẻ khi có **một mục ngắn khác ghép cùng hàng**; đứng cạnh mục dài hoặc lẻ cuối thì chiếm cả hàng.
+- Đã đo ở 360 và 375 px: "khoảng năm 1843" một dòng; chỉ những mục thật sự dài (ngày mất kèm âm lịch, quê quán đầy đủ) mới hai dòng.
