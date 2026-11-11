@@ -747,7 +747,8 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
           const years = o.showYears ? lifeSpan(p) : '';
           const other = o.showOtherNames && p.otherNames?.huy ? `Húy ${p.otherNames.huy}` : '';
           const spouses = o.showSpouses ? n.spouses : [];
-          const lines = 1 + (years ? 1 : 0) + (other ? 1 : 0) + spouses.length;
+          const spouseYears = spouses.map((sp) => (o.showYears ? lifeSpan(sp.person) : ''));
+          const lines = 1 + (years ? 1 : 0) + (other ? 1 : 0) + spouses.length + spouseYears.filter(Boolean).length;
           const h = Math.max(n.h, 26 + lines * 15);
           const r = u(theme.node.radius);
           const sw = u(theme.node.borderWidth);
@@ -784,10 +785,17 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
                   {years}
                 </text>
               )}
-              {spouses.map((sp) => (
-                <text key={sp.person.id} x={n.w / 2} y={(y += 15)} textAnchor="middle" fontFamily={t.name.family} fontWeight={600} fontStyle={ital(t.name)} fontSize={12} fill={c.spouse}>
-                  {fit(`${sp.role}: ${sp.person.fullName}`, n.w - 12, 12)}
-                </text>
+              {spouses.map((sp, i) => (
+                <g key={sp.person.id}>
+                  <text x={n.w / 2} y={(y += 15)} textAnchor="middle" fontFamily={t.name.family} fontWeight={600} fontStyle={ital(t.name)} fontSize={12} fill={c.spouse}>
+                    {fit(`${sp.role}: ${sp.person.fullName}`, n.w - 12, 12)}
+                  </text>
+                  {spouseYears[i] && (
+                    <text x={n.w / 2} y={(y += 15)} textAnchor="middle" fontFamily={t.body.family} fontStyle={ital(t.body)} fontSize={11} fill={c.textSecondary}>
+                      {spouseYears[i]}
+                    </text>
+                  )}
+                </g>
               ))}
               {n.collapsed && n.hiddenCount > 0 && (
                 <text x={n.w / 2} y={h + 16} textAnchor="middle" fontFamily={t.body.family} fontStyle="italic" fontSize={11} fill={c.accent}>

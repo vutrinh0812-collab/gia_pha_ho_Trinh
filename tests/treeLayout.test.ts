@@ -217,6 +217,10 @@ describe('vertical cards for the lower generations', () => {
       const spouseWords = n.spouses.flatMap((s) => s.person.fullName.trim().split(/\s+/));
       expect(m.lines.filter((l) => l.kind === 'spouseWord').map((l) => l.text)).toEqual(spouseWords);
       expect(m.lines.filter((l) => l.kind === 'role').map((l) => l.text)).toEqual(n.spouses.map((s) => s.role.toLowerCase()));
+      // The spouse's years follow their name, as the bloodline person's do.
+      const spouseBirth = n.spouses[0]!.person.birth?.solar?.slice(0, 4);
+      const firstSpouseTop = m.sections[0]!.top;
+      if (spouseBirth) expect(m.lines.some((l) => l.kind === 'year' && l.y > firstSpouseTop && l.text === spouseBirth)).toBe(true);
       // Every line sits inside the card, top to bottom.
       const ys = m.lines.map((l) => l.y);
       expect(ys).toEqual([...ys].sort((a, b) => a - b));

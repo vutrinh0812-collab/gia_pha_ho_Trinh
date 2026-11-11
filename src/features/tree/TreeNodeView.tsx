@@ -188,11 +188,24 @@ export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, o
                 {years}
               </text>
             )}
-            {node.spouses.map((s, i) => (
-              <text key={s.person.id} className={styles.spouse} x={12} y={53 + 15 * (i + 1)}>
-                {fit(`${s.role}: ${s.person.fullName}`, textW, 13)}
-              </text>
-            ))}
+            {(() => {
+              let y = 53;
+              return node.spouses.map((s) => {
+                const sYears = lifeSpan(s.person);
+                return (
+                  <g key={s.person.id}>
+                    <text className={styles.spouse} x={12} y={(y += 15)}>
+                      {fit(`${s.role}: ${s.person.fullName}`, textW, 13)}
+                    </text>
+                    {sYears && (
+                      <text className={styles.years} x={12} y={(y += 15)}>
+                        {sYears}
+                      </text>
+                    )}
+                  </g>
+                );
+              });
+            })()}
             {extras.map((line, i) => (
               <text
                 key={i}

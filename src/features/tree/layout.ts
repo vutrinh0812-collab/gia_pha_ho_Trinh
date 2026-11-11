@@ -9,7 +9,7 @@
  */
 import { flextree, type FlexHierarchyNode } from 'd3-flextree';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
-import { spouseRole, toRoman } from '@/lib/format';
+import { lifeSpan, spouseRole, toRoman } from '@/lib/format';
 
 export const NODE_W = 176;
 /**
@@ -229,8 +229,14 @@ export function verticalMetrics(
     y += (V.spouseGap * k) / 2;
     lines.push({ kind: 'role', text: s.role.toLowerCase(), y: slot(V.spouseRole, 3) });
     for (const w of words(s.person.fullName)) lines.push({ kind: 'spouseWord', text: w, y: slot(V.spouseWord, 4) });
+    if (opts.years !== false) for (const yr of yearsOf(s.person)) lines.push({ kind: 'year', text: yr, y: slot(V.year, 2) });
   }
   return { lines, sections, height: y + V.padBottom * k };
+}
+
+/** Lines a spouse takes in a wide card: "Vợ: name", then the years when known. */
+export function spouseLineCount(spouses: readonly TreeSpouse[]): number {
+  return spouses.reduce((n, s) => n + (lifeSpan(s.person) ? 2 : 1), 0);
 }
 
 export function isShown(model: ClanModel, p: PersonRec, f: TreeFilters): boolean {
@@ -348,7 +354,7 @@ export function computeTreeLayout(model: ClanModel, f: TreeFilters, spacing: Par
     const kids = shownChildren(model, p.id, f);
     info.set(p.id, { spouses, shownKids: kids });
     const vertical = isVerticalGen(gen);
-    const h = vertical ? verticalMetrics(p, spouses, { lineScale: m.lineScale }).height : BASE_H + spouses.length * SPOUSE_LINE;
+    const h = vertical ? verticalMetrics(p, spouses, { lineScale: m.lineScale }).height : BASE_H + spouseLineCount(spouses) * SPOUSE_LINE;
     rowH.set(gen, Math.max(rowH.get(gen) ?? 0, h));
     return { id: p.id, gen, w: vertical ? VNODE_W : NODE_W, h, children: isCollapsed(p.id) ? [] : kids.map(build) };
   };
