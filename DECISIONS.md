@@ -784,3 +784,17 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 ## D88 — Cây dọc: bỏ con dấu "Đời 1" ở người đứng đầu
 
 - Dòng đầu cây dọc không còn con dấu tròn "Đời N"; tên thủy tổ in hoa lấy chỗ đó và nằm trên một dòng. Có ảnh thì vẫn hiện ảnh. Thanh "Đời 1–7" phía trên vẫn giữ để chọn khoảng đời.
+
+## D89 — Preset khung "Hoa điểu trên lụa": tranh hoa điểu, chữ thư pháp Việt bằng ảnh vẽ tay
+
+- **Nguồn**: tranh hoa điểu thủy mặc trên lụa người dùng gửi; chữ Hán trên tranh thay bằng thư pháp chữ Việt.
+- **Đã chốt** (qua từng bước của skill `thiet-ke-khung-gia-pha`):
+  - Phong cách A (sát tranh mẫu): góc trên trái cành hoa đỏ với đôi chim xanh; góc dưới phải đá mực, mai đỏ, trúc và đôi chim ác là. Nền lụa mộc màu ngà, không khung viền.
+  - Bố cục 1 (như tranh mẫu): câu đối trái dưới cành hoa, câu đối phải phía trên cao bên phải; tiêu đề giữa phía trên kèm con dấu son.
+  - Cỡ họa tiết **nhỏ** (cành hoa rộng 230 mm, cụm đá cao 300 mm) để nhường chỗ cho cây.
+  - **Chữ thư pháp là ảnh vẽ tay**, không dùng phông (người dùng không chọn phông nào trong 4 phông bút lông của Google Fonts): kiểu "phóng khoáng, bút khô". Tiêu đề "Gia Phả Họ Trịnh"; câu đối "Hoa thơm đất cũ hương còn mãi / Chim hót cành xưa nhớ cội nguồn", mỗi chữ một dòng. Đã soát từng dấu trên ảnh cỡ lớn.
+  - Câu đối của khung **luôn được in**, kể cả khi dòng họ có câu đối riêng (`lettering.couplets.always`). Ảnh tiêu đề chỉ dùng khi tiêu đề đúng là "Gia Phả Họ Trịnh" (không kể hoa thường, khoảng trắng); tiêu đề khác thì viết bằng Water Brush để không bao giờ in sai chữ.
+- **Mã**: thêm `Theme.lettering` (ảnh tiêu đề đặt giữa theo `topMm`/`widthMm`; ảnh câu đối vừa trong `coupletBoxes`) và `matchesArt` trong `PosterSvg`. Ảnh dùng `<image>` như bảng tiêu đề (D72), xuất PDF được. Kiểm thử trong `tests/printPdf.test.tsx`.
+- **Ảnh**: `khung-a1.jpg` 5600 × 3955 px (JPEG 84, 2,3 MB): nền lụa vẽ bằng PIL ở khổ in (thớ dệt, loang nhẹ), hai cụm tranh tạo riêng trên Canva (`generate-image` lấy ảnh A làm mẫu), tách nền, xuất PNG trong suốt 1456 × 1088, ghép bằng PIL (pha 35% kiểu multiply để tranh "ăn" vào lụa, làm mờ viền gần trắng sau khi tách nền). Ảnh thư pháp: mực `#2a241d` trên nền trong suốt, `thu-phap-tieu-de.png` 1772 × 487, `thu-phap-doi-trai.png` 625 × 1657, `thu-phap-doi-phai.png` 606 × 1674.
+- **Canva**: thiết kế nháp `DAHaOUIunco` (trang 7–17). Ảnh gốc: ba hướng phong cách `MAHanqrKRco` (A), `MAHangf_y8A` (B), `MAHanhP3rww` (C); cành hoa `MAHan6noIJE` → tách nền `MAHan28L-TQ`; cụm đá `MAHan2vq3g8` → `MAHan5UoIgY`; tiêu đề `MAHan6fxhho`; câu đối `MAHan1JKUpo`, `MAHan7GUgWk`.
+- **Hạn chế**: các cụm tranh gốc chỉ khoảng 120 dpi ở khổ A1 (Canva tạo ảnh tối đa ~1500 px), in ra mềm nét như tranh lụa nhưng không sắc như ảnh vector. Ở bản dữ liệu mẫu, vài ô hàng cuối chạm nhẹ vào nhánh mai góc dưới phải.

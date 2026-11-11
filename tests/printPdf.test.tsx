@@ -368,3 +368,40 @@ describe('fuller print layout (D73)', () => {
     expect(Math.max(...cards)).toBeGreaterThan(flatTallest * 1.5);
   });
 });
+
+describe('"Hoa điểu trên lụa": hand-written calligraphy pictures (D89)', () => {
+  const theme = getTheme('hoa-dieu-lua')!;
+  const art = theme.lettering!;
+  const plain = buildClanModel({ ...loadDemoSnapshot(), settings: { ...loadDemoSnapshot().settings!, coupletLeft: '', coupletRight: '' } })!;
+
+  it('draws the title picture while the title is its words, typed text otherwise', () => {
+    const { container } = render(<PosterSvg theme={theme} model={model} layout={layout} title="gia phả  họ trịnh" subtitle={null} />);
+    const img = container.querySelector(`image[href="${art.title!.href}"]`)!;
+    expect(img).not.toBeNull();
+    expect(Number(img.getAttribute('width'))).toBeCloseTo(art.title!.widthMm);
+    expect(Number(img.getAttribute('x'))).toBeCloseTo((841 - art.title!.widthMm) / 2);
+    expect(container.querySelector('g[aria-label="gia phả  họ trịnh"]')).toBeNull();
+
+    const other = render(<PosterSvg theme={theme} model={model} layout={layout} title="Hệ Phả Họ Trịnh" subtitle={null} />);
+    expect(other.container.querySelector(`image[href="${art.title!.href}"]`)).toBeNull();
+    expect(other.container.textContent).toContain('Hệ Phả Họ Trịnh');
+  });
+
+  it('draws the couplet pictures inside their areas, even when the clan has couplets of its own', () => {
+    const { container } = render(<PosterSvg theme={theme} model={plain} layout={layout} title="Gia Phả Họ Trịnh" subtitle={null} />);
+    for (const side of ['left', 'right'] as const) {
+      const img = container.querySelector(`image[href="${art.couplets![side]!.href}"]`)!;
+      expect(img, side).not.toBeNull();
+      const b = theme.coupletBoxes![side];
+      const [x, y, w, h] = ['x', 'y', 'width', 'height'].map((k) => Number(img.getAttribute(k))) as [number, number, number, number];
+      expect(x).toBeGreaterThanOrEqual(b.x - 0.01);
+      expect(y).toBeGreaterThanOrEqual(b.y - 0.01);
+      expect(x + w).toBeLessThanOrEqual(b.x + b.w + 0.01);
+      expect(y + h).toBeLessThanOrEqual(b.y + b.h + 0.01);
+    }
+    // This painting keeps its own couplet (`always`), not the clan's words.
+    const own = render(<PosterSvg theme={theme} model={model} layout={layout} title="Gia Phả Họ Trịnh" subtitle={null} />);
+    expect(own.container.querySelector(`image[href="${art.couplets!.left!.href}"]`)).not.toBeNull();
+    expect(own.container.textContent).not.toContain(model.settings.coupletLeft!);
+  });
+});

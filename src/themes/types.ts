@@ -120,6 +120,31 @@ export interface Theme {
   textRelief?: { title?: TextRelief; couplet?: TextRelief; name?: TextRelief };
   /** Paper direction the background picture was drawn for. */
   preferredOrientation?: 'landscape' | 'portrait';
+  /**
+   * Hand-written calligraphy (D89): pictures of the title and the couplets, drawn instead
+   * of typed text. Each is used only while the text on the sheet is exactly its `text`
+   * (case and spacing aside); any other text is typed in the theme's fonts, so a picture
+   * never shows words the clan did not choose.
+   */
+  lettering?: {
+    /** The title, centred on the sheet: top edge and width in mm. */
+    title?: LetteringArt & { topMm: number; widthMm: number };
+    /**
+     * The couplets, each fitted inside its `coupletBoxes` area. `always`: the sheet carries
+     * these couplets (its `coupletBoxes.defaultText`) even when the clan has its own, because
+     * words and brush were chosen for the painting.
+     */
+    couplets?: { left?: LetteringArt; right?: LetteringArt; always?: boolean };
+  };
+}
+
+/** A picture of hand-written words (ink with a transparent background). */
+export interface LetteringArt {
+  href: string;
+  /** Height ÷ width of the picture. */
+  aspect: number;
+  /** The words it shows, as they are written in the settings. */
+  text: string;
 }
 
 /** The title board layer of a print theme (D72). */

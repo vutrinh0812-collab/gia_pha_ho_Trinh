@@ -125,7 +125,7 @@ describe('other pages', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'In ấn' }, { timeout: 5000 })).toBeInTheDocument();
     const picker = screen.getByRole('heading', { name: 'Giao diện khung' }).parentElement!;
     const options = within(picker).getAllByRole('button', { name: /^Giao diện / });
-    expect(options).toHaveLength(6); // 4 drawn themes + "Sơn mài rồng vàng" (D72) + "Đỏ son sen vàng" (D78)
+    expect(options).toHaveLength(7); // 4 drawn themes + "Sơn mài rồng vàng" (D72) + "Đỏ son sen vàng" (D78) + "Hoa điểu trên lụa" (D89)
     expect(options.filter((b) => b.getAttribute('aria-pressed') === 'true')).toHaveLength(1);
     fireEvent.click(options[1]!);
     expect(options[1]).toHaveAttribute('aria-pressed', 'true');

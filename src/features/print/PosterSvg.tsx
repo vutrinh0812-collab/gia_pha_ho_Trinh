@@ -6,7 +6,7 @@
 import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import type { ClanModel } from '@/lib/clanModel';
 import { birthYear } from '@/lib/format';
-import type { FontSpec, TextRelief, Theme } from '@/themes/types';
+import type { FontSpec, LetteringArt, TextRelief, Theme } from '@/themes/types';
 import { V_PAD_X, verticalMetrics, type LayoutMetrics, type TreeLayout } from '../tree/layout';
 
 export const A1 = { landscape: { w: 841, h: 594 }, portrait: { w: 594, h: 841 } } as const;
@@ -374,12 +374,32 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
         board?.arcRadius ? board.arcRadius * bannerW : null,
       )
     : null;
-  const titleSize = boardFit ? boardFit.titleSize : Math.min(t.title.sizePt * PT, (bannerW * 0.78) / (titleShown.length * 0.52), 30);
-  const titleY = boardFit ? boardFit.titleY : theme.ornaments.titleBanner ? headerTop + bannerH / 2 : headerTop + titleSize * 0.8;
+  // Hand-written title (D89): its picture while the title is the words it shows.
+  const titleArt = !board && matchesArt(theme.lettering?.title, titleText) ? theme.lettering!.title! : null;
+  const artBox = titleArt && {
+    x: (W - titleArt.widthMm) / 2,
+    y: titleArt.topMm,
+    w: titleArt.widthMm,
+    h: titleArt.widthMm * titleArt.aspect,
+  };
+  const titleSize = boardFit
+    ? boardFit.titleSize
+    : artBox
+      ? artBox.h
+      : Math.min(t.title.sizePt * PT, (bannerW * 0.78) / (titleShown.length * 0.52), 30);
+  const titleY = boardFit
+    ? boardFit.titleY
+    : artBox
+      ? artBox.y + artBox.h / 2
+      : theme.ornaments.titleBanner
+        ? headerTop + bannerH / 2
+        : headerTop + titleSize * 0.8;
   const subSize = boardFit ? boardFit.subSize : t.heading.sizePt * PT * 0.62;
   const subY = boardFit
     ? boardFit.subY
-    : (theme.ornaments.titleBanner ? headerTop + bannerH : headerTop + titleSize * 1.3) + subSize * 1.5;
+    : artBox
+      ? artBox.y + artBox.h + subSize * 1.1
+      : (theme.ornaments.titleBanner ? headerTop + bannerH : headerTop + titleSize * 1.3) + subSize * 1.5;
   // No "Thủy tổ: …" line under the title any more (D73): the tree starts with the founder.
   const headerEnd = board ? headerTop + bannerH * (board.treeFrom ?? 1) : subText ? subY + subSize * 0.4 : titleY + titleSize * 0.5;
   // No caption line for a single branch either (D76): the sheet shows just that branch.
@@ -389,12 +409,24 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
   // Either on boards the app draws beside the tree, or written into boards painted in
   // the theme's picture (`coupletBoxes`, D74).
   const painted = theme.coupletBoxes;
-  const coupletLeft = s.coupletLeft || (painted ? painted.defaultText?.left : undefined);
-  const coupletRight = s.coupletRight || (painted ? painted.defaultText?.right : undefined);
+  // A theme whose couplets are part of its painting keeps them whatever the clan's (D89).
+  const own = !theme.lettering?.couplets?.always;
+  const coupletLeft = (own && s.coupletLeft) || (painted ? painted.defaultText?.left : undefined);
+  const coupletRight = (own && s.coupletRight) || (painted ? painted.defaultText?.right : undefined);
   const showCouplets = Boolean(o.showCouplets && theme.ornaments.showCouplets && (coupletLeft || coupletRight));
   const coupletW = showCouplets && !painted ? 30 : 0;
   const drawnBox = (x: number) => ({ x, y: box.y + 6, w: coupletW, h: box.h - 18 });
-  const coupletColumn = (text: string, b: { x: number; y: number; w: number; h: number }, drawBoard: boolean) => {
+  const coupletColumn = (
+    text: string,
+    b: { x: number; y: number; w: number; h: number },
+    drawBoard: boolean,
+    art?: LetteringArt,
+  ) => {
+    // Hand-written couplet (D89): the picture, as large as fits, from the top of its area.
+    if (matchesArt(art, text)) {
+      const w = Math.min(b.w, b.h / art!.aspect);
+      return <image href={art!.href} x={b.x + (b.w - w) / 2} y={b.y} width={w} height={w * art!.aspect} preserveAspectRatio="none" />;
+    }
     const words = text.split(/\s+/).filter(Boolean);
     // Fit the widest word (measured) inside the board, and all words inside its height.
     const pad = drawBoard ? 7 : 2;
@@ -583,7 +615,12 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
         <Ornament svg={theme.ornaments.titleBanner} x={(W - bannerW) / 2} y={headerTop} width={bannerW} height={bannerH} />
       )}
       {board && <image href={board.href} x={bannerX} y={headerTop} width={bannerW} height={bannerH} preserveAspectRatio="none" />}
-      <Relief
+      {artBox && (
+        <image href={titleArt!.href} x={artBox.x} y={artBox.y} width={artBox.w} height={artBox.h} preserveAspectRatio="none">
+          <title>{titleText}</title>
+        </image>
+      )}
+      {!artBox && <Relief
         fx={board ? theme.textRelief?.title : undefined}
         size={titleSize}
         draw={(rim, ghost) =>
@@ -614,9 +651,16 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
         {titleShown}
       </text>
       )}
-      />
+      />}
       {theme.ornaments.seal && (
-        <Seal x={W / 2 + Math.min(titleText.length * titleSize * 0.27, bannerW / 2) + 10} y={titleY - 13} size={26} color={theme.ornaments.seal.color} name={s.clanName} font={t.heading.family} />
+        <Seal
+          x={artBox ? artBox.x + artBox.w + 4 : W / 2 + Math.min(titleText.length * titleSize * 0.27, bannerW / 2) + 10}
+          y={titleY - 13}
+          size={26}
+          color={theme.ornaments.seal.color}
+          name={s.clanName}
+          font={t.heading.family}
+        />
       )}
       {subText && (
         <Relief
@@ -654,8 +698,8 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
       )}
 
       {/* Couplets */}
-      {showCouplets && coupletLeft && coupletColumn(coupletLeft, painted ? painted.left : drawnBox(box.x), !painted)}
-      {showCouplets && coupletRight && coupletColumn(coupletRight, painted ? painted.right : drawnBox(box.x + box.w - coupletW), !painted)}
+      {showCouplets && coupletLeft && coupletColumn(coupletLeft, painted ? painted.left : drawnBox(box.x), !painted, theme.lettering?.couplets?.left)}
+      {showCouplets && coupletRight && coupletColumn(coupletRight, painted ? painted.right : drawnBox(box.x + box.w - coupletW), !painted, theme.lettering?.couplets?.right)}
 
       {/* Generation bands and labels: both off by default (D74, D77) */}
       {o.showGenerations && fitted.rows.map((r, i) => {
@@ -815,6 +859,13 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
       )}
     </svg>
   );
+}
+
+/** Same words, ignoring case and spacing: whether a calligraphy picture may stand for `text` (D89). */
+export function matchesArt(art: LetteringArt | undefined, text: string | null | undefined): boolean {
+  if (!art || !text) return false;
+  const norm = (v: string) => v.normalize('NFC').toLocaleLowerCase('vi').replace(/\s+/g, ' ').trim();
+  return norm(art.text) === norm(text);
 }
 
 /** Con triện: a square red seal with the clan name cut in white, vertically. */
