@@ -418,11 +418,20 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
   const showCouplets = Boolean(o.showCouplets && theme.ornaments.showCouplets && (coupletLeft || coupletRight));
   const coupletW = showCouplets && !painted ? 30 : 0;
   const drawnBox = (x: number) => ({ x, y: box.y + 6, w: coupletW, h: box.h - 18 });
+  // The largest size at which a typed couplet fits its board: the widest word (measured)
+  // inside the board's width, all words inside its height.
+  const coupletFit = (text: string, b: { w: number; h: number }, drawBoard: boolean) => {
+    const words = text.split(/\s+/).filter(Boolean);
+    const pad = drawBoard ? 7 : 2;
+    const widest = Math.max(0.5, ...words.map((w) => letterWidths(w, t.couplet).reduce((a, x) => a + x, 0)));
+    return Math.min(t.couplet.sizePt * PT, (b.h - 16) / (Math.max(words.length, 1) * 1.28), (b.w - pad) / widest);
+  };
   const coupletColumn = (
     text: string,
     b: { x: number; y: number; w: number; h: number },
     drawBoard: boolean,
     art?: LetteringArt,
+    shared?: number,
   ) => {
     // Hand-written couplet (D89): the picture, as large as fits, from the top of its area.
     if (matchesArt(art, text)) {
@@ -430,10 +439,8 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
       return <image href={art!.href} x={b.x + (b.w - w) / 2} y={b.y} width={w} height={w * art!.aspect} preserveAspectRatio="none" />;
     }
     const words = text.split(/\s+/).filter(Boolean);
-    // Fit the widest word (measured) inside the board, and all words inside its height.
-    const pad = drawBoard ? 7 : 2;
-    const widest = Math.max(0.5, ...words.map((w) => letterWidths(w, t.couplet).reduce((a, x) => a + x, 0)));
-    const size = Math.min(t.couplet.sizePt * PT, (b.h - 16) / (Math.max(words.length, 1) * 1.28), (b.w - pad) / widest);
+    // Both halves of a couplet are written at one size (D92): the smaller of their fits.
+    const size = shared ?? coupletFit(text, b, drawBoard);
     const startY = b.y + (b.h - words.length * size * 1.28) / 2 + size;
     return (
       <g>
@@ -467,6 +474,14 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
       </g>
     );
   };
+
+  const leftBox = painted ? painted.left : drawnBox(box.x);
+  const rightBox = painted ? painted.right : drawnBox(box.x + box.w - coupletW);
+  const typedFits = [
+    coupletLeft && !matchesArt(theme.lettering?.couplets?.left, coupletLeft) ? coupletFit(coupletLeft, leftBox, !painted) : null,
+    coupletRight && !matchesArt(theme.lettering?.couplets?.right, coupletRight) ? coupletFit(coupletRight, rightBox, !painted) : null,
+  ].filter((v): v is number => v !== null);
+  const coupletSize = typedFits.length ? Math.min(...typedFits) : undefined;
 
   // ---- Tree area ----
   const genW = o.showGenerations ? 16 : 0;
@@ -705,8 +720,8 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
       )}
 
       {/* Couplets */}
-      {showCouplets && coupletLeft && coupletColumn(coupletLeft, painted ? painted.left : drawnBox(box.x), !painted, theme.lettering?.couplets?.left)}
-      {showCouplets && coupletRight && coupletColumn(coupletRight, painted ? painted.right : drawnBox(box.x + box.w - coupletW), !painted, theme.lettering?.couplets?.right)}
+      {showCouplets && coupletLeft && coupletColumn(coupletLeft, leftBox, !painted, theme.lettering?.couplets?.left, coupletSize)}
+      {showCouplets && coupletRight && coupletColumn(coupletRight, rightBox, !painted, theme.lettering?.couplets?.right, coupletSize)}
 
       {/* Generation bands and labels: both off by default (D74, D77) */}
       {o.showGenerations && fitted.rows.map((r, i) => {

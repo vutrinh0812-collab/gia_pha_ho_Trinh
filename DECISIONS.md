@@ -814,3 +814,8 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - **Bỏ nhập gói giao diện** (nút "Nhập gói giao diện", "Tải JSON mẫu", phần hướng dẫn và `packs.ts`); preset mới làm thành giao diện có sẵn trong mã (skill `thiet-ke-khung-gia-pha` đã sửa theo).
 - **Bỏ chữ thừa**: dòng mô tả giao diện dưới các khung, và chú thích "Trên điện thoại vẫn xem trước và tải PDF được…".
 - Gói đã nhập trước đây vẫn nằm trong bộ nhớ trình duyệt của máy đó nhưng không còn hiện.
+
+## D92 — Hai vế câu đối luôn cùng cỡ chữ
+
+- **Lỗi**: mỗi vế câu đối tự tính cỡ chữ để chữ rộng nhất vừa bảng, nên hai vế có chữ rộng khác nhau thì ra hai cỡ khác nhau (ví dụ ở "Sơn mài rồng vàng" với câu đối mẫu: 12,9 mm và 10,3 mm).
+- **Sửa** (`PosterSvg`): tính cỡ vừa nhất cho từng vế, rồi viết cả hai vế bằng cỡ nhỏ hơn, nên vế nào cũng vừa bảng. Áp dụng cho mọi giao diện viết câu đối bằng phông; câu đối bằng ảnh thư pháp (D89) không đổi. Kiểm thử trong `tests/printPdf.test.tsx`.

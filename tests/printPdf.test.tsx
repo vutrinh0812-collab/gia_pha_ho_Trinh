@@ -420,3 +420,19 @@ describe('"Hoa điểu trên lụa": hand-written calligraphy pictures (D89)', (
     expect(a.biggestText).toBeCloseTo(b.biggestText);
   });
 });
+
+describe('couplets: both halves at one size (D92)', () => {
+  it('writes the two couplets of "Sơn mài rồng vàng" at the same size, inside their boards', () => {
+    const theme = getTheme('son-mai-rong-vang')!;
+    const { container } = render(<PosterSvg theme={theme} model={model} layout={layout} title="Gia Phả Họ Trịnh" subtitle={null} />);
+    const sizeOf = (word: string) =>
+      [...container.querySelectorAll('text')].filter((x) => x.textContent === word).map((x) => Number(x.getAttribute('font-size')));
+    const s = model.settings;
+    const first = (text: string) => text.split(/\s+/)[0]!;
+    const left = sizeOf(first(s.coupletLeft!));
+    const right = sizeOf(first(s.coupletRight!));
+    expect(left.length).toBeGreaterThan(0);
+    expect(right.length).toBeGreaterThan(0);
+    expect(Math.max(...left)).toBeCloseTo(Math.max(...right), 5);
+  });
+});
