@@ -101,10 +101,6 @@
   margin: 4px 0 0;
   font-size: 1.125rem;
 }
-.themeText {
-  margin: 0;
-  color: var(--text-2);
-}
 .preview {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
@@ -154,26 +150,6 @@
   gap: 8px;
   margin-top: 4px;
 }
-.cardAction {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 0.9375rem;
-  text-decoration: none;
-  cursor: pointer;
-}
-.cardAction[aria-pressed='true'] {
-  border-color: var(--accent);
-  color: var(--accent-ink);
-  background: var(--accent-soft);
-}
-
 /* ---------- "In ấn" (D62): theme picker, frame packages ---------- */
 .section {
   display: grid;
@@ -234,33 +210,6 @@
   font-size: 0.875rem;
   font-weight: 600;
 }
-.badge {
-  padding: 0 6px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent-ink);
-  font-size: 0.6875rem;
-  font-weight: 600;
-}
-.removePack {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--text-2);
-  cursor: pointer;
-}
-.packTools {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
 .primaryAction {
   display: inline-flex;
   align-items: center;
@@ -274,10 +223,6 @@
   font: inherit;
   font-weight: 600;
   cursor: pointer;
-}
-.ok {
-  margin: 0;
-  color: var(--ok);
 }
 .error {
   margin: 0;

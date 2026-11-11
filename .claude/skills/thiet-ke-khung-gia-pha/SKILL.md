@@ -1,6 +1,6 @@
 ---
 name: thiet-ke-khung-gia-pha
-description: Thiết kế một preset khung tranh gia phả khổ A1 trên Canva (ảnh nền, bảng tiêu đề tách lớp, câu đối, bảng màu, kiểu chữ, bố cục chữ tiêu đề theo độ cong của bảng, chất liệu chữ khắc chìm hoặc nổi hợp với khung) cùng người dùng, dừng lại hỏi ở từng quyết định và đưa ít nhất 3 phương án ở các quyết định lớn, rồi đóng gói thành giao diện in của ứng dụng gia phả (theme có sẵn hoặc gói JSON tự nhập) và xuất PDF kiểm tra. Dùng khi người dùng gọi /thiet-ke-khung-gia-pha, hoặc nhờ "thiết kế khung gia phả", "làm preset giao diện in", "khung tranh gia phả mới trên Canva", "thêm giao diện in".
+description: Thiết kế một preset khung tranh gia phả khổ A1 trên Canva (ảnh nền, bảng tiêu đề tách lớp, câu đối, bảng màu, kiểu chữ, bố cục chữ tiêu đề theo độ cong của bảng, chất liệu chữ khắc chìm hoặc nổi hợp với khung) cùng người dùng, dừng lại hỏi ở từng quyết định và đưa ít nhất 3 phương án ở các quyết định lớn, rồi đóng gói thành giao diện in có sẵn của ứng dụng gia phả và xuất PDF kiểm tra. Dùng khi người dùng gọi /thiet-ke-khung-gia-pha, hoặc nhờ "thiết kế khung gia phả", "làm preset giao diện in", "khung tranh gia phả mới trên Canva", "thêm giao diện in".
 ---
 
 # Thiết kế khung tranh gia phả trên Canva
@@ -34,7 +34,7 @@ A1 sắc nét, tiếng Việt đúng dấu.
 2. Thử tải về một file từ `export-download.canva.com`. Nếu bị proxy chặn (403), xin thêm đúng host
    này vào môi trường bằng `get_environment` rồi `update_environment` (lần trước đã làm như vậy).
 3. Đọc nhanh: `src/themes/types.ts` (Theme, TitleBoard, coupletBoxes), `src/themes/son-mai-rong-vang/theme.ts`
-   (mẫu đầy đủ nhất), `src/features/print/packs.ts` (định dạng gói JSON), `src/features/print/exportPdf.ts`
+   (mẫu đầy đủ nhất), `src/themes/hoa-dieu-lua/theme.ts` (chữ thư pháp bằng ảnh, `lettering`), `src/features/print/exportPdf.ts`
    (`PDF_FONTS`). Mục DECISIONS mới nhất để biết số D tiếp theo.
 4. Tạo thư mục làm việc trong scratchpad, ví dụ `<scratchpad>/khung-<ten>/`.
 
@@ -215,11 +215,11 @@ câu đối (`coupletBoxes`, mm) và vùng cây (`contentInsetMm`) từ tọa đ
 Nếu bảng tiêu đề cong: ước bán kính cung chữ = bán kính lòng bảng ÷ bề rộng bảng (`arcRadius`;
 cuốn thư rồng vàng là 1,96).
 
-## Bước 11 — Đóng gói vào ứng dụng  ▶ DỪNG: hỏi kiểu đóng gói
+## Bước 11 — Đóng gói vào ứng dụng
 
-Hỏi người dùng (khuyên phương án 1 nếu preset dành cho mọi người dùng ứng dụng):
+Preset thành **giao diện in có sẵn** trong mã nguồn (như "Sơn mài rồng vàng"). Ứng dụng không còn
+nhập gói JSON tự làm (bỏ ở D91).
 
-1. **Giao diện in có sẵn** trong mã nguồn (như "Sơn mài rồng vàng"):
    - Thư mục `src/themes/<id>/` gồm `khung-a1.jpg`, `bang-tieu-de.png`, `theme.ts`. Registry tự
      nhận thư mục mới. Lấy `son-mai-rong-vang/theme.ts` làm khuôn: `backgroundImage` (stretch),
      `titleBoard`, `coupletBoxes` (kèm `defaultText`), `ornaments.showCouplets`, `contentInsetMm`,
@@ -233,11 +233,8 @@ Hỏi người dùng (khuyên phương án 1 nếu preset dành cho mọi ngư�
      phép vào `public/fonts/pdf/README.md` (chỉ dùng phông OFL/Apache).
    - Kiểm thử: `tests/printPdf.test.tsx` (số giao diện, phông có trong `PDF_FONTS`, chữ tiêu đề
      nằm trong bảng, câu đối nằm trong `coupletBoxes`), và số giao diện ở `tests/app.test.tsx`.
-2. **Gói tự nhập** (không sửa mã): viết file JSON theo `PackJson` trong `packs.ts` (`ten`, `nen`,
-   `hinhNen.tep`, `huongGiay`, `vungNoiDungMm`, `mau`, `chu`, `fontsCss`, `bangTieuDe` với `tep`,
-   `trenMm`, `rongMm`, `vungChu`, `doCong`). Người dùng chọn cùng lúc JSON + ảnh khung + ảnh bảng
-   tiêu đề ở trang In ấn ("Nhập gói giao diện"). Phông lạ không có trong `PDF_FONTS` sẽ bị thay
-   bằng Noto Serif khi xuất PDF: nói rõ điều này.
+   - Chữ thư pháp vẽ tay bằng ảnh (khi người dùng không muốn dùng phông): `lettering` như
+     `hoa-dieu-lua` (D89); soát từng dấu trên ảnh cỡ lớn trước khi dùng.
 
 ## Bước 12 — Kiểm tra và bàn giao
 

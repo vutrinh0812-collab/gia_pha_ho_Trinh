@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AdminError, editSettings, settingsContent } from '@/lib/admin/changes';
 import type { ClanSettings } from '@/lib/types';
-import { PRINT_THEMES } from '@/themes/registry';
+import { PRINT_THEMES, printThemeOrDefault } from '@/themes/registry';
 import { useAdminStore } from '@/store/adminStore';
 import { useClanStore } from '@/store/clanStore';
 import { AdminGuard } from './AdminGuard';
@@ -61,7 +61,7 @@ function SettingsForm() {
         <div className={styles.field}>
           <label htmlFor="s-theme">Giao diện in mặc định</label>
           <select id="s-theme" value={draft.defaultThemeId} onChange={(e) => set('defaultThemeId', e.target.value)}>
-            {!PRINT_THEMES.some((t) => t.id === draft.defaultThemeId) && <option value={draft.defaultThemeId}>Truyền thống đỏ (mặc định)</option>}
+            {!PRINT_THEMES.some((t) => t.id === draft.defaultThemeId) && <option value={draft.defaultThemeId}>{printThemeOrDefault(draft.defaultThemeId).name} (mặc định)</option>}
             {PRINT_THEMES.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}

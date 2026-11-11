@@ -13,6 +13,18 @@ export const THEMES: Theme[] = Object.values(modules)
 
 export const PRINT_THEMES = THEMES.filter((t) => t.usage.includes('print'));
 
+/**
+ * The print theme used when none is chosen, or the chosen one no longer exists (D91: the
+ * drawn themes "Truyền thống đỏ", "Sơn mài vàng", "Giấy dó mực tàu" and "Men lam" were
+ * removed; the clans that had them get this one).
+ */
+export const DEFAULT_PRINT_THEME_ID = 'hoa-dieu-lua';
+
+/** The print theme with this id, else the default one. */
+export function printThemeOrDefault(id: string | null | undefined): Theme {
+  return PRINT_THEMES.find((t) => t.id === id) ?? PRINT_THEMES.find((t) => t.id === DEFAULT_PRINT_THEME_ID) ?? PRINT_THEMES[0]!;
+}
+
 /** Older ids kept working after a theme was renamed. */
 const ALIASES: Record<string, string> = { minimal: 'ember', 'son-son': 'ember' };
 

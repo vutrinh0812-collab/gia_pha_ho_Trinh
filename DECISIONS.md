@@ -805,3 +805,12 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - **Cây dời lên**: thêm `Theme.treeAlign` (0 = sát trên, 0,5 = giữa, mặc định 0,5). Khung này dùng 0,3: cây nằm cao hơn, gần tiêu đề, và không còn chạm nhánh mai ở góc dưới phải.
 - **Chữ trong ô dọc gần nhau hơn 15%**: thêm `Theme.node.lineSpacing` (mặc định 1). Ứng dụng vẫn giãn dòng cho cây phủ chiều cao tờ, rồi nhân khoảng cách giữa các chữ với hệ số này; cỡ chữ giữ theo mức giãn ban đầu, không nhỏ đi. Thấp nhất 0,85 lần dòng gốc để chữ không chạm nhau.
 - Đã xuất PDF A1 và phóng ô dọc ở 500 dpi: chữ rõ, không dính. Kiểm thử trong `tests/printPdf.test.tsx`.
+
+## D91 — In ấn: chỉ còn ba khung tranh, bỏ nhập gói giao diện
+
+- **Bỏ** bốn giao diện in vẽ bằng SVG: Truyền thống đỏ, Sơn mài vàng, Giấy dó mực tàu, Men lam. Trang In ấn còn ba khung tranh: **Đỏ son sen vàng**, **Hoa điểu trên lụa**, **Sơn mài rồng vàng**.
+- "Sơn mài rồng vàng" và "Đỏ son sen vàng" từng kế thừa màu, chữ, kiểu ô của "Sơn mài vàng": phần dùng chung giữ lại trong `src/themes/son-mai-base.ts` (không phải một giao diện), hai khung không đổi gì.
+- **Giao diện mặc định** (khi chưa chọn, hoặc dòng họ đang lưu một giao diện đã bỏ): **Hoa điểu trên lụa** (`DEFAULT_PRINT_THEME_ID`, `printThemeOrDefault` trong `registry.ts`). Trang Cài đặt dòng họ ghi đúng tên giao diện mặc định này.
+- **Bỏ nhập gói giao diện** (nút "Nhập gói giao diện", "Tải JSON mẫu", phần hướng dẫn và `packs.ts`); preset mới làm thành giao diện có sẵn trong mã (skill `thiet-ke-khung-gia-pha` đã sửa theo).
+- **Bỏ chữ thừa**: dòng mô tả giao diện dưới các khung, và chú thích "Trên điện thoại vẫn xem trước và tải PDF được…".
+- Gói đã nhập trước đây vẫn nằm trong bộ nhớ trình duyệt của máy đó nhưng không còn hiện.

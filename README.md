@@ -297,7 +297,7 @@ Trong bản xem thử (không có Firebase), mật khẩu là `ma-admin-demo`. M
   - toàn bộ con cháu của người đó;
   - anh chị em và các nhánh khác vẫn hiện, nhưng con cháu của họ được thu gọn, ghi "+N con cháu".
 - Cách nhanh hơn: mở chi tiết một người có con, rồi bấm **In gia phả theo chi của …**.
-- **Đổi giao diện sơ đồ:** trong màn Sơ đồ, bấm nút **Giao diện** (biểu tượng bảng màu). Chọn Sơn son, Truyền thống đỏ, Sơn mài vàng, Giấy dó mực tàu hoặc Men lam. Máy sẽ nhớ lựa chọn này, và trang In cũng dùng sẵn giao diện đó.
+- **Chọn khung tranh in:** ở trang **In ấn**, chọn Đỏ son sen vàng, Hoa điểu trên lụa hoặc Sơn mài rồng vàng. Chưa chọn thì dùng Hoa điểu trên lụa.
 - Admin chọn giao diện in mặc định cho cả dòng họ ở **Quản trị → Cài đặt dòng họ**.
 - Xuất file PDF/SVG/PNG để mang đi in: giai đoạn 6.
 

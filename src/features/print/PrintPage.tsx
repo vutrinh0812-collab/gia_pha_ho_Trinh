@@ -1,34 +1,25 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { CloseIcon, PlusIcon } from '@/app/ui/icons';
 import { useClanStore } from '@/store/clanStore';
-import { PRINT_THEMES } from '@/themes/registry';
+import { PRINT_THEMES, printThemeOrDefault } from '@/themes/registry';
 import type { Theme } from '@/themes/types';
 import { BranchPicker } from './BranchPicker';
-import { deletePack, listPacks, packFromFiles, packTheme, samplePackFile, savePack, type StoredPack } from './packs';
 import { A1, DEFAULT_POSTER_OPTIONS, PosterSvg, type PosterOptions } from './PosterSvg';
 import { usePrintLayoutBuilder, useThemeFonts } from './usePrintScope';
 import styles from './Print.module.css';
 
 /**
- * /print — "In ấn" (DECISIONS D62): pick a print theme or an imported frame package,
- * import packages (a JSON preset with its frame picture, kept on this device), and
- * preview the A1 sheet. Replaces the separate "Giao diện in" and "In khổ A1" pages.
+ * /print — "In ấn" (DECISIONS D62): pick a print theme and preview the A1 sheet.
+ * Importing frame packages (JSON + pictures) was removed in D91.
  */
 export default function PrintPage() {
   const model = useClanStore((s) => s.model)!;
   const [params, setParams] = useSearchParams();
   const focusId = params.get('goc') || null;
-  const [packs, setPacks] = useState<StoredPack[]>([]);
-  useEffect(() => {
-    void listPacks().then(setPacks);
-  }, []);
-  const packThemes = useMemo(() => packs.map(packTheme), [packs]);
-  const themes: Theme[] = useMemo(() => [...PRINT_THEMES, ...packThemes], [packThemes]);
-
-  // The theme from the link, else the clan's default print theme (SPEC §8: truyen-thong-do).
-  const [themeId, setThemeId] = useState(() => params.get('giaodien') || model.settings.defaultThemeId || 'truyen-thong-do');
-  const theme = themes.find((t) => t.id === themeId) ?? PRINT_THEMES.find((t) => t.id === 'truyen-thong-do') ?? PRINT_THEMES[0]!;
+  const themes = PRINT_THEMES;
+  // The theme from the link, else the clan's default print theme, else the app's (D91).
+  const [themeId, setThemeId] = useState(() => params.get('giaodien') || model.settings.defaultThemeId);
+  const theme = printThemeOrDefault(themeId);
   const [opts, setOpts] = useState<PosterOptions>(DEFAULT_POSTER_OPTIONS);
   // Text written on the title board (D72): starts from the clan settings, typed freely here.
   const [title, setTitle] = useState(model.settings.title);
@@ -70,38 +61,6 @@ export default function PrintPage() {
     }
   };
 
-  const fileInput = useRef<HTMLInputElement>(null);
-  const [note, setNote] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
-  const importFiles = async (list: FileList | null) => {
-    if (!list?.length) return;
-    try {
-      const pack = await packFromFiles([...list]);
-      await savePack(pack);
-      const next = await listPacks();
-      setPacks(next);
-      setThemeId(pack.id);
-      if (pack.json.huongGiay) setOpts((o) => ({ ...o, orientation: pack.json.huongGiay === 'doc' ? 'portrait' : 'landscape' }));
-      setNote({ kind: 'ok', text: `Đã nhập "${pack.json.ten}" và chọn để xem trước.` });
-    } catch (e) {
-      setNote({ kind: 'error', text: e instanceof Error ? e.message : 'Không nhập được gói giao diện.' });
-    } finally {
-      if (fileInput.current) fileInput.current.value = '';
-    }
-  };
-  const remove = async (id: string) => {
-    await deletePack(id);
-    setPacks(await listPacks());
-    if (themeId === id) setThemeId('truyen-thong-do');
-  };
-  const downloadSample = () => {
-    const url = URL.createObjectURL(samplePackFile());
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'goi-giao-dien-mau.json';
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  };
-
   return (
     <div className={styles.page}>
       <header className={styles.head}>
@@ -114,9 +73,7 @@ export default function PrintPage() {
           Giao diện khung
         </h2>
         <ul className={styles.themePicker}>
-          {themes.map((t) => {
-            const imported = t.id.startsWith('goi-');
-            return (
+          {themes.map((t) => (
               <li key={t.id} className={styles.themeOption}>
                 <button
                   type="button"
@@ -134,47 +91,11 @@ export default function PrintPage() {
                     title={shownTitle}
                     subtitle={subtitle}
                   />
-                  <span className={styles.themeLabel}>
-                    {t.name}
-                    {imported && <span className={styles.badge}>Đã nhập</span>}
-                  </span>
+                  <span className={styles.themeLabel}>{t.name}</span>
                 </button>
-                {imported && (
-                  <button type="button" className={styles.removePack} onClick={() => void remove(t.id)} aria-label={`Xóa gói ${t.name}`}>
-                    <CloseIcon width={16} height={16} />
-                  </button>
-                )}
               </li>
-            );
-          })}
+          ))}
         </ul>
-        <p className={styles.themeText}>{theme.description}</p>
-
-        <div className={styles.packTools}>
-          <button type="button" className={styles.primaryAction} onClick={() => fileInput.current?.click()}>
-            <PlusIcon width={18} height={18} /> Nhập gói giao diện
-          </button>
-          <button type="button" className={styles.cardAction} onClick={downloadSample}>
-            Tải JSON mẫu
-          </button>
-          <input
-            ref={fileInput}
-            type="file"
-            accept=".json,application/json,image/*"
-            multiple
-            hidden
-            onChange={(e) => void importFiles(e.target.files)}
-          />
-        </div>
-        <p className={styles.hint}>
-          Gói gồm một ảnh khung tranh khổ A1, có thể thêm một ảnh bảng tiêu đề riêng (nền trong suốt), và một file JSON mô tả vùng đặt cây, màu
-          và chữ. Tải JSON mẫu, sửa theo ý, rồi chọn cùng lúc file JSON và các ảnh. Gói được lưu trên máy này.
-        </p>
-        {note && (
-          <p className={note.kind === 'ok' ? styles.ok : styles.error} role={note.kind === 'ok' ? 'status' : 'alert'}>
-            {note.text}
-          </p>
-        )}
       </section>
 
       <section className={styles.section} aria-labelledby="print-options">
@@ -236,7 +157,6 @@ export default function PrintPage() {
           subtitle={subtitle}
         />
       </div>
-      <p className={styles.hint}>Trên điện thoại vẫn xem trước và tải PDF được; nên dùng máy tính để chỉnh bố cục in.</p>
     </div>
   );
 }

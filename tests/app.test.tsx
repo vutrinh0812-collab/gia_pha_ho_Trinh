@@ -125,13 +125,16 @@ describe('other pages', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'In ấn' }, { timeout: 5000 })).toBeInTheDocument();
     const picker = screen.getByRole('heading', { name: 'Giao diện khung' }).parentElement!;
     const options = within(picker).getAllByRole('button', { name: /^Giao diện / });
-    expect(options).toHaveLength(7); // 4 drawn themes + "Sơn mài rồng vàng" (D72) + "Đỏ son sen vàng" (D78) + "Hoa điểu trên lụa" (D89)
-    expect(options.filter((b) => b.getAttribute('aria-pressed') === 'true')).toHaveLength(1);
+    // D91: only the frame presets, "Đỏ son sen vàng", "Hoa điểu trên lụa", "Sơn mài rồng vàng".
+    expect(options.map((b) => b.getAttribute('aria-label'))).toEqual(['Giao diện Đỏ son sen vàng', 'Giao diện Hoa điểu trên lụa', 'Giao diện Sơn mài rồng vàng']);
+    // No stored default in the sample clan: "Hoa điểu trên lụa" is chosen.
+    expect(options.filter((b) => b.getAttribute('aria-pressed') === 'true').map((b) => b.getAttribute('aria-label'))).toEqual(['Giao diện Hoa điểu trên lụa']);
     fireEvent.click(options[1]!);
     expect(options[1]).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByLabelText('Phạm vi in')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Nhập gói giao diện/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Tải JSON mẫu' })).toBeInTheDocument();
+    // D91: no frame-package import, no theme description, no phone note.
+    expect(screen.queryByRole('button', { name: /Nhập gói giao diện|Tải JSON mẫu/ })).toBeNull();
+    expect(document.body.textContent).not.toMatch(/Nền lụa mộc|Trên điện thoại vẫn/);
     // D72: the title written on the sheet is typed here; the PDF is one click away.
     expect(screen.getByRole('textbox', { name: 'Tiêu đề' })).toHaveValue(useClanStore.getState().model!.settings.title);
     expect(screen.getByRole('button', { name: 'Tải PDF khổ A1' })).toBeInTheDocument();

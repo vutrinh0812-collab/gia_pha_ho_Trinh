@@ -1,4 +1,4 @@
-import base from '../son-mai-vang/theme';
+import base from '../son-mai-base';
 import type { Theme } from '../types';
 import board from './bang-tieu-de.png';
 import frame from './khung-a1.jpg';

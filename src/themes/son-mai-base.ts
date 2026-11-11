@@ -1,15 +1,14 @@
-import type { Theme } from '../types';
-import banner from './ornaments/banner.svg?raw';
-import clouds from './ornaments/clouds.svg?raw';
-import corner from './ornaments/corner.svg?raw';
-import lotus from './ornaments/lotus.svg?raw';
-import mountains from './ornaments/mountains.svg?raw';
-import van from './ornaments/van.svg?raw';
+import type { Theme } from './types';
 
-const theme: Theme = {
-  id: 'son-mai-vang',
-  name: 'Sơn mài vàng',
-  description: 'Nền đen nâu như tranh sơn mài, chữ và khung vàng kim, mây cuộn, hoa sen và núi mờ ở nền, câu đối chữ thư pháp.',
+/**
+ * Shared lacquer palette, type and card style of the frame presets "Sơn mài rồng vàng"
+ * (D72) and "Đỏ son sen vàng" (D78), which override what their pictures need. It was the
+ * drawn theme "Sơn mài vàng", removed from the print page in D91; only its settings stay.
+ */
+const base: Theme = {
+  id: 'son-mai',
+  name: 'Sơn mài',
+  description: '',
   usage: ['print'],
   fontsCss:
     'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Lora:wght@400;600;700&family=Dancing+Script:wght@600;700&display=swap&subset=vietnamese',
@@ -40,16 +39,7 @@ const theme: Theme = {
   },
   node: { radius: 2, borderWidth: 0.45, borderStyle: 'single', fill: '#2a1a12', orientation: 'auto', paddingMm: 1.5 },
   connector: { style: 'orthogonal', width: 0.45, color: '#b9862f' },
-  frame: { enabled: true, borderSvg: van, cornerSvg: corner, thicknessMm: 14 },
-  ornaments: {
-    titleBanner: banner,
-    showCouplets: true,
-    decorations: [
-      { svg: clouds, position: 'top-left', widthMm: 110, opacity: 0.8 },
-      { svg: clouds, position: 'top-right', widthMm: 110, opacity: 0.8 },
-      { svg: lotus, position: 'bottom', widthMm: 90 },
-      { svg: mountains, position: 'background' },
-    ],
-  },
+  frame: { enabled: false, thicknessMm: 14 },
+  ornaments: { showCouplets: true },
 };
-export default theme;
+export default base;
