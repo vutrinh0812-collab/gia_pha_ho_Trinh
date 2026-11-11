@@ -1,5 +1,5 @@
 import { memo, useLayoutEffect, useRef } from 'react';
-import { birthYear, formatDateInfo, visibleNotes } from '@/lib/format';
+import { birthYear, visibleNotes } from '@/lib/format';
 import { VGAP, V_PAD_X, verticalMetrics, type TreeNode, type VerticalLineKind } from './layout';
 import type { Lod } from './lod';
 import styles from './Tree.module.css';
@@ -32,8 +32,6 @@ function extraLines(node: TreeNode, lod: Lod): string[] {
   if (names) lines.push(names);
   if (p.deathAnniversaryLunar) lines.push(`Giỗ ${p.deathAnniversaryLunar.day}/${p.deathAnniversaryLunar.month} âm lịch`);
   if (lod >= 4) {
-    const birth = formatDateInfo(p.birth);
-    if (birth && p.birth?.solar && p.birth.solar.length > 4) lines.push(`Sinh ${birth}`);
     if (p.burialPlace) lines.push(`An táng: ${p.burialPlace}`);
     if (p.occupation) lines.push(`Nghề: ${p.occupation}`);
     const notes = visibleNotes(p.notes);
