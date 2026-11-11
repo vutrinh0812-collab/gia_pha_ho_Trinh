@@ -47,6 +47,8 @@ const MAX_LINE_SCALE = 3.0;
 const MAX_PRINT_VGAP = 100;
 /** Card text grows with the spacing, up to this much, so the cards read from further away. */
 const MAX_TEXT_SCALE = 1.3;
+/** Tightest line spacing in a card: the words (14 units on an 18-unit line) never touch. */
+const MIN_LINE_SCALE = 0.85;
 
 interface Props {
   theme: Theme;
@@ -479,6 +481,8 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
   // Rather than spreading the generations apart (long connector lines), open up the
   // line spacing inside the cards until the tree fills the height (D73). The tree's
   // height grows linearly with the line spacing, so two trial layouts find it.
+  // A theme may then tighten the words of the vertical cards (`node.lineSpacing`, D90).
+  const spacing = theme.node.lineSpacing ?? 1;
   const fitted = useMemo(() => {
     if (typeof layout !== 'function') return layout;
     const at = (lineScale: number, vgap = PRINT_SPACING.vgap!) => layout({ ...PRINT_SPACING, vgap, lineScale });
@@ -495,13 +499,15 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
     const filled = at(lineScale);
     const left = room - size(filled).h;
     const gaps = filled.rows.length - 1;
-    if (left <= 0 || gaps < 1) return filled;
     // 2. Still room: a little more space between generations, never as long as on screen.
-    const vgap = Math.min(MAX_PRINT_VGAP, PRINT_SPACING.vgap! + Math.floor(left / gaps));
-    return vgap > PRINT_SPACING.vgap! ? at(lineScale, vgap) : filled;
-  }, [layout, area.w, area.h]);
+    const vgap = left > 0 && gaps >= 1 ? Math.min(MAX_PRINT_VGAP, PRINT_SPACING.vgap! + Math.floor(left / gaps)) : PRINT_SPACING.vgap!;
+    // The text is sized from the fill; only the gaps between the words follow `spacing`.
+    const tight = Math.max(MIN_LINE_SCALE, lineScale * spacing);
+    if (spacing === 1 || tight === lineScale) return vgap > PRINT_SPACING.vgap! ? at(lineScale, vgap) : filled;
+    return { ...at(tight, vgap), textLineScale: lineScale };
+  }, [layout, area.w, area.h, spacing]);
   const lineScale = fitted.metrics?.lineScale ?? 1;
-  const textScale = Math.min(MAX_TEXT_SCALE, lineScale);
+  const textScale = Math.min(MAX_TEXT_SCALE, ('textLineScale' in fitted ? (fitted.textLineScale as number) : undefined) ?? lineScale);
   const vgap = fitted.metrics?.vgap ?? 76;
   const b = fitted.bounds;
   const lw = Math.max(1, b.maxX - b.minX);
@@ -513,7 +519,8 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
   const axis = board ? bannerX + bannerW / 2 : area.x + area.w / 2;
   const { scale, ox } = placeTree(area, b, rootCx, Math.min(area.w / lw, area.h / lh, 0.36), axis);
   const treeH = lh;
-  const oy = area.y + (area.h - treeH * scale) / 2 + 6 * scale;
+  // Centred in the free height unless the theme lifts it (`treeAlign`, D90).
+  const oy = area.y + (area.h - treeH * scale) * (theme.treeAlign ?? 0.5) + 6 * scale;
   const u = (mm: number) => mm / scale; // mm → tree units
 
   const nameColor = (male: boolean, blood: boolean) => (!blood ? c.spouse : male ? c.male : c.female);

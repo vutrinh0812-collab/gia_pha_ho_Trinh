@@ -76,6 +76,11 @@ export interface Theme {
     shadow?: string;
     orientation: 'horizontal' | 'vertical' | 'auto';
     paddingMm: number;
+    /**
+     * Print: spacing between the words of a vertical card, as a multiple of what fills the
+     * sheet's height (default 1). The text keeps its size (D90).
+     */
+    lineSpacing?: number;
   };
   connector: { style: 'orthogonal' | 'curved'; width: number; color: string };
   frame: {
@@ -118,6 +123,11 @@ export interface Theme {
    * couplets (on their boards) and the names in the tree (on the cards).
    */
   textRelief?: { title?: TextRelief; couplet?: TextRelief; name?: TextRelief };
+  /**
+   * Print: where the tree sits in the height its area leaves free, from 0 (top) to 1
+   * (bottom); default 0.5, centred (D90).
+   */
+  treeAlign?: number;
   /** Paper direction the background picture was drawn for. */
   preferredOrientation?: 'landscape' | 'portrait';
   /**

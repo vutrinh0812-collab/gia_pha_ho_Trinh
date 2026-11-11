@@ -798,3 +798,10 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - **Ảnh**: `khung-a1.jpg` 5600 × 3955 px (JPEG 84, 2,3 MB): nền lụa vẽ bằng PIL ở khổ in (thớ dệt, loang nhẹ), hai cụm tranh tạo riêng trên Canva (`generate-image` lấy ảnh A làm mẫu), tách nền, xuất PNG trong suốt 1456 × 1088, ghép bằng PIL (pha 35% kiểu multiply để tranh "ăn" vào lụa, làm mờ viền gần trắng sau khi tách nền). Ảnh thư pháp: mực `#2a241d` trên nền trong suốt, `thu-phap-tieu-de.png` 1772 × 487, `thu-phap-doi-trai.png` 625 × 1657, `thu-phap-doi-phai.png` 606 × 1674.
 - **Canva**: thiết kế nháp `DAHaOUIunco` (trang 7–17). Ảnh gốc: ba hướng phong cách `MAHanqrKRco` (A), `MAHangf_y8A` (B), `MAHanhP3rww` (C); cành hoa `MAHan6noIJE` → tách nền `MAHan28L-TQ`; cụm đá `MAHan2vq3g8` → `MAHan5UoIgY`; tiêu đề `MAHan6fxhho`; câu đối `MAHan1JKUpo`, `MAHan7GUgWk`.
 - **Hạn chế**: các cụm tranh gốc chỉ khoảng 120 dpi ở khổ A1 (Canva tạo ảnh tối đa ~1500 px), in ra mềm nét như tranh lụa nhưng không sắc như ảnh vector. Ở bản dữ liệu mẫu, vài ô hàng cuối chạm nhẹ vào nhánh mai góc dưới phải.
+
+## D90 — "Hoa điểu trên lụa": dòng phụ to hơn, cây cao hơn, chữ trong ô dọc gần nhau hơn
+
+- **Dòng phụ dưới tiêu đề** to hơn 20% (phông Water Brush 46 → 55 pt).
+- **Cây dời lên**: thêm `Theme.treeAlign` (0 = sát trên, 0,5 = giữa, mặc định 0,5). Khung này dùng 0,3: cây nằm cao hơn, gần tiêu đề, và không còn chạm nhánh mai ở góc dưới phải.
+- **Chữ trong ô dọc gần nhau hơn 15%**: thêm `Theme.node.lineSpacing` (mặc định 1). Ứng dụng vẫn giãn dòng cho cây phủ chiều cao tờ, rồi nhân khoảng cách giữa các chữ với hệ số này; cỡ chữ giữ theo mức giãn ban đầu, không nhỏ đi. Thấp nhất 0,85 lần dòng gốc để chữ không chạm nhau.
+- Đã xuất PDF A1 và phóng ô dọc ở 500 dpi: chữ rõ, không dính. Kiểm thử trong `tests/printPdf.test.tsx`.

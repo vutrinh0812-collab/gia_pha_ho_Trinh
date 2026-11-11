@@ -404,4 +404,19 @@ describe('"Hoa điểu trên lụa": hand-written calligraphy pictures (D89)', (
     expect(own.container.querySelector(`image[href="${art.couplets!.left!.href}"]`)).not.toBeNull();
     expect(own.container.textContent).not.toContain(model.settings.coupletLeft!);
   });
+
+  it('tightens the words of the vertical cards without shrinking them, and lifts the tree (D90)', () => {
+    const loose = { ...theme, node: { ...theme.node, lineSpacing: 1 }, treeAlign: 0.5 };
+    const cards = (t: typeof theme) => {
+      const { container } = render(<PosterSvg theme={t} model={model} layout={(m) => computeTreeLayout(model, filters, m)} title="Gia Phả Họ Trịnh" subtitle={null} />);
+      const rects = [...container.querySelectorAll('rect')].map((r) => ({ y: Number(r.getAttribute('y')), h: Number(r.getAttribute('height')) }));
+      const sizes = [...container.querySelectorAll('text')].map((x) => Number(x.getAttribute('font-size'))).filter(Boolean);
+      return { tallest: Math.max(...rects.map((r) => r.h)), biggestText: Math.max(...sizes) };
+    };
+    const a = cards(theme);
+    const b = cards(loose);
+    expect(theme.node.lineSpacing).toBe(0.85);
+    expect(a.tallest).toBeLessThan(b.tallest);
+    expect(a.biggestText).toBeCloseTo(b.biggestText);
+  });
 });

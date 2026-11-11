@@ -52,12 +52,22 @@ const theme: Theme = {
   },
   typography: {
     title: { family: 'Water Brush', weight: 400, sizePt: 84, letterSpacing: 0.03 },
-    heading: { family: 'Water Brush', weight: 400, sizePt: 46 },
+    // The subtitle under the title: 20% larger than first drawn (D90).
+    heading: { family: 'Water Brush', weight: 400, sizePt: 55 },
     name: { family: 'Lora', weight: 600, sizePt: 11 },
     body: { family: 'Lora', weight: 400, sizePt: 8 },
     couplet: { family: 'Water Brush', weight: 400, sizePt: 54 },
   },
-  node: { radius: 1.5, borderWidth: 0.35, borderStyle: 'single', fill: '#f3e8cc', orientation: 'auto', paddingMm: 1.5 },
+  node: {
+    radius: 1.5,
+    borderWidth: 0.35,
+    borderStyle: 'single',
+    fill: '#f3e8cc',
+    orientation: 'auto',
+    paddingMm: 1.5,
+    // Words in the vertical cards 15% closer together (D90).
+    lineSpacing: 0.85,
+  },
   connector: { style: 'orthogonal', width: 0.4, color: '#6b5d48' },
   frame: { enabled: false, thicknessMm: 0 },
   ornaments: { showCouplets: true, seal: { color: '#b8352a' } },
@@ -80,6 +90,8 @@ const theme: Theme = {
   },
   // The tree stays between the two couplet columns.
   contentInsetMm: { top: 100, right: 112, bottom: 20, left: 112 },
+  // The tree a little higher than centred, nearer the title (D90).
+  treeAlign: 0.3,
   preferredOrientation: 'landscape',
 };
 export default theme;
