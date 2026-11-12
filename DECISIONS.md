@@ -840,3 +840,10 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - **Hiển thị**: mọi nơi dùng ảnh tròn (hồ sơ, cây dọc, ngày giỗ…) áp dụng căn chỉnh qua `cropStyle`; xem ảnh lớn vẫn là cả tấm ảnh. Đổi ảnh khác hoặc bỏ ảnh trong biểu mẫu thì căn chỉnh cũ bị xóa.
 - **Cần đưa luật Firestore mới lên Firebase** (lần nữa): `firestore.rules` thêm khóa `photoCrop` (zoom 1–4, x, y trong −4…4, đủ ba khóa). Chưa đưa lên thì lưu căn chỉnh bị Firebase từ chối. Cách làm như D93.
 - Kiểm thử: tính giới hạn dời, áp dụng vào ảnh, kiểm tra dữ liệu (`tests/avatar.test.tsx`) và luật Firestore (`tests/rules`). Đã thử trên trình duyệt 375 px: tải ảnh, kéo, phóng to 180%, lưu; ảnh trên hồ sơ lấy đúng căn chỉnh.
+
+## D96 — Nút căn chỉnh ảnh chỉ có trong "Chỉnh sửa hồ sơ" (sửa D95)
+
+- **Trước (D95)**: nút căn chỉnh nằm sẵn ở góc ảnh đại diện trên trang hồ sơ, ai có quyền sửa cũng thấy.
+- **Giờ**: trang hồ sơ không còn nút này. Bấm **Chỉnh sửa hồ sơ**, trong mục **Ảnh đại diện** của biểu mẫu có nút **Căn chỉnh ảnh** (cạnh "Đổi ảnh khác", "Bỏ ảnh"; chỉ hiện khi đã có ảnh).
+- Khung căn chỉnh (kéo, phóng to, đường kẻ chỉ tâm, "Đặt lại") giữ như D95, nhưng bấm **Xong** là trả căn chỉnh về biểu mẫu: ảnh xem trước trong biểu mẫu đổi theo ngay, và **lưu cùng lúc bấm Lưu của biểu mẫu**, nên "Hủy" biểu mẫu thì bỏ cả căn chỉnh. Esc hay bấm ra ngoài chỉ đóng khung căn chỉnh, không đóng biểu mẫu.
+- Dữ liệu (`photoCrop`) và luật Firestore giữ như D95, nên chưa cần làm thêm gì ở Firebase.

@@ -100,6 +100,32 @@ describe('admin editing (demo backend)', () => {
     await waitFor(() => expect(useClanStore.getState().model?.get('p0007')?.otherNames?.khac).toBe('Phúc Thiện'));
   });
 
+  it('the photo adjuster is only in the edit form, and its crop is saved with the form (D96)', async () => {
+    await signIn();
+    const { editPerson, personContent } = await import('@/lib/admin/changes');
+    const model = useClanStore.getState().model!;
+    const photo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    await act(async () => {
+      await useAdminStore.getState().apply(editPerson(model, 'p0007', { ...personContent(model.get('p0007')!), photoUrl: photo }));
+    });
+    renderAt('/nguoi/p0007');
+    await screen.findByRole('heading', { level: 1 });
+    // The profile itself has no adjust button, even for an editor and with a photo.
+    expect(screen.queryByRole('button', { name: /Căn chỉnh ảnh/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Chỉnh sửa hồ sơ' }));
+    const form = await screen.findByRole('dialog', { name: /Sửa thông tin/ });
+    fireEvent.click(await within(form).findByRole('button', { name: 'Căn chỉnh ảnh' }));
+    const adjuster = await screen.findByRole('dialog', { name: /Căn chỉnh ảnh/ });
+    // Enlarge with the keyboard, then hand the crop back to the form.
+    fireEvent.keyDown(within(adjuster).getByRole('application'), { key: '+' });
+    fireEvent.click(within(adjuster).getByRole('button', { name: 'Xong' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: /Căn chỉnh ảnh/ })).toBeNull());
+    // Nothing is saved until the form is.
+    expect(useClanStore.getState().model?.get('p0007')?.photoCrop).toBeUndefined();
+    fireEvent.click(within(form).getByRole('button', { name: 'Lưu' }));
+    await waitFor(() => expect(useClanStore.getState().model?.get('p0007')?.photoCrop).toEqual({ zoom: 1.1, x: 0, y: 0 }));
+  });
+
   it('suggests the lunar date for a full solar date', async () => {
     await signIn();
     renderAt('/nguoi/p0007');

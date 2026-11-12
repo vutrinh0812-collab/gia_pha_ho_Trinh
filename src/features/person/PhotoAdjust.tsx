@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Sheet } from '@/app/ui/Sheet';
-import { editPerson, personContent } from '@/lib/admin/changes';
-import type { ClanModel, PersonRec } from '@/lib/clanModel';
 import { PHOTO_ZOOM_MAX, type PhotoCrop } from '@/lib/types';
-import { useAdminStore } from '@/store/adminStore';
 import { cropStyle } from './Avatar';
 import styles from './PhotoAdjust.module.css';
 
@@ -29,15 +26,28 @@ export function clampCrop(c: PhotoCrop, aspect: number): PhotoCrop {
 }
 
 /**
- * Adjust the portrait right from the profile (D95): drag the photo to move it, pinch, scroll
- * or use the slider to enlarge it, and watch the round result; guide lines mark the centre.
+ * Adjust the portrait photo (D95), from the edit form of a profile (D96): drag the photo to
+ * move it, pinch, scroll or use the slider to enlarge it, and watch the round result; guide
+ * lines mark the centre. "Xong" hands the crop back to the form, which saves it with the rest.
  */
-export function PhotoAdjust({ model, person, onClose }: { model: ClanModel; person: PersonRec; onClose(): void }) {
-  const apply = useAdminStore((s) => s.apply);
-  const [crop, setCrop] = useState<PhotoCrop>(person.photoCrop ?? FLAT);
+export function PhotoAdjust({
+  fullName,
+  photoUrl,
+  deceased,
+  value,
+  onApply,
+  onClose,
+}: {
+  fullName: string;
+  photoUrl: string;
+  deceased: boolean;
+  value: PhotoCrop | undefined;
+  /** The chosen crop; undefined when the photo is back to centred and unenlarged. */
+  onApply(crop: PhotoCrop | undefined): void;
+  onClose(): void;
+}) {
+  const [crop, setCrop] = useState<PhotoCrop>(value ?? FLAT);
   const [aspect, setAspect] = useState(1);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const circle = useRef<HTMLDivElement>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ dist: number; zoom: number } | null>(null);
@@ -86,21 +96,15 @@ export function PhotoAdjust({ model, person, onClose }: { model: ClanModel; pers
     else if (e.key === '-') set({ ...crop, zoom: crop.zoom - 0.1 });
   };
 
-  const unchanged = JSON.stringify(crop) === JSON.stringify(person.photoCrop ?? FLAT);
-  const save = async () => {
-    setBusy(true);
-    setError(null);
-    const flat = crop.zoom === 1 && crop.x === 0 && crop.y === 0;
-    const ok = await apply(editPerson(model, person.id, { ...personContent(person), photoCrop: flat ? undefined : crop }), 'Đã căn chỉnh ảnh.');
-    setBusy(false);
-    if (ok) onClose();
-    else setError('Chưa lưu được. Hãy thử lại.');
+  const flat = crop.zoom === 1 && crop.x === 0 && crop.y === 0;
+  const done = () => {
+    onApply(flat ? undefined : crop);
+    onClose();
   };
 
-  const deceased = person.death?.isDeceased === true;
   return (
     <Sheet
-      label={`Căn chỉnh ảnh ${person.fullName}`}
+      label={`Căn chỉnh ảnh ${fullName}`}
       onClose={onClose}
       initialSnap="full"
       header={<h2 className={styles.title}>Căn chỉnh ảnh đại diện</h2>}
@@ -109,8 +113,8 @@ export function PhotoAdjust({ model, person, onClose }: { model: ClanModel; pers
           <button type="button" className={styles.secondary} onClick={onClose}>
             Hủy
           </button>
-          <button type="button" className={styles.primary} onClick={() => void save()} disabled={busy || unchanged}>
-            {busy ? 'Đang lưu…' : 'Lưu'}
+          <button type="button" className={styles.primary} onClick={done}>
+            Xong
           </button>
         </>
       }
@@ -130,12 +134,12 @@ export function PhotoAdjust({ model, person, onClose }: { model: ClanModel; pers
         onKeyDown={onKey}
       >
         <img
-          src={person.photoUrl}
+          src={photoUrl}
           alt=""
           draggable={false}
           data-deceased={deceased || undefined}
           style={cropStyle(crop)}
-          onLoad={(e) => setAspect(e.currentTarget.naturalWidth / Math.max(1, e.currentTarget.naturalHeight))}
+          onLoad={(e) => setAspect(e.currentTarget.naturalWidth && e.currentTarget.naturalHeight ? e.currentTarget.naturalWidth / e.currentTarget.naturalHeight : 1)}
         />
         <span className={styles.guideV} aria-hidden="true" />
         <span className={styles.guideH} aria-hidden="true" />
@@ -160,15 +164,10 @@ export function PhotoAdjust({ model, person, onClose }: { model: ClanModel; pers
       </div>
       <div className={styles.row}>
         <span className={styles.value}>Phóng to {Math.round(crop.zoom * 100)}%</span>
-        <button type="button" className={styles.textButton} onClick={() => setCrop(FLAT)} disabled={crop.zoom === 1 && crop.x === 0 && crop.y === 0}>
+        <button type="button" className={styles.textButton} onClick={() => setCrop(FLAT)} disabled={flat}>
           Đặt lại
         </button>
       </div>
-      {error && (
-        <p className={styles.error} role="alert">
-          {error}
-        </p>
-      )}
     </Sheet>
   );
 }

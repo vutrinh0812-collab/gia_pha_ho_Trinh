@@ -5,11 +5,10 @@
  * It shows only what is known. Editors get one button, "Chỉnh sửa hồ sơ", which opens the whole
  * edit form: fields, portrait, relatives and other actions in one place (D84).
  */
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BirthIcon,
-  CropIcon,
   EditIcon,
   MemorialIcon,
   PersonIcon,
@@ -22,7 +21,6 @@ import { daysBetween, nextLunarAnniversary, type SolarDate } from '@/lib/lunar';
 import { useCanEdit } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
 import { Avatar } from './Avatar';
-import { PhotoAdjust } from './PhotoAdjust';
 import styles from './Profile.module.css';
 
 const WEEKDAYS = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
@@ -50,8 +48,6 @@ export function Profile({ model, person, variant, onPick }: ProfileProps) {
   const isAdmin = useCanEdit();
   const openAdmin = useAdminUi((s) => s.open);
   const edit = () => openAdmin('edit', person.id);
-  // Move and enlarge the photo in its circle, right here (D95).
-  const [adjusting, setAdjusting] = useState(false);
 
   const fam = model.family(person.id);
   const children = fam?.partnerships.flatMap((x) => x.children) ?? [];
@@ -81,17 +77,6 @@ export function Profile({ model, person, variant, onPick }: ProfileProps) {
             ) : (
               <Avatar person={person} size={variant === 'page' ? 120 : 96} ring />
             )}
-            {isAdmin && person.photoUrl && (
-              <button
-                type="button"
-                className={styles.adjustButton}
-                onClick={() => setAdjusting(true)}
-                aria-label="Căn chỉnh ảnh đại diện"
-                title="Căn chỉnh ảnh: dời, phóng to"
-              >
-                <CropIcon width={18} height={18} />
-              </button>
-            )}
           </div>
           <div className={styles.titleBlock}>
             {variant === 'page' ? <h1 className={styles.name}>{person.fullName}</h1> : <h2 className={styles.name}>{person.fullName}</h2>}
@@ -120,7 +105,6 @@ export function Profile({ model, person, variant, onPick }: ProfileProps) {
           </p>
         )}
       </div>
-      {adjusting && <PhotoAdjust model={model} person={person} onClose={() => setAdjusting(false)} />}
     </article>
   );
 }

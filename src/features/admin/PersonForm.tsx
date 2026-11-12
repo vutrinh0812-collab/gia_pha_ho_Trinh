@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Sheet } from '@/app/ui/Sheet';
+import { CropIcon } from '@/app/ui/icons';
 import { getAdminBackend } from '@/lib/admin/backend';
 import {
   addChild,
@@ -17,6 +18,8 @@ import { childrenGroupLabel, otherNameDraft, toRoman } from '@/lib/format';
 import type { Gender, PersonFields } from '@/lib/types';
 import { useAdminStore } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
+import { cropStyle } from '../person/Avatar';
+import { PhotoAdjust } from '../person/PhotoAdjust';
 import { DateFields } from './DateFields';
 import { personActions } from './personActions';
 import { resizeImage } from './resizeImage';
@@ -74,6 +77,8 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
   const unions = person.isBloodline ? model.index.unionsOf(person.id) : model.index.spouseUnionsOf(person.id);
   const [unionId, setUnionId] = useState(unions[0]?.id ?? '');
   const [photoBusy, setPhotoBusy] = useState(false);
+  // Moving and enlarging the photo in its circle (D95); kept in the draft, saved with the form (D96).
+  const [adjusting, setAdjusting] = useState(false);
   const [canUpload, setCanUpload] = useState<boolean | null>(null);
   const branches = useMemo(
     () => [...new Set(model.persons.map((p) => p.branchLabel).filter((b): b is string => Boolean(b)))].sort(),
@@ -144,9 +149,11 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
 
   const formId = 'person-form';
   return (
+    <>
     <Sheet
       label={titleOf(mode, person)}
-      onClose={onDone}
+      // While the photo is being adjusted, Esc and the backdrop belong to the adjuster.
+      onClose={adjusting ? () => undefined : onDone}
       initialSnap="full"
       header={<h2 className={styles.title}>{titleOf(mode, person)}</h2>}
       footer={
@@ -184,7 +191,7 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
                   <span className={styles.photo}>
                     {/* Turns black and white as soon as "Đã mất" is ticked, like the avatar will;
                         the ring stays in colour. */}
-                    <img src={draft.photoUrl} alt="Ảnh đại diện" data-deceased={deceased || undefined} />
+                    <img src={draft.photoUrl} alt="Ảnh đại diện" data-deceased={deceased || undefined} style={cropStyle(draft.photoCrop)} />
                   </span>
                 ) : (
                   <div className={styles.photoPlaceholder} aria-hidden="true">
@@ -207,6 +214,11 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
                     disabled={photoBusy}
                   />
                   <span className={styles.photoHint}>Hỗ trợ ảnh độ phân giải cao (tự động tối ưu sắc nét).</span>
+                  {draft.photoUrl && (
+                    <button type="button" className={styles.adjustBtn} onClick={() => setAdjusting(true)}>
+                      <CropIcon width={18} height={18} /> Căn chỉnh ảnh
+                    </button>
+                  )}
                   {draft.photoUrl && (
                     <button type="button" className={styles.textButton} onClick={() => setDraft((d) => ({ ...d, photoUrl: undefined, photoCrop: undefined }))}>
                       Bỏ ảnh
@@ -410,5 +422,16 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
         )}
       </form>
     </Sheet>
+    {adjusting && draft.photoUrl && (
+      <PhotoAdjust
+        fullName={draft.fullName || person.fullName}
+        photoUrl={draft.photoUrl}
+        deceased={deceased}
+        value={draft.photoCrop}
+        onApply={(crop) => setDraft((d) => ({ ...d, photoCrop: crop }))}
+        onClose={() => setAdjusting(false)}
+      />
+    )}
+    </>
   );
 }
