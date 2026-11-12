@@ -827,3 +827,8 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - **Ngày dương lịch** (ngày sinh, ngày mất): ba ô Năm / Tháng / Ngày thay bằng **một ô bánh xe** ba cột theo thứ tự **ngày – tháng – năm** (`DateWheel.tsx`). Mỗi cột cuộn và tự dừng đúng hàng; hàng ở dải giữa là giá trị. Mỗi cột có lựa chọn trống ("Ngày", "Tháng", "Năm") để ghi ngày không đủ: chỉ năm, hoặc tháng và năm. Năm từ năm nay lùi về năm 1000. Ngày quá cuối tháng tự về ngày cuối (31 → 28/29 tháng 2). Dưới bánh xe ghi rõ ngày đã chọn.
 - Bàn phím và trình đọc màn hình: mỗi cột là một spin button (mũi tên, Page Up/Down 10 nấc, Home/End, gõ số như "1947", Backspace để bỏ trống).
 - Phần âm lịch, "khoảng", nơi sinh giữ như cũ. Đã thử trên trình duyệt ở bề rộng 375 px: cuộn đến 15/3/1947, lưu, hồ sơ ghi "Sinh 15/3/1947".
+
+## D94 — "Tên khác" cho gõ dấu cách
+
+- **Lỗi** (từ D93): ô "Tên khác" hiện giá trị đã cắt khoảng trắng hai đầu, nên vừa gõ dấu cách ở cuối ("Phúc ") là bị xóa ngay, không gõ được tên nhiều chữ.
+- **Sửa**: ô nhập giữ đúng chữ đang gõ (`otherNameDraft`); chỉ khi lưu mới cắt dấu cách thừa ở hai đầu. Kiểm thử trong `tests/admin.test.tsx`.

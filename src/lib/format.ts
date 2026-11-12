@@ -105,3 +105,11 @@ export function otherName(o: { khac?: string; huy?: string; tu?: string; hieu?: 
   if (!o) return '';
   return o.khac?.trim() || [o.huy, o.tu, o.hieu].map((v) => v?.trim()).filter(Boolean).join(', ');
 }
+
+/**
+ * The text of the "Tên khác" input while it is being typed: exactly what was typed, spaces
+ * included (D94); the older húy/tự/hiệu joined only while nothing has been typed yet.
+ */
+export function otherNameDraft(o: { khac?: string; huy?: string; tu?: string; hieu?: string } | undefined): string {
+  return o?.khac !== undefined ? o.khac : otherName(o);
+}

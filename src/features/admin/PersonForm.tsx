@@ -13,7 +13,7 @@ import {
   type ChangeSet,
 } from '@/lib/admin/changes';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
-import { childrenGroupLabel, otherName, toRoman } from '@/lib/format';
+import { childrenGroupLabel, otherNameDraft, toRoman } from '@/lib/format';
 import type { Gender, PersonFields } from '@/lib/types';
 import { useAdminStore } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
@@ -104,7 +104,9 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
     setError(null);
     let changeSet: ChangeSet;
     try {
-      const fields = clean(draft);
+      // Spaces typed at the ends of the other names are dropped on saving, not while typing (D94).
+      const names = draft.otherNames && Object.fromEntries(Object.entries(draft.otherNames).map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v]));
+      const fields = clean({ ...draft, otherNames: names });
       changeSet =
         mode === 'edit'
           ? editPerson(model, person.id, fields)
@@ -292,7 +294,7 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
                 <label htmlFor={`f-${k}`}>{label}</label>
                 <input
                   id={`f-${k}`}
-                  value={k === 'khac' ? otherName(draft.otherNames) : (draft.otherNames?.[k] ?? '')}
+                  value={k === 'khac' ? otherNameDraft(draft.otherNames) : (draft.otherNames?.[k] ?? '')}
                   onChange={(e) => setOther(k, e.target.value)}
                 />
               </div>

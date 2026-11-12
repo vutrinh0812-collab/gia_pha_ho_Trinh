@@ -86,6 +86,20 @@ describe('admin editing (demo backend)', () => {
     await waitFor(() => expect(useClanStore.getState().model?.get('p0007')?.occupation).toBe('Thầy lang'));
   });
 
+  it('"Tên khác" keeps the spaces typed in it, and trims them only on saving (D94)', async () => {
+    await signIn();
+    renderAt('/nguoi/p0007');
+    fireEvent.click(await screen.findByRole('button', { name: 'Chỉnh sửa hồ sơ' }));
+    const form = await screen.findByRole('dialog', { name: /Sửa thông tin/ });
+    const input = within(form).getByLabelText('Tên khác', { selector: 'input' }) as HTMLInputElement;
+    for (const text of ['Phúc ', 'Phúc Thiện', 'Phúc Thiện ']) {
+      fireEvent.change(input, { target: { value: text } });
+      expect(input.value).toBe(text);
+    }
+    fireEvent.click(within(form).getByRole('button', { name: 'Lưu' }));
+    await waitFor(() => expect(useClanStore.getState().model?.get('p0007')?.otherNames?.khac).toBe('Phúc Thiện'));
+  });
+
   it('suggests the lunar date for a full solar date', async () => {
     await signIn();
     renderAt('/nguoi/p0007');
