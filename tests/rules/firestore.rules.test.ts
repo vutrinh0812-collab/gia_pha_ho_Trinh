@@ -173,7 +173,7 @@ describe('admin writes', () => {
       setDoc(
         doc(db, `${base}/persons/p2`),
         person({
-          otherNames: { huy: 'Phúc', thuong: 'Cả' },
+          otherNames: { khac: 'Phúc', huy: 'Phúc', thuong: 'Cả' },
           parentUnionId: 'u1',
           birthOrder: 1,
           birth: { solar: '1890', approximate: true, place: 'Thôn Đông' },

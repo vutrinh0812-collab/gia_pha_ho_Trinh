@@ -16,7 +16,7 @@ import {
   WorkIcon,
 } from '@/app/ui/icons';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
-import { formatDateInfo, lifeSpan, spouseRole, toRoman, visibleNotes } from '@/lib/format';
+import { formatDateInfo, lifeSpan, spouseRole, toRoman, visibleNotes, otherName } from '@/lib/format';
 import { daysBetween, nextLunarAnniversary, type SolarDate } from '@/lib/lunar';
 import { useCanEdit } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
@@ -53,7 +53,9 @@ export function Profile({ model, person, variant, onPick }: ProfileProps) {
   const children = fam?.partnerships.flatMap((x) => x.children) ?? [];
   const parent = model.bloodlineParent(person.id);
   const o = person.otherNames;
-  const aka = [o?.huy && `Húy ${o.huy}`, o?.tu && `Tự ${o.tu}`, o?.hieu && `Hiệu ${o.hieu}`, o?.thuong && `Thường gọi ${o.thuong}`]
+  // "Tên khác" in place of húy, tự, hiệu (D93); the name people call them by stays.
+  const other = otherName(o);
+  const aka = [other && `Tên khác: ${other}`, o?.thuong && `Thường gọi: ${o.thuong}`]
     .filter(Boolean)
     .join(' · ');
 

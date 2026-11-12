@@ -68,9 +68,9 @@ export function validatePersonFields(p: PersonFields): ValidationErrors {
     errors.push(`Thứ tự con phải từ 1 đến ${LIMITS.maxBirthOrder}.`);
   }
   if (p.otherNames !== undefined) {
-    checkUnknownKeys(p.otherNames, ['huy', 'tu', 'hieu', 'thuong'], errors, 'Tên khác');
+    checkUnknownKeys(p.otherNames, ['khac', 'huy', 'tu', 'hieu', 'thuong'], errors, 'Tên khác');
     for (const v of Object.values(p.otherNames)) {
-      if (!optString(v, LIMITS.shortText)) errors.push('Tên húy/tự/hiệu quá dài.');
+      if (!optString(v, LIMITS.shortText)) errors.push('Tên khác quá dài.');
     }
   }
   if (p.birth !== undefined) validateDate(p.birth, 'Ngày sinh', errors, false);

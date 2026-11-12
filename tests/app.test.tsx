@@ -52,7 +52,9 @@ describe('home', () => {
     const dialog = await screen.findByRole('dialog', { name: `Thông tin ${root.fullName}` });
     expect(within(dialog).getByRole('heading', { name: root.fullName })).toBeInTheDocument();
     expect(within(dialog).getByText(/^Giỗ ngày/)).toBeInTheDocument();
-    expect(within(dialog).getByText(/Húy/)).toBeInTheDocument();
+    // D93: húy, tự, hiệu are shown together as "Tên khác".
+    expect(within(dialog).getByText('Tên khác: Phúc Thiện, Nhân Hậu')).toBeInTheDocument();
+    expect(within(dialog).queryByText(/Húy|Hiệu /)).toBeNull();
     expect(within(dialog).getByRole('region', { name: 'Gia đình' })).toBeInTheDocument();
     for (const name of [/^Gia đình$/, /Trang cá nhân/, /Chia sẻ/, /Dòng dõi/]) {
       expect(within(dialog).queryByRole('button', { name })).not.toBeInTheDocument();

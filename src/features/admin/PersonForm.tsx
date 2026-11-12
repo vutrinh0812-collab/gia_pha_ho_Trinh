@@ -13,7 +13,7 @@ import {
   type ChangeSet,
 } from '@/lib/admin/changes';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
-import { childrenGroupLabel, toRoman } from '@/lib/format';
+import { childrenGroupLabel, otherName, toRoman } from '@/lib/format';
 import type { Gender, PersonFields } from '@/lib/types';
 import { useAdminStore } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
@@ -85,8 +85,13 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
 
   const set = <K extends keyof PersonFields>(key: K, value: PersonFields[K] | undefined) =>
     setDraft((d) => ({ ...d, [key]: value === '' ? undefined : value }));
-  const setOther = (key: 'huy' | 'tu' | 'hieu' | 'thuong', value: string) =>
-    setDraft((d) => ({ ...d, otherNames: { ...d.otherNames, [key]: value || undefined } }));
+  const setOther = (key: 'khac' | 'thuong', value: string) =>
+    setDraft((d) => {
+      // Editing "Tên khác" replaces the older húy, tự and hiệu it was shown from (D93).
+      const { huy: _h, tu: _t, hieu: _hi, ...rest } = d.otherNames ?? {};
+      const base = key === 'khac' ? rest : { ...d.otherNames };
+      return { ...d, otherNames: { ...base, [key]: value || undefined } };
+    });
 
   const deceased = draft.death?.isDeceased === true;
   /** Death details while "Đã mất" is unticked, so ticking it again in this form brings them back. */
@@ -275,19 +280,21 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
         </fieldset>
 
         <fieldset className={styles.fieldset}>
-          <legend className={styles.legend}>Tên khác</legend>
+          <legend className={styles.legend}>Tên gọi khác</legend>
           <div className={styles.row2}>
             {(
               [
-                ['huy', 'Tên húy'],
-                ['tu', 'Tên tự'],
-                ['hieu', 'Tên hiệu'],
+                ['khac', 'Tên khác'],
                 ['thuong', 'Tên thường gọi'],
               ] as const
             ).map(([k, label]) => (
               <div key={k} className={styles.field}>
                 <label htmlFor={`f-${k}`}>{label}</label>
-                <input id={`f-${k}`} value={draft.otherNames?.[k] ?? ''} onChange={(e) => setOther(k, e.target.value)} />
+                <input
+                  id={`f-${k}`}
+                  value={k === 'khac' ? otherName(draft.otherNames) : (draft.otherNames?.[k] ?? '')}
+                  onChange={(e) => setOther(k, e.target.value)}
+                />
               </div>
             ))}
           </div>

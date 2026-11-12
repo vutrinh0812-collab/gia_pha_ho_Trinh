@@ -5,7 +5,7 @@
  */
 import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import type { ClanModel } from '@/lib/clanModel';
-import { birthYear } from '@/lib/format';
+import { birthYear, otherName } from '@/lib/format';
 import type { FontSpec, LetteringArt, TextRelief, Theme } from '@/themes/types';
 import { V_PAD_X, verticalMetrics, type LayoutMetrics, type TreeLayout } from '../tree/layout';
 
@@ -811,7 +811,7 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
             );
           }
           const years = o.showYears ? birthYear(p) : '';
-          const other = o.showOtherNames && p.otherNames?.huy ? `Húy ${p.otherNames.huy}` : '';
+          const other = o.showOtherNames && otherName(p.otherNames) ? otherName(p.otherNames) : '';
           const spouses = o.showSpouses ? n.spouses : [];
           const spouseYears = spouses.map((sp) => (o.showYears ? birthYear(sp.person) : ''));
           const lines = 1 + (years ? 1 : 0) + (other ? 1 : 0) + spouses.length + spouseYears.filter(Boolean).length;

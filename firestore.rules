@@ -84,7 +84,8 @@ service cloud.firestore {
         && optIdOrNull(d, 'parentUnionId')
         && optInt(d, 'birthOrder', 1, 99)
         && (!('otherNames' in d) || (d.otherNames is map
-              && d.otherNames.keys().hasOnly(['huy', 'tu', 'hieu', 'thuong'])
+              && d.otherNames.keys().hasOnly(['khac', 'huy', 'tu', 'hieu', 'thuong'])
+              && optStr(d.otherNames, 'khac', 200)
               && optStr(d.otherNames, 'huy', 200) && optStr(d.otherNames, 'tu', 200)
               && optStr(d.otherNames, 'hieu', 200) && optStr(d.otherNames, 'thuong', 200)))
         && (!('birth' in d) || validDate(d.birth, ['solar', 'lunar', 'approximate', 'place']))

@@ -35,11 +35,13 @@ export interface DeathInfo extends DateInfo {
 }
 
 export interface OtherNames {
-  /** tên húy */
+  /** "Tên khác" (D93): one field for any other name; it replaces húy, tự and hiệu. */
+  khac?: string;
+  /** tên húy (older records; shown and edited as "Tên khác") */
   huy?: string;
-  /** tên tự */
+  /** tên tự (older records) */
   tu?: string;
-  /** tên hiệu */
+  /** tên hiệu (older records) */
   hieu?: string;
   /** tên thường gọi */
   thuong?: string;

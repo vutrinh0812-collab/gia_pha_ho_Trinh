@@ -96,3 +96,12 @@ export function visibleNotes(notes: string | undefined | null): string | null {
     .trim();
   return text || null;
 }
+
+/**
+ * A person's "Tên khác" (D93): the field itself, or, for records made before it, their
+ * tên húy, tên tự and tên hiệu together.
+ */
+export function otherName(o: { khac?: string; huy?: string; tu?: string; hieu?: string } | undefined): string {
+  if (!o) return '';
+  return o.khac?.trim() || [o.huy, o.tu, o.hieu].map((v) => v?.trim()).filter(Boolean).join(', ');
+}

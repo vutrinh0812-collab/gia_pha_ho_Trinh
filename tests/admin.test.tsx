@@ -93,12 +93,23 @@ describe('admin editing (demo backend)', () => {
     act(() => useAdminUi.getState().open('addChild', 'p0007'));
     const form = await screen.findByRole('dialog', { name: /Thêm con/ });
     const birth = within(form).getByRole('group', { name: 'Ngày sinh' });
-    fireEvent.change(within(birth).getAllByLabelText('Năm')[0]!, { target: { value: '2024' } });
-    fireEvent.change(within(birth).getAllByLabelText('Tháng')[0]!, { target: { value: '2' } });
-    fireEvent.change(within(birth).getAllByLabelText('Ngày')[0]!, { target: { value: '10' } });
+    // D93: one wheel, day – month – year; spin buttons for the keyboard (arrows, typed digits).
+    const wheel = within(birth).getByRole('group', { name: /ngày, tháng, năm/ });
+    const [day, month, year] = within(wheel).getAllByRole('spinbutton');
+    expect([day, month, year].map((x) => x!.getAttribute('aria-label'))).toEqual(['Ngày', 'Tháng', 'Năm']);
+    for (const k of '2024') fireEvent.keyDown(year!, { key: k });
+    expect(year).toHaveAttribute('aria-valuetext', '2024');
+    fireEvent.keyDown(month!, { key: 'ArrowDown' });
+    fireEvent.keyDown(month!, { key: 'ArrowDown' });
+    expect(month).toHaveAttribute('aria-valuetext', 'tháng 2');
+    // Typed before the month was known, a day beyond February would come back to the 29th.
+    fireEvent.keyDown(day!, { key: '1' });
+    fireEvent.keyDown(day!, { key: '0' });
+    expect(day).toHaveAttribute('aria-valuetext', '10');
+    expect(within(birth).getByText('Đã chọn: ngày 10 tháng 2 năm 2024')).toBeInTheDocument();
     expect(within(birth).getByText(/Âm lịch tương ứng: ngày 1 tháng 1 năm Giáp Thìn/)).toBeInTheDocument();
     fireEvent.click(within(birth).getByRole('button', { name: 'Điền vào' }));
-    expect((within(birth).getAllByLabelText('Ngày')[1] as HTMLSelectElement).value).toBe('1');
+    expect((within(birth).getByLabelText('Ngày', { selector: 'select' }) as HTMLSelectElement).value).toBe('1');
   });
 
   it('adds a child from the edit form', async () => {

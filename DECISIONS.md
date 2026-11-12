@@ -819,3 +819,11 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 
 - **Lỗi**: mỗi vế câu đối tự tính cỡ chữ để chữ rộng nhất vừa bảng, nên hai vế có chữ rộng khác nhau thì ra hai cỡ khác nhau (ví dụ ở "Sơn mài rồng vàng" với câu đối mẫu: 12,9 mm và 10,3 mm).
 - **Sửa** (`PosterSvg`): tính cỡ vừa nhất cho từng vế, rồi viết cả hai vế bằng cỡ nhỏ hơn, nên vế nào cũng vừa bảng. Áp dụng cho mọi giao diện viết câu đối bằng phông; câu đối bằng ảnh thư pháp (D89) không đổi. Kiểm thử trong `tests/printPdf.test.tsx`.
+
+## D93 — "Tên khác" thay cho tên húy, tự, hiệu; chọn ngày bằng một bánh xe ngày – tháng – năm
+
+- **Tên**: hồ sơ và biểu mẫu chỉ còn **Tên khác** và **Tên thường gọi** (bỏ ba ô Tên húy, Tên tự, Tên hiệu). Lưu ở `otherNames.khac`. Người đã có húy/tự/hiệu từ trước: hiện gộp lại thành "Tên khác: …" (hàm `otherName`); sửa ô này thì ba trường cũ được thay bằng `khac`. Hồ sơ ghi "Tên khác: … · Thường gọi: …". Bản in (tùy chọn hiện tên khác) cũng dùng "Tên khác".
+- **Cần đưa luật Firestore mới lên Firebase**: `firestore.rules` nay cho phép thêm khóa `khac` (tối đa 200 ký tự). Chưa đưa lên thì lưu "Tên khác" sẽ bị Firebase từ chối. Cách làm: README mục 3 (`npx firebase deploy --only firestore:rules`, hoặc dán `firestore.rules` vào Firebase Console → Firestore → Rules → Publish).
+- **Ngày dương lịch** (ngày sinh, ngày mất): ba ô Năm / Tháng / Ngày thay bằng **một ô bánh xe** ba cột theo thứ tự **ngày – tháng – năm** (`DateWheel.tsx`). Mỗi cột cuộn và tự dừng đúng hàng; hàng ở dải giữa là giá trị. Mỗi cột có lựa chọn trống ("Ngày", "Tháng", "Năm") để ghi ngày không đủ: chỉ năm, hoặc tháng và năm. Năm từ năm nay lùi về năm 1000. Ngày quá cuối tháng tự về ngày cuối (31 → 28/29 tháng 2). Dưới bánh xe ghi rõ ngày đã chọn.
+- Bàn phím và trình đọc màn hình: mỗi cột là một spin button (mũi tên, Page Up/Down 10 nấc, Home/End, gõ số như "1947", Backspace để bỏ trống).
+- Phần âm lịch, "khoảng", nơi sinh giữ như cũ. Đã thử trên trình duyệt ở bề rộng 375 px: cuộn đến 15/3/1947, lưu, hồ sơ ghi "Sinh 15/3/1947".
