@@ -47,6 +47,19 @@ export interface OtherNames {
   thuong?: string;
 }
 
+/**
+ * Where the photo sits in the round portrait (D95). `zoom` ≥ 1 enlarges it (1 fills the
+ * circle); `x` and `y` shift it as a fraction of the portrait's width and height (the
+ * photo's centre at 0, 0). Kept inside the bounds that still cover the circle.
+ */
+export interface PhotoCrop {
+  zoom: number;
+  x: number;
+  y: number;
+}
+
+export const PHOTO_ZOOM_MAX = 4;
+
 export interface DayMonth {
   day: number;
   month: number;
@@ -73,6 +86,8 @@ export interface PersonFields {
   deathAnniversaryLunar?: DayMonth;
   burialPlace?: string;
   photoUrl?: string;
+  /** How the photo sits in the round portrait (D95). Left out: centred, filling the circle. */
+  photoCrop?: PhotoCrop;
   occupation?: string;
   notes?: string;
   /** Branch name, e.g. "Chi Giáp". */

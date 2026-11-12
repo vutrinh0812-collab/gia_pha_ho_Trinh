@@ -832,3 +832,11 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 
 - **Lỗi** (từ D93): ô "Tên khác" hiện giá trị đã cắt khoảng trắng hai đầu, nên vừa gõ dấu cách ở cuối ("Phúc ") là bị xóa ngay, không gõ được tên nhiều chữ.
 - **Sửa**: ô nhập giữ đúng chữ đang gõ (`otherNameDraft`); chỉ khi lưu mới cắt dấu cách thừa ở hai đầu. Kiểm thử trong `tests/admin.test.tsx`.
+
+## D95 — Căn chỉnh ảnh đại diện ngay trên hồ sơ: dời và phóng to
+
+- **Cách dùng**: người có quyền sửa, trên hồ sơ có ảnh, thấy nút nhỏ hình khung cắt ở góc dưới phải ảnh đại diện ("Căn chỉnh ảnh đại diện"). Bấm vào mở khung căn chỉnh với ảnh tròn cỡ lớn: **kéo** để dời, **hai ngón tay / lăn chuột / thanh trượt / nút − +** để phóng to, mũi tên bàn phím để dời từng chút. Hai đường kẻ giữa chỉ vị trí trung tâm. "Đặt lại" đưa về mặc định; "Lưu" ghi lại. Không cần vào biểu mẫu sửa.
+- **Lưu**: `photoCrop: { zoom, x, y }` trong hồ sơ người (zoom từ 1 đến 4; x, y là phần của đường kính ảnh tròn, tâm ảnh ở 0, 0). Ảnh gốc không bị cắt hay sửa. Ảnh luôn phủ kín hình tròn: không dời quá mép (`clampCrop`).
+- **Hiển thị**: mọi nơi dùng ảnh tròn (hồ sơ, cây dọc, ngày giỗ…) áp dụng căn chỉnh qua `cropStyle`; xem ảnh lớn vẫn là cả tấm ảnh. Đổi ảnh khác hoặc bỏ ảnh trong biểu mẫu thì căn chỉnh cũ bị xóa.
+- **Cần đưa luật Firestore mới lên Firebase** (lần nữa): `firestore.rules` thêm khóa `photoCrop` (zoom 1–4, x, y trong −4…4, đủ ba khóa). Chưa đưa lên thì lưu căn chỉnh bị Firebase từ chối. Cách làm như D93.
+- Kiểm thử: tính giới hạn dời, áp dụng vào ảnh, kiểm tra dữ liệu (`tests/avatar.test.tsx`) và luật Firestore (`tests/rules`). Đã thử trên trình duyệt 375 px: tải ảnh, kéo, phóng to 180%, lưu; ảnh trên hồ sơ lấy đúng căn chỉnh.

@@ -17,6 +17,27 @@
   position: relative;
   flex: none;
 }
+/* Admin: opens the photo adjuster (D95), at the portrait's lower right. */
+.adjustButton {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 2px 6px rgb(58 35 20 / 22%);
+  cursor: pointer;
+}
+.adjustButton:hover {
+  background: var(--accent-soft);
+}
 /* Traditional circular Đời seal */
 .seal {
   width: 76px;

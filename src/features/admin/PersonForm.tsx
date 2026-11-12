@@ -133,7 +133,8 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
       const backend = await getAdminBackend();
       const { image, thumb } = await resizeImage(file);
       const url = await backend.uploadPhoto!(mode === 'edit' ? person.id : newId(), image, thumb);
-      set('photoUrl', url);
+      // A new photo starts centred: the old crop belonged to the old one (D95).
+      setDraft((d) => ({ ...d, photoUrl: url, photoCrop: undefined }));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không tải được ảnh lên.');
     } finally {
@@ -207,7 +208,7 @@ export function PersonForm({ mode, model, person, onDone }: Props) {
                   />
                   <span className={styles.photoHint}>Hỗ trợ ảnh độ phân giải cao (tự động tối ưu sắc nét).</span>
                   {draft.photoUrl && (
-                    <button type="button" className={styles.textButton} onClick={() => set('photoUrl', undefined)}>
+                    <button type="button" className={styles.textButton} onClick={() => setDraft((d) => ({ ...d, photoUrl: undefined, photoCrop: undefined }))}>
                       Bỏ ảnh
                     </button>
                   )}

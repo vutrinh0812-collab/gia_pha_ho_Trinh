@@ -112,7 +112,7 @@ function requirePerson(model: ClanModel, id: string): PersonRec {
 const FIELD_LABELS: Record<string, string> = {
   fullName: 'họ tên', otherNames: 'tên khác', gender: 'giới tính', isBloodline: 'huyết thống/dâu-rể',
   birthOrder: 'thứ tự con', birth: 'ngày sinh', death: 'ngày mất', deathAnniversaryLunar: 'ngày giỗ',
-  burialPlace: 'nơi an táng', photoUrl: 'ảnh', occupation: 'nghề nghiệp', notes: 'ghi chú', branchLabel: 'chi',
+  burialPlace: 'nơi an táng', photoUrl: 'ảnh', photoCrop: 'căn chỉnh ảnh', occupation: 'nghề nghiệp', notes: 'ghi chú', branchLabel: 'chi',
 };
 
 /** Names of the fields that differ, in words. */

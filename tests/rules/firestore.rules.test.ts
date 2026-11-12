@@ -184,6 +184,7 @@ describe('admin writes', () => {
           notes: 'Ghi chú',
           branchLabel: 'Chi Giáp',
           photoUrl: 'https://example.com/a.jpg',
+          photoCrop: { zoom: 1.6, x: -0.1, y: 0.05 },
         }),
       ),
     );
@@ -208,6 +209,9 @@ describe('admin writes', () => {
     ['birthOrder 0', { birthOrder: 0 }],
     ['birthOrder as float', { birthOrder: 1.5 }],
     ['http photo', { photoUrl: 'http://example.com/a.jpg' }],
+    ['photo zoom below 1', { photoCrop: { zoom: 0.5, x: 0, y: 0 } }],
+    ['photo crop missing y', { photoCrop: { zoom: 1.5, x: 0 } }],
+    ['photo crop with another key', { photoCrop: { zoom: 1.5, x: 0, y: 0, angle: 9 } }],
     ['notes too long', { notes: 'x'.repeat(5001) }],
     ['empty updatedBy', { updatedBy: '' }],
     ['client-chosen updatedAt', { updatedAt: Timestamp.fromMillis(0) }],

@@ -153,6 +153,11 @@ export const PrintIcon = (p: IconProps) => (
     <path d="M7 14h10v6H7z" />
   </Icon>
 );
+export const CropIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M6 2v14a2 2 0 0 0 2 2h14M18 22V8a2 2 0 0 0-2-2H2" />
+  </Icon>
+);
 export const EditIcon = (p: IconProps) => (
   <Icon {...p}>
     <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" />

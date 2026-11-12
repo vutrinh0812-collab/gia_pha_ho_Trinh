@@ -2,7 +2,7 @@
  * Client-side validation mirroring firestore.rules (keep both in sync).
  * Messages are user-facing, hence Vietnamese.
  */
-import { GENDERS, LIMITS, UNION_STATUSES } from './types';
+import { GENDERS, LIMITS, PHOTO_ZOOM_MAX, UNION_STATUSES } from './types';
 import type { ClanSettings, DateInfo, PersonFields, UnionFields } from './types';
 
 export type ValidationErrors = string[];
@@ -11,7 +11,7 @@ const SOLAR_RE = /^\d{4}(-(0[1-9]|1[0-2])(-(0[1-9]|[12]\d|3[01]))?)?$/;
 
 export const PERSON_KEYS = [
   'fullName', 'otherNames', 'gender', 'isBloodline', 'parentUnionId', 'birthOrder', 'birth', 'death',
-  'deathAnniversaryLunar', 'burialPlace', 'photoUrl', 'occupation', 'notes', 'branchLabel',
+  'deathAnniversaryLunar', 'burialPlace', 'photoUrl', 'photoCrop', 'occupation', 'notes', 'branchLabel',
 ] as const;
 export const UNION_KEYS = ['bloodlinePersonId', 'spousePersonId', 'order', 'status', 'notes'] as const;
 export const META_KEYS = ['createdAt', 'updatedAt', 'updatedBy'] as const;
@@ -94,6 +94,14 @@ export function validatePersonFields(p: PersonFields): ValidationErrors {
     /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(p.photoUrl);
   if (p.photoUrl !== undefined && !isHttpsPhoto && !isDataPhoto) {
     errors.push('Đường dẫn ảnh không hợp lệ.');
+  }
+  if (p.photoCrop !== undefined) {
+    const c = p.photoCrop as unknown as Record<string, unknown>;
+    checkUnknownKeys(c, ['zoom', 'x', 'y'], errors, 'Căn chỉnh ảnh');
+    const num = (v: unknown, lo: number, hi: number) => typeof v === 'number' && Number.isFinite(v) && v >= lo && v <= hi;
+    if (!num(c.zoom, 1, PHOTO_ZOOM_MAX) || !num(c.x, -PHOTO_ZOOM_MAX, PHOTO_ZOOM_MAX) || !num(c.y, -PHOTO_ZOOM_MAX, PHOTO_ZOOM_MAX)) {
+      errors.push('Căn chỉnh ảnh không hợp lệ.');
+    }
   }
   return errors;
 }

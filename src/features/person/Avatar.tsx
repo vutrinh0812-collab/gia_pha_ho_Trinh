@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CloseIcon } from '@/app/ui/icons';
 import type { PersonRec } from '@/lib/clanModel';
+import type { PhotoCrop } from '@/lib/types';
 import { roleOf } from './PersonCard';
 import styles from './Avatar.module.css';
 
@@ -15,6 +16,15 @@ interface Props {
   highPriority?: boolean;
   /** Allow tapping the avatar to view the photo full-screen when `person.photoUrl` exists. */
   zoomable?: boolean;
+}
+
+/**
+ * How a photo sits in its circle (D95): `object-fit: cover`, then shifted by `x`, `y` (a
+ * fraction of the circle's size) and enlarged by `zoom` about the circle's centre.
+ */
+export function cropStyle(crop: PhotoCrop | undefined): React.CSSProperties | undefined {
+  if (!crop || (crop.zoom === 1 && crop.x === 0 && crop.y === 0)) return undefined;
+  return { transform: `translate(${crop.x * 100}%, ${crop.y * 100}%) scale(${crop.zoom})` };
 }
 
 /** The usual grey "no photo" silhouette (head and shoulders), as on social networks. */
@@ -86,6 +96,7 @@ export function Avatar({ person, size, ring, highPriority, zoomable }: Props) {
           alt=""
           loading={highPriority ? 'eager' : 'lazy'}
           decoding="async"
+          style={cropStyle(person.photoCrop)}
         />
       ) : (
         <Silhouette />

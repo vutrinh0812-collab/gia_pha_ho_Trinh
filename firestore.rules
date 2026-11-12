@@ -75,7 +75,7 @@ service cloud.firestore {
     function validPerson(d) {
       return d.keys().hasOnly([
           'fullName', 'otherNames', 'gender', 'isBloodline', 'parentUnionId', 'birthOrder',
-          'birth', 'death', 'deathAnniversaryLunar', 'burialPlace', 'photoUrl', 'occupation',
+          'birth', 'death', 'deathAnniversaryLunar', 'burialPlace', 'photoUrl', 'photoCrop', 'occupation',
           'notes', 'branchLabel', 'createdAt', 'updatedAt', 'updatedBy'])
         && d.keys().hasAll(['fullName', 'gender', 'isBloodline', 'createdAt', 'updatedAt', 'updatedBy'])
         && d.fullName is string && d.fullName.size() >= 1 && d.fullName.size() <= 100
@@ -99,6 +99,12 @@ service cloud.firestore {
         && optStr(d, 'occupation', 200)
         && optStr(d, 'branchLabel', 200)
         && optStr(d, 'notes', 5000)
+        && (!('photoCrop' in d) || (d.photoCrop is map
+              && d.photoCrop.keys().hasOnly(['zoom', 'x', 'y'])
+              && d.photoCrop.keys().hasAll(['zoom', 'x', 'y'])
+              && d.photoCrop.zoom is number && d.photoCrop.zoom >= 1 && d.photoCrop.zoom <= 4
+              && d.photoCrop.x is number && d.photoCrop.x >= -4 && d.photoCrop.x <= 4
+              && d.photoCrop.y is number && d.photoCrop.y >= -4 && d.photoCrop.y <= 4))
         && (!('photoUrl' in d) || (d.photoUrl is string && d.photoUrl.size() >= 10 && d.photoUrl.size() <= 750000 && (
               (d.photoUrl.size() <= 1000 && d.photoUrl[0:8] == 'https://')
               || (d.photoUrl.size() >= 12 && d.photoUrl[0:11] == 'data:image/')
