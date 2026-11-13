@@ -384,11 +384,15 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
     w: titleArt.widthMm,
     h: titleArt.widthMm * titleArt.aspect,
   };
+  // Straight on the sheet (D97): sized from the title's measured width, not an estimate.
+  const plain = !board && !theme.ornaments.titleBanner ? theme.plainTitle : undefined;
   const titleSize = boardFit
     ? boardFit.titleSize
     : artBox
       ? artBox.h
-      : Math.min(t.title.sizePt * PT, (bannerW * 0.78) / (titleShown.length * 0.52), 30);
+      : plain
+        ? Math.min(t.title.sizePt * PT, plain.widthMm / em(titleShown, t.title), plain.maxSizeMm)
+        : Math.min(t.title.sizePt * PT, (bannerW * 0.78) / (titleShown.length * 0.52), 30);
   const titleY = boardFit
     ? boardFit.titleY
     : artBox

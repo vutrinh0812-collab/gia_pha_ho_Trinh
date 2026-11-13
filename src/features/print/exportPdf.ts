@@ -34,6 +34,8 @@ export const PDF_FONTS: Record<string, Array<{ weight: number; italic?: boolean;
     { weight: 400, file: 'playfair-display-400.ttf' },
     { weight: 600, file: 'playfair-display-600.ttf' },
     { weight: 700, file: 'playfair-display-700.ttf' },
+    { weight: 400, italic: true, file: 'playfair-display-400-italic.ttf' },
+    { weight: 600, italic: true, file: 'playfair-display-600-italic.ttf' },
   ],
   Lora: [
     { weight: 400, file: 'lora-400.ttf' },
@@ -49,6 +51,7 @@ export const PDF_FONTS: Record<string, Array<{ weight: number; italic?: boolean;
     { weight: 700, file: 'dancing-script-700.ttf' },
   ],
   'Water Brush': [{ weight: 400, file: 'water-brush-400.ttf' }],
+  'Alex Brush': [{ weight: 400, file: 'alex-brush-400.ttf' }],
 };
 
 /** Used for any family that is not bundled (an imported pack's own font): it has every Vietnamese letter. */

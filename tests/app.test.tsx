@@ -127,8 +127,8 @@ describe('other pages', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'In ấn' }, { timeout: 5000 })).toBeInTheDocument();
     const picker = screen.getByRole('heading', { name: 'Giao diện khung' }).parentElement!;
     const options = within(picker).getAllByRole('button', { name: /^Giao diện / });
-    // D91: only the frame presets, "Đỏ son sen vàng", "Hoa điểu trên lụa", "Sơn mài rồng vàng".
-    expect(options.map((b) => b.getAttribute('aria-label'))).toEqual(['Giao diện Đỏ son sen vàng', 'Giao diện Hoa điểu trên lụa', 'Giao diện Sơn mài rồng vàng']);
+    // D91: only the frame presets, plus "Gấm lam mai sen" (D97).
+    expect(options.map((b) => b.getAttribute('aria-label'))).toEqual(['Giao diện Đỏ son sen vàng', 'Giao diện Gấm lam mai sen', 'Giao diện Hoa điểu trên lụa', 'Giao diện Sơn mài rồng vàng']);
     // No stored default in the sample clan: "Hoa điểu trên lụa" is chosen.
     expect(options.filter((b) => b.getAttribute('aria-pressed') === 'true').map((b) => b.getAttribute('aria-label'))).toEqual(['Giao diện Hoa điểu trên lụa']);
     fireEvent.click(options[1]!);

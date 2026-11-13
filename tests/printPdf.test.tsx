@@ -109,6 +109,38 @@ describe('"Sơn mài rồng vàng": frame preset with its own title board (D72)'
   });
 });
 
+describe('"Gấm lam mai sen": navy brocade, plum and lotus, title on the paper (D97)', () => {
+  const theme = getTheme('gam-lam-mai-sen')!;
+
+  it('is a print theme: frame picture, no title board, no couplets, A1 landscape', () => {
+    expect(PRINT_THEMES.map((t) => t.id)).toContain('gam-lam-mai-sen');
+    expect(theme.backgroundImage?.href).toBeTruthy();
+    expect(theme.titleBoard).toBeUndefined();
+    expect(theme.ornaments.titleBanner).toBeUndefined();
+    expect(theme.ornaments.showCouplets).toBe(false);
+    expect(theme.preferredOrientation).toBe('landscape');
+  });
+
+  it('writes the title in navy ink straight on the paper, inside its width and below the border', () => {
+    const { container } = render(
+      <PosterSvg theme={theme} model={model} layout={layout} title="Gia Phả Họ Trịnh" subtitle="Chi trưởng" />,
+    );
+    const title = Array.from(container.querySelectorAll('text')).find((t) => t.textContent === 'Gia Phả Họ Trịnh')!;
+    expect(title.getAttribute('fill')).toBe(theme.colors.textPrimary);
+    expect(title.getAttribute('font-family')).toBe('Alex Brush');
+    const size = Number(title.getAttribute('font-size'));
+    expect(size).toBeLessThanOrEqual(theme.plainTitle!.maxSizeMm);
+    // Measured width (fallback widths in tests) stays within the space between the flowers.
+    const ems = Array.from('Gia Phả Họ Trịnh').reduce((a, l) => a + (l === ' ' ? 0.28 : 0.56), 0);
+    expect(size * ems).toBeLessThanOrEqual(theme.plainTitle!.widthMm + 0.01);
+    // Its top is on the paper, not on the brocade border (60 mm).
+    expect(Number(title.getAttribute('y')) - size / 2).toBeGreaterThan(60);
+    const sub = Array.from(container.querySelectorAll('text')).find((t) => t.textContent === 'Chi trưởng')!;
+    expect(sub.getAttribute('fill')).toBe(theme.colors.textSecondary);
+    expect(sub.getAttribute('font-style')).toBe('italic');
+  });
+});
+
 describe('"Đỏ son sen vàng": relief Buddha above a gold silk ribbon (D78)', () => {
   const theme = getTheme('do-son-sen-vang')!;
 

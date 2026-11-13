@@ -116,6 +116,12 @@ export interface Theme {
     right: { x: number; y: number; w: number; h: number };
     defaultText?: { left: string; right: string };
   };
+  /**
+   * A title written straight on the sheet, with no board or banner (D97): fitted by its
+   * measured width into `widthMm` (centred), and at most `maxSizeMm` tall. Left out: the
+   * older rule (an estimated width, at most 30 mm).
+   */
+  plainTitle?: { widthMm: number; maxSizeMm: number };
   /** Where title and tree go on the sheet, in mm from each edge (default: inside the frame). */
   contentInsetMm?: { top: number; right: number; bottom: number; left: number };
   /**

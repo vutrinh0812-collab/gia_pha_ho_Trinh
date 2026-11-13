@@ -847,3 +847,15 @@ SPEC có 3 theme. Tôi làm thêm một theme thứ tư, **Men lam** (lam trắn
 - **Giờ**: trang hồ sơ không còn nút này. Bấm **Chỉnh sửa hồ sơ**, trong mục **Ảnh đại diện** của biểu mẫu có nút **Căn chỉnh ảnh** (cạnh "Đổi ảnh khác", "Bỏ ảnh"; chỉ hiện khi đã có ảnh).
 - Khung căn chỉnh (kéo, phóng to, đường kẻ chỉ tâm, "Đặt lại") giữ như D95, nhưng bấm **Xong** là trả căn chỉnh về biểu mẫu: ảnh xem trước trong biểu mẫu đổi theo ngay, và **lưu cùng lúc bấm Lưu của biểu mẫu**, nên "Hủy" biểu mẫu thì bỏ cả căn chỉnh. Esc hay bấm ra ngoài chỉ đóng khung căn chỉnh, không đóng biểu mẫu.
 - Dữ liệu (`photoCrop`) và luật Firestore giữ như D95, nên chưa cần làm thêm gì ở Firebase.
+## D97 — Giao diện in "Gấm lam mai sen" (khung thứ tư, thêm sau D91)
+
+Làm theo mẫu tranh bác gửi (viền lam, mộc lan, mai đỏ, lôi văn vàng), qua quy trình `thiet-ke-khung-gia-pha`.
+
+- **Đã chốt**: A1 ngang; viền gấm lam hoa vàng chìm, chỉ vàng, ke góc lôi văn; giấy dó ngà; cành mai đỏ và mộc lan góc trên trái, cụm sen nhỏ góc dưới phải (thu còn 60% để cây chỉ chạm ngọn sen). **Không bảng tiêu đề** (bác bỏ hoành phi), không câu đối, không triện.
+- **Chữ**: tiêu đề Alex Brush mực lam `#1b2a4e` viết thẳng lên giấy; dòng phụ Playfair Display nghiêng màu đồng `#6b5634`; tên và năm Playfair Display nghiêng (600/400). Mực phẳng, không `textRelief`. Bác chọn bộ phông mềm này sau khi bỏ ba bộ đầu.
+- **Màu ô**: nền ô ngà `#f8f0dc`, viền lam `#1f3a6e`, tên nam lam, nữ đỏ trầm `#8c2a2a`, dâu rể `#3e4f72`, đường nối `#8a7448`.
+- **Tiêu đề không bảng** (`plainTitle`, mới): theme cho bề rộng tối đa (330 mm, nằm giữa, né cành mai) và cỡ tối đa (50 mm); cỡ chữ tính từ bề rộng đo thật của tiêu đề. Theme không khai báo thì giữ cách cũ (ước lượng, tối đa 30 mm), các giao diện khác không đổi.
+- **Ảnh khung**: `khung-a1.jpg` 5600 × 3955 px (~169 dpi), JPEG 90. Vá bằng PIL: đoạn viền trên giữa bị nhòe (chỗ bảng cũ) thay bằng viền dưới lật dọc; vết nối giữa hai nửa viền; một chấm bẩn trên giấy. `contentInsetMm` 64/60/58/60.
+- **Phông PDF mới**: `alex-brush-400`, `playfair-display-400-italic`, `playfair-display-600-italic` (OFL, đủ chữ tiếng Việt).
+- **Canva**: bản gốc `DAHauD0ypCs` (1056 × 816), bản A1 `DAHauJx_bP8` (đã chỉnh, dùng để xuất). Ảnh hoành phi lôi văn đã tách nền `MAHauAmI-50` (không dùng).
+- Hạn chế: cây rất đông thì 3–4 ô cuối hàng dưới vẫn chạm ngọn sen và ke góc dưới trái; nền ô ngà nên tên vẫn đọc rõ.
