@@ -866,3 +866,8 @@ Làm theo mẫu tranh bác gửi (viền lam, mộc lan, mai đỏ, lôi văn v�
 - Đổi giao diện thì cỡ về lại 100%, vì mỗi giao diện có cỡ mặc định riêng. Ảnh nhỏ của các giao diện luôn hiện cỡ mặc định.
 - Thu nhỏ: cây vẫn đặt người đứng đầu dưới tiêu đề như cũ. Phóng to quá vùng cây: cây nằm giữa tờ, đỉnh cây vẫn ở dưới tiêu đề và cây lớn xuống phía dưới; cây có thể tràn ra khung tranh. Khi trên 100% trang có dòng nhắc xem kỹ bản xem trước. Bản PDF in đúng cỡ đang chọn.
 - Chỉ đổi tỉ lệ của cả cây (`treeZoom` trong tùy chọn bản in); khoảng cách dòng và cỡ chữ trong ô vẫn do giao diện tính như trước.
+
+## D99 — In ấn: thanh kéo "Lên / xuống"; "Gấm lam mai sen": ke góc nổi trên hoa, sen lớn hơn
+
+- Dưới thanh "Cỡ sơ đồ" (D98) có thanh **Lên / xuống**: dời cả cây lên hoặc xuống tối đa 150 mm, bước 5 mm, tính từ chỗ giao diện tự đặt (0 mm = mặc định). Bên cạnh ghi "Lên 20 mm" / "Xuống 35 mm". Một nút **Mặc định** đưa cả cỡ và vị trí về mặc định; đổi giao diện cũng về mặc định. Khi khác mặc định, trang nhắc xem kỹ bản xem trước (cây có thể chạm tiêu đề hay tràn khung). Chỉ dời cây (`treeShiftMm`), không đổi cỡ hay khoảng cách.
+- **Gấm lam mai sen** (D97): bốn ke góc lôi văn đưa lên lớp trên cùng, nổi đè lên cành mai và cụm sen thay vì nằm dưới; cụm sen phóng từ 60% lên 80% cỡ gốc (vẫn neo ở góc dưới phải). Sửa trên bản Canva A1 `DAHauJx_bP8`, xuất lại và vá viền như D97.

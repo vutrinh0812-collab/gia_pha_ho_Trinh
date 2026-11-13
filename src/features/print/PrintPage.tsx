@@ -4,7 +4,7 @@ import { useClanStore } from '@/store/clanStore';
 import { PRINT_THEMES, printThemeOrDefault } from '@/themes/registry';
 import type { Theme } from '@/themes/types';
 import { BranchPicker } from './BranchPicker';
-import { A1, DEFAULT_POSTER_OPTIONS, MAX_TREE_ZOOM, MIN_TREE_ZOOM, PosterSvg, type PosterOptions } from './PosterSvg';
+import { A1, DEFAULT_POSTER_OPTIONS, MAX_TREE_SHIFT_MM, MAX_TREE_ZOOM, MIN_TREE_ZOOM, PosterSvg, type PosterOptions } from './PosterSvg';
 import { usePrintLayoutBuilder, useThemeFonts } from './usePrintScope';
 import styles from './Print.module.css';
 
@@ -32,10 +32,15 @@ export default function PrintPage() {
   // Each theme's own fit is the default size of the tree (D98): back to it on a new theme.
   const pick = (t: Theme) => {
     setThemeId(t.id);
-    setOpts((o) => ({ ...o, treeZoom: 1, orientation: t.preferredOrientation ?? o.orientation }));
+    setOpts((o) => ({ ...o, treeZoom: 1, treeShiftMm: 0, orientation: t.preferredOrientation ?? o.orientation }));
   };
   const zoomPct = Math.round(opts.treeZoom * 100);
   const setZoom = (pct: number) => setOpts((o) => ({ ...o, treeZoom: pct / 100 }));
+  // Up/down (D99): positive moves the tree down the sheet.
+  const shift = opts.treeShiftMm;
+  const setShift = (mm: number) => setOpts((o) => ({ ...o, treeShiftMm: mm }));
+  const shiftText = shift === 0 ? '0 mm' : `${shift < 0 ? 'Lên' : 'Xuống'} ${Math.abs(shift)} mm`;
+  const isDefault = zoomPct === 100 && shift === 0;
 
   // PDF of the sheet in the preview (D72): vector text and lines, pictures at full resolution.
   const previewRef = useRef<HTMLDivElement>(null);
@@ -149,26 +154,52 @@ export default function PrintPage() {
           {pdfNote}
         </p>
       )}
-      <div className={styles.zoomBar}>
-        <label htmlFor="print-zoom">Cỡ sơ đồ</label>
-        <input
-          id="print-zoom"
-          type="range"
-          min={MIN_TREE_ZOOM * 100}
-          max={MAX_TREE_ZOOM * 100}
-          step={5}
-          value={zoomPct}
-          aria-valuetext={`${zoomPct}%${zoomPct === 100 ? ', mặc định của giao diện' : ''}`}
-          onChange={(e) => setZoom(Number(e.target.value))}
-        />
-        <output htmlFor="print-zoom" className={styles.zoomValue}>
-          {zoomPct}%
-        </output>
-        <button type="button" className={styles.zoomReset} onClick={() => setZoom(100)} disabled={zoomPct === 100}>
+      {/* Size and place of the tree on the sheet (D98, D99); the theme's own are the default. */}
+      <div className={styles.adjust} role="group" aria-label="Căn chỉnh sơ đồ">
+        <div className={styles.zoomBar}>
+          <label htmlFor="print-zoom">Cỡ sơ đồ</label>
+          <input
+            id="print-zoom"
+            type="range"
+            min={MIN_TREE_ZOOM * 100}
+            max={MAX_TREE_ZOOM * 100}
+            step={5}
+            value={zoomPct}
+            aria-valuetext={`${zoomPct}%${zoomPct === 100 ? ', mặc định của giao diện' : ''}`}
+            onChange={(e) => setZoom(Number(e.target.value))}
+          />
+          <output htmlFor="print-zoom" className={styles.zoomValue}>
+            {zoomPct}%
+          </output>
+        </div>
+        <div className={styles.zoomBar}>
+          <label htmlFor="print-shift">Lên / xuống</label>
+          <input
+            id="print-shift"
+            type="range"
+            min={-MAX_TREE_SHIFT_MM}
+            max={MAX_TREE_SHIFT_MM}
+            step={5}
+            value={shift}
+            aria-valuetext={shift === 0 ? 'Vị trí mặc định của giao diện' : shiftText}
+            onChange={(e) => setShift(Number(e.target.value))}
+          />
+          <output htmlFor="print-shift" className={styles.zoomValue}>
+            {shiftText}
+          </output>
+        </div>
+        <button
+          type="button"
+          className={styles.zoomReset}
+          onClick={() => setOpts((o) => ({ ...o, treeZoom: 1, treeShiftMm: 0 }))}
+          disabled={isDefault}
+        >
           Mặc định
         </button>
       </div>
-      {zoomPct > 100 && <p className={styles.hint}>Sơ đồ lớn hơn cỡ mặc định có thể tràn ra khung tranh: xem kỹ bản xem trước trước khi in.</p>}
+      {(zoomPct > 100 || shift !== 0) && (
+        <p className={styles.hint}>Sơ đồ khác cỡ hoặc vị trí mặc định có thể tràn ra khung tranh hay chạm tiêu đề: xem kỹ bản xem trước trước khi in.</p>
+      )}
       <div ref={previewRef} className={styles.preview}>
         <PosterSvg
           className={styles.poster}

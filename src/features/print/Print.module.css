@@ -240,15 +240,21 @@
   margin: 0;
   flex: 1 1 260px;
 }
-/* "Cỡ sơ đồ" slider above the preview (D98): 100% is the theme's own size. */
-.zoomBar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
+/* "Cỡ sơ đồ" and "Lên / xuống" sliders above the preview (D98, D99): the theme's own are the default. */
+.adjust {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
   margin: 16px 0 8px;
 }
+.zoomBar {
+  display: flex;
+  align-items: center;
+  gap: 8px 12px;
+  width: 100%;
+}
 .zoomBar label {
+  flex: 0 0 6.5em;
   font-size: 0.875rem;
   color: var(--text-2);
 }
@@ -259,7 +265,7 @@
   accent-color: var(--accent);
 }
 .zoomValue {
-  min-width: 4ch;
+  flex: 0 0 7.5em;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }

@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { render } from '@testing-library/react';
 import { FALLBACK_FAMILY, PDF_FONTS, nearestFont, preparePosterSvg, styleKey } from '@/features/print/exportPdf';
-import { MAX_TREE_ZOOM, PRINT_SPACING, PosterSvg, Relief, fitBoardText, placeTree, type BoardLine } from '@/features/print/PosterSvg';
+import { MAX_TREE_SHIFT_MM, MAX_TREE_ZOOM, PRINT_SPACING, PosterSvg, Relief, fitBoardText, placeTree, type BoardLine } from '@/features/print/PosterSvg';
 import { buildClanModel } from '@/lib/clanModel';
 import { loadDemoSnapshot } from '@/lib/data/demoSource';
 import { computeTreeLayout } from '@/features/tree/layout';
@@ -490,5 +490,26 @@ describe('tree size slider (D98)', () => {
     const g = Array.from(container.querySelectorAll('g[transform]')).find((x) => /^translate\([^)]*\) scale\(/.test(x.getAttribute('transform')!))!;
     const [, , y] = /translate\(([-\d.]+) ([-\d.]+)\)/.exec(g.getAttribute('transform')!)!.map(Number);
     expect(y!).toBeGreaterThan(theme.contentInsetMm!.top);
+  });
+});
+
+describe('tree up/down slider (D99)', () => {
+  const theme = getTheme('gam-lam-mai-sen')!;
+  const place = (shift?: number) => {
+    const { container } = render(<PosterSvg theme={theme} model={model} layout={layout} options={shift === undefined ? {} : { treeShiftMm: shift }} />);
+    const g = Array.from(container.querySelectorAll('g[transform]')).find((x) => /^translate\([^)]*\) scale\(/.test(x.getAttribute('transform')!))!;
+    const [, x, y, k] = /translate\(([-\d.]+) ([-\d.]+)\) scale\(([\d.]+)\)/.exec(g.getAttribute('transform')!)!.map(Number);
+    return { x: x!, y: y!, k: k! };
+  };
+
+  it('moves the whole tree down or up by the millimetres chosen, nothing else', () => {
+    const base = place();
+    expect(place(0)).toEqual(base);
+    const down = place(40);
+    expect(down.y).toBeCloseTo(base.y + 40, 6);
+    expect(down.x).toBeCloseTo(base.x, 6);
+    expect(down.k).toBeCloseTo(base.k, 6);
+    expect(place(-25).y).toBeCloseTo(base.y - 25, 6);
+    expect(place(1000).y).toBeCloseTo(base.y + MAX_TREE_SHIFT_MM, 6);
   });
 });

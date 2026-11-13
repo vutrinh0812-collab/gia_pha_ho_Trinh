@@ -26,6 +26,8 @@ export interface PosterOptions {
    * theme's default). Set with a slider on the print page, 0.5–1.5.
    */
   treeZoom: number;
+  /** Moves the tree down (positive) or up (negative) from where the theme puts it, in mm (D99). */
+  treeShiftMm: number;
 }
 
 export const DEFAULT_POSTER_OPTIONS: PosterOptions = {
@@ -38,6 +40,7 @@ export const DEFAULT_POSTER_OPTIONS: PosterOptions = {
   // No "Đời 1, 2…" column on the sheet (D74).
   showGenerations: false,
   treeZoom: 1,
+  treeShiftMm: 0,
 };
 
 /** Builds the tree with a given spacing (the print page passes one, so the sheet can fit it). */
@@ -56,6 +59,8 @@ const MAX_TEXT_SCALE = 1.3;
 /** Range of the print page's tree size slider (D98), around the theme's own fit (1). */
 export const MIN_TREE_ZOOM = 0.5;
 export const MAX_TREE_ZOOM = 1.5;
+/** Range of the up/down slider (D99), in mm either way from the theme's own place. */
+export const MAX_TREE_SHIFT_MM = 150;
 /** Tightest line spacing in a card: the words (14 units on an 18-unit line) never touch. */
 const MIN_LINE_SCALE = 0.85;
 
@@ -555,7 +560,9 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
   const treeH = lh;
   // Centred in the free height unless the theme lifts it (`treeAlign`, D90); an enlarged
   // tree keeps its top under the title and grows downwards.
-  const oy = area.y + Math.max(0, area.h - treeH * scale) * (theme.treeAlign ?? 0.5) + 6 * scale;
+  // The print page's up/down slider moves it from there (D99).
+  const shift = Math.min(MAX_TREE_SHIFT_MM, Math.max(-MAX_TREE_SHIFT_MM, o.treeShiftMm ?? 0));
+  const oy = area.y + Math.max(0, area.h - treeH * scale) * (theme.treeAlign ?? 0.5) + 6 * scale + shift;
   const u = (mm: number) => mm / scale; // mm → tree units
 
   const nameColor = (male: boolean, blood: boolean) => (!blood ? c.spouse : male ? c.male : c.female);

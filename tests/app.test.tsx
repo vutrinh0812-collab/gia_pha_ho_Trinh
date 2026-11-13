@@ -140,10 +140,21 @@ describe('other pages', () => {
     expect(screen.getByText('80%')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Mặc định' }));
     expect(zoom.value).toBe('100');
+    // Up/down (D99): shown in mm, reset by the same button.
+    const shift = screen.getByLabelText('Lên / xuống') as HTMLInputElement;
+    expect(shift.value).toBe('0');
+    fireEvent.change(shift, { target: { value: '-20' } });
+    expect(screen.getByText('Lên 20 mm')).toBeInTheDocument();
+    fireEvent.change(shift, { target: { value: '35' } });
+    expect(screen.getByText('Xuống 35 mm')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Mặc định' }));
+    expect(shift.value).toBe('0');
     fireEvent.change(zoom, { target: { value: '120' } });
+    fireEvent.change(shift, { target: { value: '40' } });
     fireEvent.click(options[1]!);
     expect(options[1]).toHaveAttribute('aria-pressed', 'true');
     expect(zoom.value).toBe('100');
+    expect(shift.value).toBe('0');
     expect(screen.getByLabelText('Phạm vi in')).toBeInTheDocument();
     // D91: no frame-package import, no theme description, no phone note.
     expect(screen.queryByRole('button', { name: /Nhập gói giao diện|Tải JSON mẫu/ })).toBeNull();
