@@ -131,8 +131,19 @@ describe('other pages', () => {
     expect(options.map((b) => b.getAttribute('aria-label'))).toEqual(['Giao diện Đỏ son sen vàng', 'Giao diện Gấm lam mai sen', 'Giao diện Hoa điểu trên lụa', 'Giao diện Sơn mài rồng vàng']);
     // No stored default in the sample clan: "Hoa điểu trên lụa" is chosen.
     expect(options.filter((b) => b.getAttribute('aria-pressed') === 'true').map((b) => b.getAttribute('aria-label'))).toEqual(['Giao diện Hoa điểu trên lụa']);
+    // Tree size slider (D98): 100% = the theme's default; back to it on another theme.
+    const zoom = screen.getByLabelText('Cỡ sơ đồ') as HTMLInputElement;
+    expect(zoom.value).toBe('100');
+    expect(screen.getByRole('button', { name: 'Mặc định' })).toBeDisabled();
+    fireEvent.change(zoom, { target: { value: '80' } });
+    expect(zoom.value).toBe('80');
+    expect(screen.getByText('80%')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Mặc định' }));
+    expect(zoom.value).toBe('100');
+    fireEvent.change(zoom, { target: { value: '120' } });
     fireEvent.click(options[1]!);
     expect(options[1]).toHaveAttribute('aria-pressed', 'true');
+    expect(zoom.value).toBe('100');
     expect(screen.getByLabelText('Phạm vi in')).toBeInTheDocument();
     // D91: no frame-package import, no theme description, no phone note.
     expect(screen.queryByRole('button', { name: /Nhập gói giao diện|Tải JSON mẫu/ })).toBeNull();

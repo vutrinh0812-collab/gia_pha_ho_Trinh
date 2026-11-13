@@ -240,3 +240,40 @@
   margin: 0;
   flex: 1 1 260px;
 }
+/* "Cỡ sơ đồ" slider above the preview (D98): 100% is the theme's own size. */
+.zoomBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 16px 0 8px;
+}
+.zoomBar label {
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+.zoomBar input[type='range'] {
+  flex: 1 1 200px;
+  min-width: 0;
+  min-height: 44px;
+  accent-color: var(--accent);
+}
+.zoomValue {
+  min-width: 4ch;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.zoomReset {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.zoomReset:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

@@ -4,7 +4,7 @@ import { useClanStore } from '@/store/clanStore';
 import { PRINT_THEMES, printThemeOrDefault } from '@/themes/registry';
 import type { Theme } from '@/themes/types';
 import { BranchPicker } from './BranchPicker';
-import { A1, DEFAULT_POSTER_OPTIONS, PosterSvg, type PosterOptions } from './PosterSvg';
+import { A1, DEFAULT_POSTER_OPTIONS, MAX_TREE_ZOOM, MIN_TREE_ZOOM, PosterSvg, type PosterOptions } from './PosterSvg';
 import { usePrintLayoutBuilder, useThemeFonts } from './usePrintScope';
 import styles from './Print.module.css';
 
@@ -29,10 +29,13 @@ export default function PrintPage() {
   useThemeFonts(themes);
   const layout = usePrintLayoutBuilder(model, focusId, opts.showSpouses);
 
+  // Each theme's own fit is the default size of the tree (D98): back to it on a new theme.
   const pick = (t: Theme) => {
     setThemeId(t.id);
-    if (t.preferredOrientation) setOpts((o) => ({ ...o, orientation: t.preferredOrientation! }));
+    setOpts((o) => ({ ...o, treeZoom: 1, orientation: t.preferredOrientation ?? o.orientation }));
   };
+  const zoomPct = Math.round(opts.treeZoom * 100);
+  const setZoom = (pct: number) => setOpts((o) => ({ ...o, treeZoom: pct / 100 }));
 
   // PDF of the sheet in the preview (D72): vector text and lines, pictures at full resolution.
   const previewRef = useRef<HTMLDivElement>(null);
@@ -87,7 +90,7 @@ export default function PrintPage() {
                     theme={t}
                     model={model}
                     layout={layout}
-                    options={{ ...opts, orientation: t.preferredOrientation ?? opts.orientation }}
+                    options={{ ...opts, treeZoom: 1, orientation: t.preferredOrientation ?? opts.orientation }}
                     title={shownTitle}
                     subtitle={subtitle}
                   />
@@ -146,6 +149,26 @@ export default function PrintPage() {
           {pdfNote}
         </p>
       )}
+      <div className={styles.zoomBar}>
+        <label htmlFor="print-zoom">Cỡ sơ đồ</label>
+        <input
+          id="print-zoom"
+          type="range"
+          min={MIN_TREE_ZOOM * 100}
+          max={MAX_TREE_ZOOM * 100}
+          step={5}
+          value={zoomPct}
+          aria-valuetext={`${zoomPct}%${zoomPct === 100 ? ', mặc định của giao diện' : ''}`}
+          onChange={(e) => setZoom(Number(e.target.value))}
+        />
+        <output htmlFor="print-zoom" className={styles.zoomValue}>
+          {zoomPct}%
+        </output>
+        <button type="button" className={styles.zoomReset} onClick={() => setZoom(100)} disabled={zoomPct === 100}>
+          Mặc định
+        </button>
+      </div>
+      {zoomPct > 100 && <p className={styles.hint}>Sơ đồ lớn hơn cỡ mặc định có thể tràn ra khung tranh: xem kỹ bản xem trước trước khi in.</p>}
       <div ref={previewRef} className={styles.preview}>
         <PosterSvg
           className={styles.poster}

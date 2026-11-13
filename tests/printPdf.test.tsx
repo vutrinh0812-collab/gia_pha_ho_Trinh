@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { render } from '@testing-library/react';
 import { FALLBACK_FAMILY, PDF_FONTS, nearestFont, preparePosterSvg, styleKey } from '@/features/print/exportPdf';
-import { PRINT_SPACING, PosterSvg, Relief, fitBoardText, placeTree, type BoardLine } from '@/features/print/PosterSvg';
+import { MAX_TREE_ZOOM, PRINT_SPACING, PosterSvg, Relief, fitBoardText, placeTree, type BoardLine } from '@/features/print/PosterSvg';
 import { buildClanModel } from '@/lib/clanModel';
 import { loadDemoSnapshot } from '@/lib/data/demoSource';
 import { computeTreeLayout } from '@/features/tree/layout';
@@ -466,5 +466,29 @@ describe('couplets: both halves at one size (D92)', () => {
     expect(left.length).toBeGreaterThan(0);
     expect(right.length).toBeGreaterThan(0);
     expect(Math.max(...left)).toBeCloseTo(Math.max(...right), 5);
+  });
+});
+
+describe('tree size slider (D98)', () => {
+  const theme = getTheme('gam-lam-mai-sen')!;
+  const treeScale = (zoom?: number) => {
+    const { container } = render(<PosterSvg theme={theme} model={model} layout={layout} options={zoom === undefined ? {} : { treeZoom: zoom }} />);
+    const g = Array.from(container.querySelectorAll('g[transform]')).find((x) => /^translate\([^)]*\) scale\(/.test(x.getAttribute('transform')!))!;
+    return Number(/scale\(([\d.]+)\)/.exec(g.getAttribute('transform')!)![1]);
+  };
+
+  it("100% is the theme's own fit; smaller and larger scale the tree, within the slider's range", () => {
+    const base = treeScale();
+    expect(treeScale(1)).toBeCloseTo(base, 6);
+    expect(treeScale(0.5)).toBeCloseTo(base * 0.5, 2);
+    expect(treeScale(1.2)).toBeGreaterThan(base * 1.1);
+    expect(treeScale(5)).toBeLessThanOrEqual(base * MAX_TREE_ZOOM + 1e-6);
+  });
+
+  it('an enlarged tree keeps its top below the title and is centred across the sheet', () => {
+    const { container } = render(<PosterSvg theme={theme} model={model} layout={layout} options={{ treeZoom: 1.5 }} title="Gia phả" />);
+    const g = Array.from(container.querySelectorAll('g[transform]')).find((x) => /^translate\([^)]*\) scale\(/.test(x.getAttribute('transform')!))!;
+    const [, , y] = /translate\(([-\d.]+) ([-\d.]+)\)/.exec(g.getAttribute('transform')!)!.map(Number);
+    expect(y!).toBeGreaterThan(theme.contentInsetMm!.top);
   });
 });

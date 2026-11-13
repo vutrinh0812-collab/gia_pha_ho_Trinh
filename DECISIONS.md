@@ -859,3 +859,10 @@ Làm theo mẫu tranh bác gửi (viền lam, mộc lan, mai đỏ, lôi văn v�
 - **Phông PDF mới**: `alex-brush-400`, `playfair-display-400-italic`, `playfair-display-600-italic` (OFL, đủ chữ tiếng Việt).
 - **Canva**: bản gốc `DAHauD0ypCs` (1056 × 816), bản A1 `DAHauJx_bP8` (đã chỉnh, dùng để xuất). Ảnh hoành phi lôi văn đã tách nền `MAHauAmI-50` (không dùng).
 - Hạn chế: cây rất đông thì 3–4 ô cuối hàng dưới vẫn chạm ngọn sen và ke góc dưới trái; nền ô ngà nên tên vẫn đọc rõ.
+
+## D98 — In ấn: thanh kéo "Cỡ sơ đồ"
+
+- Ngay trên bản xem trước có thanh kéo **Cỡ sơ đồ** từ 50% đến 150%, bước 5%. **100% là cỡ mặc định của từng giao diện in** (cách mỗi giao diện tự xếp cây cho vừa vùng cây của nó); thanh kéo phóng to hoặc thu nhỏ cây quanh cỡ đó. Nút "Mặc định" đưa về 100%.
+- Đổi giao diện thì cỡ về lại 100%, vì mỗi giao diện có cỡ mặc định riêng. Ảnh nhỏ của các giao diện luôn hiện cỡ mặc định.
+- Thu nhỏ: cây vẫn đặt người đứng đầu dưới tiêu đề như cũ. Phóng to quá vùng cây: cây nằm giữa tờ, đỉnh cây vẫn ở dưới tiêu đề và cây lớn xuống phía dưới; cây có thể tràn ra khung tranh. Khi trên 100% trang có dòng nhắc xem kỹ bản xem trước. Bản PDF in đúng cỡ đang chọn.
+- Chỉ đổi tỉ lệ của cả cây (`treeZoom` trong tùy chọn bản in); khoảng cách dòng và cỡ chữ trong ô vẫn do giao diện tính như trước.

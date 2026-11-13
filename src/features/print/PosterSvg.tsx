@@ -21,6 +21,11 @@ export interface PosterOptions {
   showCouplets: boolean;
   showColophon: boolean;
   showGenerations: boolean;
+  /**
+   * Size of the tree on the sheet (D98), as a multiple of the theme's own fit (1 = the
+   * theme's default). Set with a slider on the print page, 0.5–1.5.
+   */
+  treeZoom: number;
 }
 
 export const DEFAULT_POSTER_OPTIONS: PosterOptions = {
@@ -32,6 +37,7 @@ export const DEFAULT_POSTER_OPTIONS: PosterOptions = {
   showColophon: false,
   // No "Đời 1, 2…" column on the sheet (D74).
   showGenerations: false,
+  treeZoom: 1,
 };
 
 /** Builds the tree with a given spacing (the print page passes one, so the sheet can fit it). */
@@ -47,6 +53,9 @@ const MAX_LINE_SCALE = 3.0;
 const MAX_PRINT_VGAP = 100;
 /** Card text grows with the spacing, up to this much, so the cards read from further away. */
 const MAX_TEXT_SCALE = 1.3;
+/** Range of the print page's tree size slider (D98), around the theme's own fit (1). */
+export const MIN_TREE_ZOOM = 0.5;
+export const MAX_TREE_ZOOM = 1.5;
 /** Tightest line spacing in a card: the words (14 units on an 18-unit line) never touch. */
 const MIN_LINE_SCALE = 0.85;
 
@@ -536,10 +545,17 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
   const top = fitted.nodes.filter((n) => n.y === topY);
   const rootCx = top.length ? (Math.min(...top.map((n) => n.x)) + Math.max(...top.map((n) => n.x + n.w))) / 2 : (b.minX + b.maxX) / 2;
   const axis = board ? bannerX + bannerW / 2 : area.x + area.w / 2;
-  const { scale, ox } = placeTree(area, b, rootCx, Math.min(area.w / lw, area.h / lh, 0.36), axis);
+  // The theme's fit, made larger or smaller by the print page's slider (D98).
+  const zoom = Math.min(MAX_TREE_ZOOM, Math.max(MIN_TREE_ZOOM, o.treeZoom ?? 1));
+  const fitPlace = placeTree(area, b, rootCx, Math.min(area.w / lw, area.h / lh, 0.36), axis);
+  const placed = zoom === 1 ? fitPlace : placeTree(area, b, rootCx, fitPlace.scale * zoom, axis);
+  const scale = placed.scale;
+  // Wider than the free area (enlarged): centred on it, spilling evenly over both sides.
+  const ox = lw * scale > area.w ? area.x + (area.w - lw * scale) / 2 - b.minX * scale : placed.ox;
   const treeH = lh;
-  // Centred in the free height unless the theme lifts it (`treeAlign`, D90).
-  const oy = area.y + (area.h - treeH * scale) * (theme.treeAlign ?? 0.5) + 6 * scale;
+  // Centred in the free height unless the theme lifts it (`treeAlign`, D90); an enlarged
+  // tree keeps its top under the title and grows downwards.
+  const oy = area.y + Math.max(0, area.h - treeH * scale) * (theme.treeAlign ?? 0.5) + 6 * scale;
   const u = (mm: number) => mm / scale; // mm → tree units
 
   const nameColor = (male: boolean, blood: boolean) => (!blood ? c.spouse : male ? c.male : c.female);
