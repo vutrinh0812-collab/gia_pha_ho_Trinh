@@ -8,7 +8,8 @@ import frame from './khung-a1.jpg';
  * cream dó paper; a branch of red plum and pink magnolia reaches in from the top left and
  * a lotus clump grows in at the bottom right (khung-a1.jpg, A1 landscape, 5600 × 3955 px
  * ≈ 169 dpi). No title board and no couplets: the title is written straight on the paper
- * in navy ink (Alex Brush), the subtitle in bronze (Playfair Display italic). Ivory cards
+ * in navy ink (Imperial Script since D100, Alex Brush before), the subtitle in bronze
+ * (Cormorant Garamond semibold italic). Ivory cards
  * with navy rims, names in navy (women in deep red), Playfair Display italic. Flat ink:
  * no relief on the lettering.
  */
@@ -19,13 +20,14 @@ const theme: Theme = {
   description:
     'Viền gấm lam hoa chìm, ke góc lôi văn vàng, giấy dó ngà; cành mai đỏ và mộc lan góc trên, đầm sen góc dưới; tiêu đề thư pháp mực lam.',
   fontsCss:
-    'https://fonts.googleapis.com/css2?family=Alex+Brush&family=Playfair+Display:ital,wght@1,400;1,600&display=swap&subset=vietnamese',
+    'https://fonts.googleapis.com/css2?family=Imperial+Script&family=Cormorant+Garamond:ital,wght@1,600&family=Playfair+Display:ital,wght@1,400;1,600&display=swap&subset=vietnamese',
   typography: {
-    title: { family: 'Alex Brush', weight: 400, sizePt: 150 },
-    heading: { family: 'Playfair Display', weight: 400, sizePt: 48, italic: true },
+    // A flourished copperplate for the title, a bolder Cormorant italic subtitle 20% larger (D100).
+    title: { family: 'Imperial Script', weight: 400, sizePt: 150 },
+    heading: { family: 'Cormorant Garamond', weight: 600, sizePt: 58, italic: true },
     name: { family: 'Playfair Display', weight: 600, sizePt: 11, italic: true },
     body: { family: 'Playfair Display', weight: 400, sizePt: 8, italic: true },
-    couplet: { family: 'Alex Brush', weight: 400, sizePt: 40 },
+    couplet: { family: 'Imperial Script', weight: 400, sizePt: 40 },
   },
   colors: {
     ...base.colors,

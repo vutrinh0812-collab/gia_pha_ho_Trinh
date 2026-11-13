@@ -52,6 +52,7 @@ export const PDF_FONTS: Record<string, Array<{ weight: number; italic?: boolean;
   ],
   'Water Brush': [{ weight: 400, file: 'water-brush-400.ttf' }],
   'Alex Brush': [{ weight: 400, file: 'alex-brush-400.ttf' }],
+  'Imperial Script': [{ weight: 400, file: 'imperial-script-400.ttf' }],
 };
 
 /** Used for any family that is not bundled (an imported pack's own font): it has every Vietnamese letter. */

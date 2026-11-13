@@ -735,7 +735,8 @@ export function PosterSvg({ theme, model, layout, options, className, title, sub
                 y={subY}
                 textAnchor="middle"
                 fontFamily={t.heading.family}
-                fontWeight={400}
+                // The theme's own weight on the open sheet (D100); 400 on a board as before.
+                fontWeight={tb ? 400 : t.heading.weight}
                 fontSize={subSize}
                 fill={rim ?? (tb ? (c.bannerText ?? c.textSecondary) : c.textSecondary)}
               >

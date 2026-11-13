@@ -871,3 +871,9 @@ Làm theo mẫu tranh bác gửi (viền lam, mộc lan, mai đỏ, lôi văn v�
 
 - Dưới thanh "Cỡ sơ đồ" (D98) có thanh **Lên / xuống**: dời cả cây lên hoặc xuống tối đa 150 mm, bước 5 mm, tính từ chỗ giao diện tự đặt (0 mm = mặc định). Bên cạnh ghi "Lên 20 mm" / "Xuống 35 mm". Một nút **Mặc định** đưa cả cỡ và vị trí về mặc định; đổi giao diện cũng về mặc định. Khi khác mặc định, trang nhắc xem kỹ bản xem trước (cây có thể chạm tiêu đề hay tràn khung). Chỉ dời cây (`treeShiftMm`), không đổi cỡ hay khoảng cách.
 - **Gấm lam mai sen** (D97): bốn ke góc lôi văn đưa lên lớp trên cùng, nổi đè lên cành mai và cụm sen thay vì nằm dưới; cụm sen phóng từ 60% lên 80% cỡ gốc (vẫn neo ở góc dưới phải). Sửa trên bản Canva A1 `DAHauJx_bP8`, xuất lại và vá viền như D97.
+
+## D100 — "Gấm lam mai sen": tiêu đề Imperial Script, dòng phụ Cormorant nghiêng to hơn 20%
+
+- Bác muốn tiêu đề bay bướm, cầu kỳ hơn và dòng phụ to hơn, đặc sắc hơn. Thử bốn bộ trên khung thật (Imperial Script + Cormorant, Pinyon Script + Charm, Ballet + Playfair, Arizonia + Charmonman); bác chọn **Imperial Script** (copperplate, chữ hoa có nét lượn) cho tiêu đề và **Cormorant Garamond nghiêng đậm 600** cho dòng phụ.
+- Dòng phụ to hơn 20% (`heading.sizePt` 48 → 58). Trên tờ giấy không có bảng tiêu đề, dòng phụ dùng độ đậm của giao diện (`heading.weight`); trên bảng tiêu đề vẫn 400 như trước, nên các giao diện khác không đổi.
+- Phông PDF mới: `imperial-script-400` (OFL, đủ chữ tiếng Việt). Cormorant Garamond 600 nghiêng đã có sẵn.

@@ -15,5 +15,6 @@ Nguồn: Google Fonts. Đã cắt chỉ giữ chữ Latin và tiếng Việt (`p
 | Dancing Script | Impallari Type | SIL Open Font License 1.1 |
 | Water Brush | Robert Leuschke | SIL Open Font License 1.1 |
 | Alex Brush | TypeSETit (Robert Leuschke) | SIL Open Font License 1.1 |
+| Imperial Script | Robert Leuschke | SIL Open Font License 1.1 |
 
 Toàn văn giấy phép: https://openfontlicense.org. Phông được phép dùng, sửa (kể cả cắt bớt) và phân phối lại cùng phần mềm, miễn không bán riêng lẻ phông.

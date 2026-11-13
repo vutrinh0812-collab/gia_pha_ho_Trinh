@@ -127,7 +127,7 @@ describe('"Gấm lam mai sen": navy brocade, plum and lotus, title on the paper 
     );
     const title = Array.from(container.querySelectorAll('text')).find((t) => t.textContent === 'Gia Phả Họ Trịnh')!;
     expect(title.getAttribute('fill')).toBe(theme.colors.textPrimary);
-    expect(title.getAttribute('font-family')).toBe('Alex Brush');
+    expect(title.getAttribute('font-family')).toBe('Imperial Script');
     const size = Number(title.getAttribute('font-size'));
     expect(size).toBeLessThanOrEqual(theme.plainTitle!.maxSizeMm);
     // Measured width (fallback widths in tests) stays within the space between the flowers.
@@ -138,6 +138,10 @@ describe('"Gấm lam mai sen": navy brocade, plum and lotus, title on the paper 
     const sub = Array.from(container.querySelectorAll('text')).find((t) => t.textContent === 'Chi trưởng')!;
     expect(sub.getAttribute('fill')).toBe(theme.colors.textSecondary);
     expect(sub.getAttribute('font-style')).toBe('italic');
+    // D100: Cormorant Garamond semibold italic, 20% larger than before (48 → 58 pt).
+    expect(sub.getAttribute('font-family')).toBe('Cormorant Garamond');
+    expect(sub.getAttribute('font-weight')).toBe('600');
+    expect(Number(sub.getAttribute('font-size'))).toBeCloseTo(58 * 0.3528 * 0.62, 1);
   });
 });
 
