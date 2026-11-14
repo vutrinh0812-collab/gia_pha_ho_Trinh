@@ -9,7 +9,7 @@
  */
 import { flextree, type FlexHierarchyNode } from 'd3-flextree';
 import type { ClanModel, PersonRec } from '@/lib/clanModel';
-import { birthYear, spouseRole, toRoman } from '@/lib/format';
+import { spouseRole, toRoman, treeYears, treeYearsText } from '@/lib/format';
 
 export const NODE_W = 176;
 /**
@@ -195,10 +195,13 @@ export interface VerticalMetrics {
   height: number;
 }
 
-/** The tree shows the birth year only (no death year). */
+/**
+ * Year lines of a narrow card: the birth year; for someone who has died two lines,
+ * "1890 –" and "1950" (D101), as "1890 – 1950" does not fit the column.
+ */
 function yearsOf(p: PersonRec): string[] {
-  const b = birthYear(p);
-  return b ? [b] : [];
+  const y = treeYears(p);
+  return y.length === 2 ? [`${y[0]} –`, y[1]!] : y;
 }
 
 const words = (name: string) => name.trim().split(/\s+/).filter(Boolean);
@@ -237,9 +240,9 @@ export function verticalMetrics(
   return { lines, sections, height: y + V.padBottom * k };
 }
 
-/** Lines a spouse takes in a wide card: "Vợ: name", then the birth year when known. */
+/** Lines a spouse takes in a wide card: the name, then the years when known (D101). */
 export function spouseLineCount(spouses: readonly TreeSpouse[]): number {
-  return spouses.reduce((n, s) => n + (birthYear(s.person) ? 2 : 1), 0);
+  return spouses.reduce((n, s) => n + (treeYearsText(s.person) ? 2 : 1), 0);
 }
 
 export function isShown(model: ClanModel, p: PersonRec, f: TreeFilters): boolean {

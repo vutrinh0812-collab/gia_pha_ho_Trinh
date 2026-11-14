@@ -220,7 +220,7 @@ describe('vertical cards for the lower generations', () => {
       // The spouse's years follow their name, as the bloodline person's do.
       const spouseBirth = n.spouses[0]!.person.birth?.solar?.slice(0, 4);
       const firstSpouseTop = m.sections[0]!.top;
-      if (spouseBirth) expect(m.lines.some((l) => l.kind === 'year' && l.y > firstSpouseTop && l.text === spouseBirth)).toBe(true);
+      if (spouseBirth) expect(m.lines.some((l) => l.kind === 'year' && l.y > firstSpouseTop && l.text.replace(/ –$/, '') === spouseBirth)).toBe(true);
       // Every line sits inside the card, top to bottom.
       const ys = m.lines.map((l) => l.y);
       expect(ys).toEqual([...ys].sort((a, b) => a - b));
@@ -237,5 +237,18 @@ describe('vertical cards for the lower generations', () => {
       expect(m.height).toBe(n.h);
       expect(m.lines.every((l) => l.kind === 'word' || l.kind === 'spouseWord' || l.kind === 'year')).toBe(true);
     }
+  });
+});
+
+describe('years on the tree (D101)', () => {
+  const layout = computeTreeLayout(model, base, { labels: false });
+
+  it('a narrow card of someone who has died shows "1890 –" and "1950" on two lines; the living, the birth year', () => {
+    const dead = layout.nodes.find((n) => n.vertical && n.person.death?.isDeceased && n.person.birth?.solar && n.person.death?.solar)!;
+    expect(dead).toBeDefined();
+    const years = verticalMetrics(dead.person, [], { labels: false }).lines.filter((l) => l.kind === 'year').map((l) => l.text);
+    expect(years).toEqual([`${dead.person.birth!.solar!.slice(0, 4)} –`, dead.person.death!.solar!.slice(0, 4)]);
+    const alive = layout.nodes.find((n) => n.vertical && !n.person.death?.isDeceased && n.person.birth?.solar)!;
+    expect(verticalMetrics(alive.person, [], { labels: false }).lines.filter((l) => l.kind === 'year').map((l) => l.text)).toEqual([alive.person.birth!.solar!.slice(0, 4)]);
   });
 });

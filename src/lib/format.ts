@@ -29,6 +29,24 @@ export function birthYear(p: Pick<PersonFields, 'birth'>): string {
   return b === null ? '' : `${p.birth?.approximate ? 'k. ' : ''}${b}`;
 }
 
+/**
+ * Years for the tree (D101): the birth year; for someone who has died, the birth and the
+ * death year ("?" for the unknown one). Nothing known: []. Joined with " – " on one line.
+ */
+export function treeYears(p: Pick<PersonFields, 'birth' | 'death'>): string[] {
+  const b = yearOf(p.birth);
+  const bText = b === null ? null : `${p.birth?.approximate ? 'k. ' : ''}${b}`;
+  if (p.death?.isDeceased !== true) return bText ? [bText] : [];
+  const d = yearOf(p.death);
+  if (b === null && d === null) return [];
+  return [bText ?? '?', d === null ? '?' : `${p.death?.approximate ? 'k. ' : ''}${d}`];
+}
+
+/** One line of `treeYears`: "1890 – 1950", "1990", "". */
+export function treeYearsText(p: Pick<PersonFields, 'birth' | 'death'>): string {
+  return treeYears(p).join(' – ');
+}
+
 /** "1890 – 1950", "k. 1820 – ?", "1990" (living), "" when nothing is known. */
 export function lifeSpan(p: Pick<PersonFields, 'birth' | 'death'>): string {
   const b = yearOf(p.birth);

@@ -1,5 +1,5 @@
 import { memo, useLayoutEffect, useRef } from 'react';
-import { birthYear } from '@/lib/format';
+import { treeYearsText } from '@/lib/format';
 import { V_PAD_X, verticalMetrics, type TreeNode, type VerticalLineKind } from './layout';
 import type { Lod } from './lod';
 import styles from './Tree.module.css';
@@ -72,8 +72,8 @@ function sectionPath(w: number, top: number, h: number, r: number): string {
 }
 
 /**
- * Couple column: the name one word per line, the birth year; below a divider, on a
- * tinted section, each spouse's name and birth year the same way.
+ * Couple column: the name one word per line, the years (birth, or birth – death on two
+ * lines, D101); below a divider, on a tinted section, each spouse the same way.
  */
 function VerticalContent({ node, lod }: { node: TreeNode; lod: Lod }) {
   const m = verticalMetrics(node.person, node.spouses, { labels: false });
@@ -104,13 +104,13 @@ function VerticalContent({ node, lod }: { node: TreeNode; lod: Lod }) {
 
 /**
  * One family box: bloodline person (+ spouses below), content by level of detail.
- * Only names and birth years are shown; everything else is on the person's profile.
+ * Only names and years are shown (birth; birth – death for the dead, D101); the rest is on the profile.
  */
 export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, onSelect, onToggle }: Props) {
   const p = node.person;
   const role = p.gender === 'male' ? 'male' : 'female';
   const deceased = p.death?.isDeceased === true;
-  const years = birthYear(p);
+  const years = treeYearsText(p);
   const w = node.w;
   const textW = w - 22;
 
@@ -164,7 +164,7 @@ export const TreeNodeView = memo(function TreeNodeView({ node, lod, dim, mark, o
             {(() => {
               let y = years ? 45 : 28;
               return node.spouses.map((s) => {
-                const sYears = birthYear(s.person);
+                const sYears = treeYearsText(s.person);
                 return (
                   <g key={s.person.id}>
                     <text className={styles.spouse} x={12} y={(y += 15)}>

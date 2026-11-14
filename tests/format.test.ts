@@ -1,4 +1,4 @@
-import { birthYear, childrenGroupLabel, formatDateInfo, givenName, lifeSpan, spouseRole } from '@/lib/format';
+import { birthYear, childrenGroupLabel, formatDateInfo, givenName, lifeSpan, spouseRole, treeYears, treeYearsText } from '@/lib/format';
 
 describe('lifeSpan', () => {
   it('formats known, unknown and approximate years', () => {
@@ -51,5 +51,16 @@ describe('birthYear', () => {
     expect(birthYear({ birth: { solar: '1820', approximate: true } })).toBe('k. 1820');
     expect(birthYear({ birth: { lunar: { year: 1842 } } })).toBe('1842');
     expect(birthYear({})).toBe('');
+  });
+});
+
+describe('treeYears (D101)', () => {
+  it('birth year for the living; birth and death year for the dead', () => {
+    expect(treeYears({ birth: { solar: '1990-01-02' } })).toEqual(['1990']);
+    expect(treeYearsText({ birth: { solar: '1890' }, death: { isDeceased: true, solar: '1950-03-01' } })).toBe('1890 – 1950');
+    expect(treeYears({ birth: { solar: '1820', approximate: true }, death: { isDeceased: true } })).toEqual(['k. 1820', '?']);
+    expect(treeYears({ death: { isDeceased: true, lunar: { year: 1901 } } })).toEqual(['?', '1901']);
+    expect(treeYears({ death: { isDeceased: true } })).toEqual([]);
+    expect(treeYears({})).toEqual([]);
   });
 });
