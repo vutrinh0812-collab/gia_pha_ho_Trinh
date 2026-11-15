@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Dàn sơ đồ phả hệ cho tranh khắc đồng (bước 5 của brief Canva).
 
-    python3 design/canva/layout.py <data> <out_dir>
+    python3 design/canva/layout.py <data> <out_dir> [--d3-rong 5] [--o-doc-tu 4] [--danh-sach-la 2] [--con-gai co|khong]
 
-<data>: file dạng {persons:[...], unions:[...], settings:{...}} như design/proposals/data.js
-(window.CLAN = {...}) hoặc JSON thuần cùng cấu trúc. Không sửa dữ liệu, chỉ đọc.
+<data>: bản sao lưu của ứng dụng (format gia-pha-backup), hoặc file dạng {persons, unions, settings}
+như design/proposals/data.js. Không sửa dữ liệu, chỉ đọc.
 Xuất: layout.json (tấm chính + các tấm "Chi n"), report.json, preview_*.png.
 Đơn vị px trên trang 7200 x 4800 (khoảng 67 px/cm ngang với khổ 107 cm).
 """
@@ -42,23 +42,83 @@ def wrap(text, font, width):
     if cur: lines.append(cur)
     return lines
 
+CFG = dict(d3_rong=7.0, o_doc_tu=7, danh_sach_la=None, con_gai=None)
+# d3_rong: bề rộng ô đời 2–3 (% trang). o_doc_tu: đời bắt đầu dùng ô dọc hẹp.
+# danh_sach_la: None = đúng brief (nhà >6 con mới xếp danh sách); N = gom các con chưa có con cháu
+#   thành danh sách dọc khi nhà có từ N con như vậy. con_gai: None = theo cài đặt của dữ liệu.
+
+def hyphenate(word, font, width):
+    """Ô dọc hẹp: từ quá dài (thường là tên nước ngoài) ngắt bằng gạch nối, không thu nhỏ chữ."""
+    out = []
+    while tw(word, font) > width and len(word) > 2:
+        k = len(word) - 1
+        while k > 1 and tw(word[:k] + '-', font) > width: k -= 1
+        out.append(word[:k] + '-'); word = word[k:]
+    return out + [word]
+
 def gen_style(g):
     if g == 1: return dict(kind='thuy_to', w=9 * PX)
-    if g <= 3: return dict(kind='cuon_thu', w=7 * PX)
-    if g <= 6: return dict(kind='chu_nhat', w=5 * PX)
-    return dict(kind='doc_hep', w=2.2 * PX, min_h=6 * PY)
+    if g >= CFG['o_doc_tu']: return dict(kind='doc_hep', w=2.2 * PX, min_h=6 * PY)
+    if g <= 3: return dict(kind='cuon_thu', w=CFG['d3_rong'] * PX)
+    return dict(kind='chu_nhat', w=5 * PX)
 
 # ---------------------------------------------------------------- dữ liệu
+def _year(di):
+    if not di: return None
+    if di.get('solar'): return di['solar'][:4]
+    l = di.get('lunar') or {}
+    return str(l['year']) if l.get('year') else None
+
+def _span(p):
+    b, d = _year(p.get('birth')), _year(p.get('death'))
+    dead = (p.get('death') or {}).get('isDeceased') is True
+    bt = '?' if b is None else ('k. ' if (p.get('birth') or {}).get('approximate') else '') + b
+    if not dead: return '' if b is None else bt
+    dt = '?' if d is None else ('k. ' if p['death'].get('approximate') else '') + d
+    return f"{bt} – {dt}"
+
+def from_backup(d):
+    """Chuyển bản sao lưu ứng dụng (format gia-pha-backup) sang cấu trúc chuẩn. Chỉ đọc, không sửa dữ liệu."""
+    S = d['settings']; root = S['rootPersonId']
+    P = {p['id']: p for p in d['persons']}
+    U = {u['id']: u for u in d['unions']}
+    kids = collections.defaultdict(list)
+    for p in P.values():
+        if p.get('parentUnionId') in U: kids[U[p['parentUnionId']]['bloodlinePersonId']].append(p['id'])
+    gen, q = {root: 1}, [root]
+    while q:
+        x = q.pop(0)
+        for u in U.values():
+            if u['bloodlinePersonId'] == x and u.get('spousePersonId'): gen.setdefault(u['spousePersonId'], gen[x])
+        for c in kids.get(x, []):
+            if c not in gen: gen[c] = gen[x] + 1; q.append(c)
+    lab = dict(huy='Húy', tu='Tự', hieu='Hiệu', thuong='Thường gọi', khac='Tên khác')
+    persons = []
+    for p in P.values():
+        pu = U.get(p.get('parentUnionId'))
+        par = P.get(pu['bloodlinePersonId']) if pu else None
+        lun = p.get('deathAnniversaryLunar') or ((p.get('death') or {}).get('lunar') if (p.get('death') or {}).get('isDeceased') else None)
+        persons.append(dict(id=p['id'], name=p['fullName'], male=p.get('gender') == 'male', blood=p.get('isBloodline', False),
+            maternal=bool(par and par.get('gender') == 'female'), gen=gen.get(p['id']), order=p.get('birthOrder'),
+            parentUnion=p.get('parentUnionId'), years=_span(p), deceased=(p.get('death') or {}).get('isDeceased') is True,
+            other=' · '.join(f"{lab.get(k, k)} {v}" for k, v in (p.get('otherNames') or {}).items() if v),
+            gio=f"{lun['day']}/{lun['month']}" if lun and lun.get('day') and lun.get('month') else None))
+    unions = [dict(id=u['id'], b=u['bloodlinePersonId'], s=u.get('spousePersonId'), order=u.get('order')) for u in U.values()]
+    unreach = [p['name'] for p in persons if p['gen'] is None]
+    if unreach: raise SystemExit(f"Có người chưa nối vào cây: {unreach}")
+    return dict(settings=S, rootId=root, persons=persons, unions=unions)
+
 def load(path):
     s = open(path, encoding='utf8').read()
     if not s.lstrip().startswith('{'):
         s = s[s.index('{'):s.rstrip().rstrip(';').rindex('}') + 1]
-    return json.loads(s)
+    d = json.loads(s)
+    return from_backup(d) if d.get('format') == 'gia-pha-backup' else d
 
 def build_tree(d):
     P = {p['id']: p for p in d['persons']}
     U = {u['id']: u for u in d['unions']}
-    show_mat = d.get('settings', {}).get('showMaternalDescendants', False)
+    show_mat = d.get('settings', {}).get('showMaternalDescendants', False) if CFG['con_gai'] is None else CFG['con_gai']
     spouses = collections.defaultdict(list)
     for u in sorted(U.values(), key=lambda u: u.get('order') or 0):
         if u.get('s'): spouses[u['b']].append(P[u['s']])
@@ -107,7 +167,7 @@ def measure(lines, style):
     if style['kind'] == 'thuy_to': h += 1.6 * PX   # chừa mái đình
     for kind, text in lines:
         f, size = (FB, NAME_PX) if kind == 'name' else (FR, SUB_PX)
-        parts = text.split() if style['kind'] == 'doc_hep' else wrap(text, f, inner)
+        parts = [c for wd in text.split() for c in hyphenate(wd, f, inner)] if style['kind'] == 'doc_hep' else wrap(text, f, inner)
         for t in parts:
             if tw(t, f) > inner:
                 rows.append((kind, t, 'TRAN'))
@@ -118,7 +178,7 @@ def measure(lines, style):
 
 # ---------------------------------------------------------------- bố cục
 class Node:
-    __slots__ = ('id', 'gen', 'row', 'w', 'h', 'kids', 'list_kids', 'x', 'lines', 'stub')
+    __slots__ = ('id', 'gen', 'row', 'w', 'h', 'kids', 'list_kids', 'x', 'lines', 'stub', 'all_lines')
 
 def make_nodes(P, spouses, kids, root, use_list):
     nodes = {}
@@ -130,31 +190,36 @@ def make_nodes(P, spouses, kids, root, use_list):
         n.w = st['w']
         n.kids = list(kids.get(pid, []))
         n.list_kids = []
-        if use_list and len(n.kids) > 6:
-            n.list_kids = [c for c in n.kids if not kids.get(c)]
+        n.all_lines = {c: box_lines(P[c], P, spouses, kids, kids[pid]) for c in kids.get(pid, [])}
+        leaves = [c for c in n.kids if not kids.get(c)]
+        if use_list and (len(n.kids) > 6 if CFG['danh_sach_la'] is None else len(leaves) >= CFG['danh_sach_la']) and leaves:
+            n.list_kids = leaves
             n.kids = [c for c in n.kids if kids.get(c)]
         nodes[pid] = n
         for c in kids.get(pid, []): rec(c, kids[pid])
     rec(root, [root])
     return nodes
 
-def row_geometry(nodes):
+def row_geometry(nodes, y0=None):
     hmax = collections.defaultdict(float)
     for n in nodes.values():
         st = gen_style(n.gen)
         _, h = measure(n.lines, st)
         hmax[n.row] = max(hmax[n.row], h, st.get('min_h', 0))
-    tops, y = {}, Z4['y0']
-    for r in range(max(hmax) + 1):
+    tops, y = {}, Z4['y0'] if y0 is None else y0
+    r0 = min(hmax)
+    for r in range(r0, max(hmax) + 1):
         tops[r] = y; y += hmax.get(r, 0) + GAP_ROW
     return tops, dict(hmax)
 
-def list_item_h():
-    return PAD * 2 + NAME_PX * LH + SUB_PX * LH
+LIST_STYLE = dict(kind='danh_sach', w=LIST_W)
+
+def list_item(n, c):
+    """Ô trong danh sách dọc: cùng nội dung như ô thường, rộng 5%, cao theo nội dung."""
+    return measure(n.all_lines[c], LIST_STYLE)
 
 def layout(nodes, root, tops, hmax):
     """Reingold–Tilford theo đường viền (contour) từng hàng. Trả vị trí tương đối."""
-    lih = list_item_h()
     def rows_covered(r0, height):
         y_end = tops[r0] + height
         return [r for r in tops if r >= r0 and tops[r] < y_end] or [r0]
@@ -166,7 +231,7 @@ def layout(nodes, root, tops, hmax):
         if n.list_kids:
             r0 = n.row + 1
             if r0 not in tops: tops[r0] = tops[n.row] + hmax[n.row] + GAP_ROW
-            H = len(n.list_kids) * (lih + 16)
+            H = sum(list_item(n, c)[1] + 16 for c in n.list_kids)
             wblk = SPINE + LIST_W
             cont = {r: (-wblk / 2, wblk / 2) for r in rows_covered(r0, H)}
             blocks.append((cont, {('LIST', pid): 0.0}))
@@ -199,8 +264,8 @@ def subtree_ids(nodes, pid):
         x = st.pop(); out.append(x); n = nodes[x]; st += n.kids + n.list_kids
     return out
 
-def place(nodes, root, P):
-    tops, hmax = row_geometry({k: nodes[k] for k in subtree_ids(nodes, root)})
+def place(nodes, root, P, y0=None):
+    tops, hmax = row_geometry({k: nodes[k] for k in subtree_ids(nodes, root)}, y0)
     cont, pos = layout(nodes, root, tops, hmax)
     minx = min(l for l, _ in cont.values()); maxx = max(r for _, r in cont.values())
     width = maxx - minx
@@ -211,9 +276,9 @@ def place(nodes, root, P):
 def emit(nodes, root, geo, P, chi_of):
     tops, hmax, pos, cx = geo['tops'], geo['hmax'], geo['pos'], geo['cx']
     boxes, segs = [], []
-    lih = list_item_h()
     def seg(x1, y1, x2, y2): segs.append(dict(x1=round(x1), y1=round(y1), x2=round(x2), y2=round(y2), w=LINE_W))
     for pid in subtree_ids(nodes, root):
+        if pid not in pos: continue   # con trong danh sách dọc: vẽ ở khối danh sách bên dưới
         n = nodes[pid]; p = P[pid]
         x = cx + pos[pid]; y = tops[n.row]; h = hmax[n.row]
         st = gen_style(n.gen)
@@ -238,11 +303,11 @@ def emit(nodes, root, geo, P, chi_of):
             seg(x, bottom, x, mid); seg(min(x, bx), mid, max(x, bx), mid)
             yy = cy
             for i, c in enumerate(n.list_kids):
-                cp = P[c]
-                lines = [('name', cp['name']), ('sub', (cp.get('years') or '…'))]
+                cp = P[c]; rows, lih = list_item(n, c)
                 boxes.append(dict(id=c, gen=cp['gen'], kind='danh_sach', x=round(bx + SPINE), y=round(yy), w=round(LIST_W),
                                   h=round(lih), text_w=round(LIST_W - 16), label=f"Đ.{cp['gen']}", deceased=bool(cp.get('deceased')),
-                                  female=not cp['male'], dashed=not cp['male'], lines=[dict(style=k, text=t) for k, t in lines], overflow=[]))
+                                  female=not cp['male'], dashed=not cp['male'], lines=[dict(style=k, text=t) for k, t, _ in rows],
+                                  overflow=[t for _, t, f in rows if f]))
                 seg(bx, yy + lih / 2, bx + SPINE, yy + lih / 2)
                 last = yy + lih / 2; yy += lih + 16
             seg(bx, mid, bx, last)
@@ -261,112 +326,150 @@ def check(boxes, segs):
             if a['y'] < b['y'] + b['h'] and b['y'] < a['y'] + a['h']: errs.append(f"chồng ô: {a['id']} / {b['id']}")
     for s in segs:
         x0, x1 = sorted((s['x1'], s['x2'])); y0, y1 = sorted((s['y1'], s['y2']))
-        x0 -= LINE_W / 2; x1 += LINE_W / 2
+        if x0 == x1: x0 -= LINE_W / 2; x1 += LINE_W / 2   # nét dọc: tính bề dày theo ngang
+        else: y0 -= LINE_W / 2; y1 += LINE_W / 2          # nét ngang: tính bề dày theo dọc
         for b in boxes:   # chạm mép ô (điểm đầu/cuối) là hợp lệ; cắt vào trong ô thì lỗi
             if x0 < b['x'] + b['w'] - 1 and b['x'] + 1 < x1 and y0 < b['y'] + b['h'] - 1 and b['y'] + 1 < y1:
                 errs.append(f"đường nối cắt ô {b['id']}")
         if not (Z4['x0'] <= x0 and x1 <= Z4['x1'] and Z4['y0'] <= y0 and y1 <= Z4['y1']): errs.append('đường nối ra ngoài Z4')
     return errs
 
-def preview(boxes, segs, path, title):
-    k = 0.25
+def preview(boxes, segs, path, title, titles=()):
+    k = 0.4
+    fn = ImageFont.truetype(FONT_DIR + 'LiberationSerif-Bold.ttf', int(NAME_PX * k))
+    fs = ImageFont.truetype(FONT_DIR + 'LiberationSerif-Regular.ttf', int(SUB_PX * k))
     im = Image.new('RGB', (int(PW * k), int(PH * k)), '#5A3816'); dr = ImageDraw.Draw(im)
     m = 3
     dr.rectangle([PW * m / 100 * k, PH * m / 100 * k, PW * (1 - m / 100) * k, PH * (1 - m / 100) * k], outline='#A8742E', width=2)
     dr.rectangle([Z4['x0'] * k, Z4['y0'] * k, Z4['x1'] * k, Z4['y1'] * k], outline='#2E1A0B', width=2)
-    for s in segs: dr.line([s['x1'] * k, s['y1'] * k, s['x2'] * k, s['y2'] * k], fill='#D4A94F', width=2)
+    for s in segs: dr.line([s['x1'] * k, s['y1'] * k, s['x2'] * k, s['y2'] * k], fill='#D4A94F', width=max(1, int(LINE_W * k)))
     fill = dict(thuy_to='#8E1B14', cuon_thu='#A8742E', chu_nhat='#5A3816', doc_hep='#5A3816', danh_sach='#5A3816')
     for b in boxes:
-        dr.rectangle([b['x'] * k, b['y'] * k, (b['x'] + b['w']) * k, (b['y'] + b['h']) * k], fill=fill[b['kind']], outline='#F3D98B' if not b['dashed'] else '#D4A94F', width=1)
-    dr.text((20, 10), title, fill='#F3D98B')
+        x0, y0 = b['x'] * k, b['y'] * k
+        dr.rectangle([x0, y0, x0 + b['w'] * k, y0 + b['h'] * k], fill=fill[b['kind']], outline='#D4A94F' if b['dashed'] else '#F3D98B', width=1)
+        dr.text((x0 + 2, y0 + 1), b['label'] + (' •' if b['deceased'] else ''), fill='#D4A94F', font=fs)
+        y = y0 + (PAD + SUB_PX * LH) * k + (1.6 * PX * k if b['kind'] == 'thuy_to' else 0)
+        for ln in b['lines']:
+            f = fn if ln['style'] == 'name' else fs
+            t = ln['text']; wt = f.getlength(t)
+            dr.text((x0 + (b['w'] * k - wt) / 2 if b['kind'] != 'danh_sach' else x0 + 4, y), t, fill='#F3D98B', font=f)
+            y += (NAME_PX if ln['style'] == 'name' else SUB_PX) * LH * k
+        if b.get('see_chi'): dr.text((x0, y0 + b['h'] * k + 2), f"→ Xem Chi {b['see_chi']}", fill='#F3D98B', font=fs)
+    for t in titles: dr.text((t['x'] * k, t['y'] * k), t['text'], fill='#F3D98B', font=fn)
+    dr.text((20, 10), title, fill='#F3D98B', font=fn)
     im.save(path)
 
 def run(d, out):
-    """Anh em xếp trái→phải theo thứ tự sinh (nhánh trưởng bên trái)."""
+    """Anh em xếp trái→phải theo thứ tự sinh (nhánh trưởng bên trái).
+    Nén lần lượt a → b → c, dừng ngay khi sơ đồ vừa 72% bề ngang."""
     P, spouses, kids, root = build_tree(d)
-    report = dict(nguon=d.get('settings', {}).get('title'), so_doi=max(p['gen'] for p in P.values()),
-                  so_nguoi_tong=len(P), so_o=None, buoc=[])
     limit = Z4['x1'] - Z4['x0']
-    per_gen = collections.Counter(P[i]['gen'] for i in subtree_ids(make_nodes(P, spouses, kids, root, False), root))
-    report['o_theo_doi'] = dict(sorted(per_gen.items()))
-    report['so_o'] = sum(per_gen.values())
-    report['vo_chong_trong_o'] = sum(len(spouses[i]) for i in subtree_ids(make_nodes(P, spouses, kids, root, False), root))
+    pct = lambda w: round(w / PW * 100, 1)
+    all_ids = subtree_ids(make_nodes(P, spouses, kids, root, False), root)
+    per_gen = collections.Counter(P[i]['gen'] for i in all_ids)
+    report = dict(nguon=d.get('settings', {}).get('title'), cau_hinh=dict(CFG), so_doi=max(per_gen),
+                  so_nguoi_trong_du_lieu=len(P), so_o=len(all_ids), o_theo_doi=dict(sorted(per_gen.items())),
+                  vo_chong_ghi_trong_o=sum(len(spouses[i]) for i in all_ids), buoc=[])
 
     nodes = make_nodes(P, spouses, kids, root, False)
-    geo = place(nodes, root, P)
-    report['buoc'].append(dict(buoc='Không nén (đời ≥7 đã là ô dọc hẹp theo mục 4 = bước a)', rong_px=round(geo['width']), rong_pct=round(geo['width'] / PW * 100, 1)))
-    nodes = make_nodes(P, spouses, kids, root, True)
-    n_list = sum(1 for n in nodes.values() if n.list_kids)
-    geo = place(nodes, root, P)
-    report['buoc'].append(dict(buoc=f'b. Danh sách dọc cho nhà có >6 con ({n_list} nhà áp dụng)', rong_px=round(geo['width']), rong_pct=round(geo['width'] / PW * 100, 1)))
+    w = place(nodes, root, P)['width']
+    report['buoc'].append(dict(buoc=f"a. Ô dọc hẹp từ đời {CFG['o_doc_tu']}, ô đời 2–3 rộng {CFG['d3_rong']}%", rong_pct=pct(w)))
+    if w > limit:
+        nodes = make_nodes(P, spouses, kids, root, True)
+        w = place(nodes, root, P)['width']
+        report['buoc'].append(dict(buoc=f"b. Danh sách dọc ({sum(1 for n in nodes.values() if n.list_kids)} nhà áp dụng)", rong_pct=pct(w)))
 
-    # c. tách chi: tham lam, cắt cây con rộng nhất ở đời nông nhất cho tới khi vừa
+    # c. Tách chi: mỗi lượt chọn cây con nhỏ nhất mà tách ra thì vừa; nếu chưa có thì tách cây giảm bề rộng nhiều nhất.
     panels, chi_of = [], {}
-    def width_of(rid):
-        return place(nodes, rid, P)['width']
+    def cut(i):
+        n = nodes[i]; saved = (n.kids, n.list_kids); n.kids, n.list_kids = [], []; return saved
     def split_until_fit(rid):
-        while True:
-            g = place(nodes, rid, P)
-            if g['width'] <= limit: return
-            ids = subtree_ids(nodes, rid)
-            cands = [i for i in ids if i != rid and nodes[i].kids + nodes[i].list_kids]
+        while place(nodes, rid, P)['width'] > limit:
+            cands = [i for i in subtree_ids(nodes, rid) if i != rid and (nodes[i].kids or nodes[i].list_kids)]
             if not cands: return
-            mingen = min(nodes[i].gen for i in cands)
-            best = max((i for i in cands if nodes[i].gen == mingen), key=width_of)
-            sub = dict(goc=best, kids=nodes[best].kids, list_kids=nodes[best].list_kids)
-            nodes[best].kids, nodes[best].list_kids = [], []
-            panels.append(sub)
-            chi_of[best] = len(panels)
+            trials = []
+            for i in cands:
+                size = len(subtree_ids(nodes, i)); saved = cut(i)
+                trials.append((place(nodes, rid, P)['width'], size, nodes[i].gen, i))
+                nodes[i].kids, nodes[i].list_kids = saved
+            ok = [t for t in trials if t[0] <= limit]
+            best = min(ok, key=lambda t: (t[1], t[2]))[3] if ok else min(trials, key=lambda t: (t[0], t[1]))[3]
+            k, lk = cut(best)
+            panels.append(dict(goc=best, kids=k, list_kids=lk)); chi_of[best] = len(panels)
     split_until_fit(root)
-    # mỗi tấm chi: phục hồi con rồi kiểm tra, nếu vẫn quá rộng thì tách tiếp
     i = 0
-    while i < len(panels):
-        pnl = panels[i]; n = nodes[pnl['goc']]
-        saved_stub = (n.kids, n.list_kids)
-        n.kids, n.list_kids = pnl['kids'], pnl['list_kids']
-        pnl['restore'] = True
-        split_until_fit(pnl['goc'])
-        pnl['kids'], pnl['list_kids'] = n.kids, n.list_kids
-        n.kids, n.list_kids = saved_stub
+    while i < len(panels):   # tấm chi quá rộng thì tách tiếp
+        pn = panels[i]; n = nodes[pn['goc']]
+        n.kids, n.list_kids = pn['kids'], pn['list_kids']
+        split_until_fit(pn['goc'])
+        pn['kids'], pn['list_kids'] = n.kids, n.list_kids
+        n.kids, n.list_kids = [], []
         i += 1
+    if panels:
+        report['buoc'].append(dict(buoc=f"c. Tách {len(panels)} chi", rong_pct=pct(place(nodes, root, P)['width'])))
 
     geo = place(nodes, root, P)
     boxes, segs = emit(nodes, root, geo, P, chi_of)
-    errs = check(boxes, segs)
-    sheets = [dict(ten='Tấm chính', goc=root, rong_pct=round(geo['width'] / PW * 100, 1), boxes=boxes, segments=segs, loi=errs)]
-    report['buoc'].append(dict(buoc=f'c. Tách {len(panels)} chi ra tấm riêng', rong_px=round(geo['width']), rong_pct=round(geo['width'] / PW * 100, 1)))
-    preview(boxes, segs, os.path.join(out, 'preview_tam_chinh.png'), 'Tam chinh')
-    for k, pnl in enumerate(panels, 1):
-        n = nodes[pnl['goc']]
-        stub = (n.kids, n.list_kids)
-        n.kids, n.list_kids = pnl['kids'], pnl['list_kids']
-        # tấm chi bắt đầu từ hàng trên cùng của Z4
-        g0 = n.row
-        old_row = {}
-        for sid in subtree_ids(nodes, pnl['goc']): old_row[sid] = nodes[sid].row; nodes[sid].row -= g0
-        g = place(nodes, pnl['goc'], P)
-        sub_chi = {pp['goc']: j for j, pp in enumerate(panels, 1) if pp['goc'] in subtree_ids(nodes, pnl['goc']) and pp['goc'] != pnl['goc']}
-        b2, s2 = emit(nodes, pnl['goc'], g, P, sub_chi)
-        e2 = check(b2, s2)
-        for sid, r in old_row.items(): nodes[sid].row = r
-        sheets.append(dict(ten=f'Chi {k}', goc=pnl['goc'], ten_goc=P[pnl['goc']]['name'], doi_goc=P[pnl['goc']]['gen'],
-                           rong_pct=round(g['width'] / PW * 100, 1), boxes=b2, segments=s2, loi=e2))
-        preview(b2, s2, os.path.join(out, f'preview_chi_{k}.png'), f'Chi {k}')
-        n.kids, n.list_kids = stub
-    # đếm: mỗi người dòng máu xuất hiện đúng 1 lần (ô gốc chi xuất hiện ở tấm chính và lặp lại ở đầu tấm chi)
-    seen = collections.Counter(b['id'] for s in sheets for b in s['boxes'])
-    dup_ok = set(p['goc'] for p in panels)
-    report['kiem_dem'] = dict(so_nguoi_can_ve=report['so_o'], so_nguoi_da_ve=len(seen),
+    main_bottom = max(b['y'] + b['h'] for b in boxes)
+    sheets = [dict(ten='Tấm chính', goc=root, boxes=boxes, segments=segs, titles=[])]
+    # Tấm phụ: đặt ngay trong Z4, dưới cây chính, nếu còn chỗ; không thì ra tranh riêng.
+    band_y, band_x = main_bottom + 2 * GAP_ROW + SUB_PX * 3, Z4['x0']
+    band = []
+    for k, pn in enumerate(panels, 1):
+        n = nodes[pn['goc']]
+        n.kids, n.list_kids = pn['kids'], pn['list_kids']
+        sub_chi = {pp['goc']: j for j, pp in enumerate(panels, 1) if pp['goc'] != pn['goc'] and pp['goc'] in subtree_ids(nodes, pn['goc'])}
+        g = place(nodes, pn['goc'], P, band_y)
+        b2, s2 = emit(nodes, pn['goc'], g, P, sub_chi)
+        bw, bh = g['width'], max(b['y'] + b['h'] for b in b2) - band_y
+        title = f"Chi {k}: {P[pn['goc']]['name'].strip()} (Đ.{P[pn['goc']]['gen']})"
+        if band_x + bw <= Z4['x1'] and band_y + bh <= Z4['y1']:
+            dx = band_x - min([b['x'] for b in b2] + [min(sg['x1'], sg['x2']) - LINE_W / 2 for sg in s2])
+            for b in b2: b['x'] = round(b['x'] + dx); b['chi'] = k
+            for sg in s2: sg['x1'] = round(sg['x1'] + dx); sg['x2'] = round(sg['x2'] + dx)
+            sheets[0]['boxes'] += b2; sheets[0]['segments'] += s2
+            sheets[0]['titles'].append(dict(text=title, x=round(band_x), y=round(band_y - SUB_PX * 2.5), w=round(bw)))
+            band_x += bw + 3 * GAP_SIB + GAP_COUSIN
+            band.append((b2, s2, sheets[0]['titles'][-1]))
+        else:
+            g = place(nodes, pn['goc'], P, Z4['y0'])
+            b2, s2 = emit(nodes, pn['goc'], g, P, sub_chi)
+            sheets.append(dict(ten=f'Chi {k} (tranh riêng)', goc=pn['goc'], boxes=b2, segments=s2, titles=[dict(text=title, x=round(Z4['x0']), y=round(Z4['y0'] - SUB_PX * 2.5), w=round(limit))]))
+        n.kids, n.list_kids = [], []
+    if band:   # cân dải tấm phụ vào giữa trục dọc của tranh
+        used = band_x - (3 * GAP_SIB + GAP_COUSIN) - Z4['x0']
+        sh = round((Z4['x1'] - Z4['x0'] - used) / 2)
+        for b2, s2, t in band:
+            for b in b2: b['x'] += sh
+            for sg in s2: sg['x1'] += sh; sg['x2'] += sh
+            t['x'] += sh
+    for k, sh in enumerate(sheets):
+        sh['loi'] = check(sh['boxes'], sh['segments'])
+        preview(sh['boxes'], sh['segments'], os.path.join(out, f'preview_{k}.png'), sh['ten'], sh['titles'])
+    seen = collections.Counter(b['id'] for sh in sheets for b in sh['boxes'])
+    dup_ok = {pn['goc'] for pn in panels}
+    report['kiem_dem'] = dict(so_o_can_ve=len(all_ids), so_nguoi_da_ve=len(seen), thieu=[P[i]['name'] for i in all_ids if i not in seen],
                               lap_sai=[i for i, c in seen.items() if c > 1 and not (c == 2 and i in dup_ok)])
-    report['tam'] = [dict(ten=s['ten'], goc=s.get('ten_goc', P[root]['name']), doi_goc=s.get('doi_goc', 1),
-                          so_o=len(s['boxes']), so_doi=len(set(b['gen'] for b in s['boxes'])), rong_pct=s['rong_pct'],
-                          cao_pct=round((max(b['y'] + b['h'] for b in s['boxes']) - Z4['y0']) / PH * 100, 1), loi=s['loi'][:10], so_loi=len(s['loi']))
-                     for s in sheets]
-    report['chieu_cao_o'] = {f"Đ.{r + 1}": round(h) for r, h in sorted(geo['hmax'].items())}
-    json.dump(dict(page=dict(w=PW, h=PH), z4=Z4, sheets=sheets), open(os.path.join(out, 'layout.json'), 'w'), ensure_ascii=False, indent=1)
+    report['tam'] = [dict(ten=sh['ten'], goc=P[sh['goc']]['name'].strip(), so_o=len(sh['boxes']),
+                          rong_pct=pct(max(b['x'] + b['w'] for b in sh['boxes']) - min(b['x'] for b in sh['boxes'])),
+                          tu_y_pct=pct(min(b['y'] for b in sh['boxes']) * PW / PH), den_y_pct=round(max(b['y'] + b['h'] for b in sh['boxes']) / PH * 100, 1),
+                          tam_phu=[t['text'] for t in sh['titles']], so_loi=len(sh['loi']), loi=sh['loi'][:10]) for sh in sheets]
+    report['tam'] = [dict(t, tu_y_pct=round(min(b['y'] for b in sh['boxes']) / PH * 100, 1)) for t, sh in zip(report['tam'], sheets)]
+    report['chieu_cao_o_px'] = {f"Đ.{r + 1}": round(h) for r, h in sorted(geo['hmax'].items())}
+    json.dump(dict(page=dict(w=PW, h=PH), z4=Z4, cau_hinh=CFG, sheets=sheets), open(os.path.join(out, 'layout.json'), 'w'), ensure_ascii=False, indent=1)
     json.dump(report, open(os.path.join(out, 'report.json'), 'w'), ensure_ascii=False, indent=1)
     return report
 
 if __name__ == '__main__':
-    out = sys.argv[2]; os.makedirs(out, exist_ok=True)
-    print(json.dumps(run(load(sys.argv[1]), out), ensure_ascii=False, indent=1))
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument('data'); ap.add_argument('out')
+    ap.add_argument('--d3-rong', type=float, default=7.0)
+    ap.add_argument('--o-doc-tu', type=int, default=7)
+    ap.add_argument('--danh-sach-la', type=int, default=None)
+    ap.add_argument('--con-gai', choices=['co', 'khong'], default=None, help='vẽ con cháu của con gái')
+    a = ap.parse_args()
+    CFG.update(d3_rong=a.d3_rong, o_doc_tu=a.o_doc_tu, danh_sach_la=a.danh_sach_la,
+               con_gai=None if a.con_gai is None else a.con_gai == 'co')
+    os.makedirs(a.out, exist_ok=True)
+    print(json.dumps(run(load(a.data), a.out), ensure_ascii=False, indent=1))
