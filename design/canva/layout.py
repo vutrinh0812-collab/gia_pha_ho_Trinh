@@ -42,7 +42,7 @@ def wrap(text, font, width):
     if cur: lines.append(cur)
     return lines
 
-CFG = dict(d3_rong=7.0, o_doc_tu=7, danh_sach_la=None, con_gai=None)
+CFG = dict(d3_rong=7.0, o_doc_tu=7, danh_sach_la=None, con_gai=None, doc_rong=2.2)
 # d3_rong: bề rộng ô đời 2–3 (% trang). o_doc_tu: đời bắt đầu dùng ô dọc hẹp.
 # danh_sach_la: None = đúng brief (nhà >6 con mới xếp danh sách); N = gom các con chưa có con cháu
 #   thành danh sách dọc khi nhà có từ N con như vậy. con_gai: None = theo cài đặt của dữ liệu.
@@ -58,7 +58,7 @@ def hyphenate(word, font, width):
 
 def gen_style(g):
     if g == 1: return dict(kind='thuy_to', w=9 * PX)
-    if g >= CFG['o_doc_tu']: return dict(kind='doc_hep', w=2.2 * PX, min_h=6 * PY)
+    if g >= CFG['o_doc_tu']: return dict(kind='doc_hep', w=CFG['doc_rong'] * PX, min_h=6 * PY)
     if g <= 3: return dict(kind='cuon_thu', w=CFG['d3_rong'] * PX)
     return dict(kind='chu_nhat', w=5 * PX)
 
@@ -216,7 +216,7 @@ LIST_STYLE = dict(kind='danh_sach', w=LIST_W)
 
 def list_item(n, c):
     """Ô trong danh sách dọc: cùng nội dung như ô thường, rộng 5%, cao theo nội dung."""
-    return measure(n.all_lines[c], LIST_STYLE)
+    return measure(n.all_lines[c], dict(kind='danh_sach', w=LIST_W))
 
 def layout(nodes, root, tops, hmax):
     """Reingold–Tilford theo đường viền (contour) từng hàng. Trả vị trí tương đối."""
@@ -510,7 +510,7 @@ def run_axis(d, out):
     h1, h2 = band_h(L + R), band_h(b2)
     free = (Z4['y1'] - Z4['y0']) - top_h - h1 - h2
     gap = free / 2     # chia đều phần cao còn lại cho 2 khoảng: thân→dải trên, dải trên→dải dưới
-    if gap < GAP_ROW: raise SystemExit('Không đủ chiều cao cho 2 dải.')
+    if gap < GAP_ROW: raise SystemExit(f'Không đủ chiều cao cho 2 dải: cần {top_h + h1 + h2 + 2 * GAP_ROW:.0f} px, có {Z4["y1"] - Z4["y0"]:.0f} px.')
     boxes, segs = [], []
     def seg(x1, y1, x2, y2): segs.append(dict(x1=round(x1), y1=round(y1), x2=round(x2), y2=round(y2), w=LINE_W))
     # chuỗi đời đầu trên trục giữa
@@ -566,6 +566,19 @@ def run_axis(d, out):
     preview(boxes, segs, os.path.join(out, 'preview_0.png'), 'Truc giua')
     return report
 
+def set_page(w, h, z4=None, name_px=None, sub_px=None):
+    """Đổi khổ trang (px), vùng sơ đồ Z4 (px: x0,y0,x1,y1) và cỡ chữ tối thiểu."""
+    global PW, PH, PX, PY, GAP_SIB, GAP_COUSIN, GAP_ROW, LIST_W, NAME_PX, SUB_PX, FB, FR, CHANNEL
+    PW, PH = w, h; PX, PY = PW / 100.0, PH / 100.0
+    GAP_SIB, GAP_COUSIN, GAP_ROW, LIST_W = 0.6 * PX, 1.2 * PX, 2.2 * PY, 5 * PX
+    CHANNEL = 3 * PX
+    if z4: Z4.update(x0=z4[0], y0=z4[1], x1=z4[2], y1=z4[3])
+    else: Z4.update(x0=14 * PX, x1=86 * PX, y0=20 * PY, y1=90 * PY)
+    if name_px: NAME_PX = name_px
+    if sub_px: SUB_PX = sub_px
+    FB = ImageFont.truetype(FONT_DIR + 'LiberationSerif-Bold.ttf', NAME_PX)
+    FR = ImageFont.truetype(FONT_DIR + 'LiberationSerif-Regular.ttf', SUB_PX)
+
 if __name__ == '__main__':
     import argparse
     ap = argparse.ArgumentParser()
@@ -574,8 +587,15 @@ if __name__ == '__main__':
     ap.add_argument('--o-doc-tu', type=int, default=7)
     ap.add_argument('--danh-sach-la', type=int, default=None)
     ap.add_argument('--con-gai', choices=['co', 'khong'], default=None, help='vẽ con cháu của con gái')
+    ap.add_argument('--page', help='khổ trang px, vd 5342x4044')
+    ap.add_argument('--z4', help='vùng sơ đồ px: x0,y0,x1,y1')
+    ap.add_argument('--font', help='cỡ chữ tên,phụ px, vd 30,20')
     ap.add_argument('--truc-giua', action='store_true', help='đời đầu ở trục giữa, con cháu dàn đều 2 dải')
     a = ap.parse_args()
+    if a.page:
+        w, h = map(int, a.page.split('x'))
+        f = list(map(int, a.font.split(','))) if a.font else [None, None]
+        set_page(w, h, list(map(float, a.z4.split(','))) if a.z4 else None, *f)
     CFG.update(d3_rong=a.d3_rong, o_doc_tu=a.o_doc_tu, danh_sach_la=a.danh_sach_la,
                con_gai=None if a.con_gai is None else a.con_gai == 'co')
     os.makedirs(a.out, exist_ok=True)
