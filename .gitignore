@@ -19,3 +19,4 @@ design/proposals/dist
 
 # Real family data: lives only on the owner's machine and in Firebase, never in Git.
 private-data/
+__pycache__/
