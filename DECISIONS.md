@@ -883,3 +883,10 @@ Làm theo mẫu tranh bác gửi (viền lam, mộc lan, mai đỏ, lôi văn v�
 - Người còn sống: chỉ năm sinh như trước (D87). Người **đã mất**: năm sinh và năm mất. Ô ngang (đời 1–2) một dòng "1890 – 1950"; ô dọc (từ đời 3) hai dòng "1890 –" và "1950" vì cột hẹp không đủ chỗ cho cả dải. Áp dụng cho cả người trong họ và vợ/chồng.
 - Năm chưa rõ ghi "?" ("k. 1818 – ?"); "k." cho năm ước chừng. Đã mất mà không biết cả hai năm thì không ghi dòng năm.
 - Bản in A1 dùng cùng cách ghi (cùng hàm `treeYears` / `treeYearsText` trong `format.ts`), để sơ đồ trên màn hình và bản in giống nhau.
+
+## D102 — Quản trị: "Tải bản sao lưu JSON"
+
+- Thẻ "Nhập, xuất dữ liệu (giai đoạn 7)" trên trang Quản trị thay bằng nút **Tải bản sao lưu JSON**: tải ngay về máy một file `gia-pha-<mã họ>-<ngày>.json` chứa toàn bộ dữ liệu đang có trên máy chủ: cài đặt dòng họ, **mọi người và mọi gia đình đúng như lưu** (kể cả người chưa nối vào cây), giữ nguyên mã (id).
+- Định dạng: `{ format: "gia-pha-backup", version: 1, exportedAt, clanId, settings, persons[], unions[] }`, sắp theo id, thụt lề cho dễ đọc. Chưa có chức năng nhập lại từ file; Excel vẫn để giai đoạn 7.
+- Lý do: quy tắc Firestore cho mọi người ghi (xem `firestore.rules`), nên cần sao lưu định kỳ; bác yêu cầu xuất dữ liệu hiện tại.
+- Test trang In ấn trong `app.test.tsx` được cho 20 giây (vẽ lại các tờ nhiều lần từ D98, D99, hay quá 5 giây khi máy bận).

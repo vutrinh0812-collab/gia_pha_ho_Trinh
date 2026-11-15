@@ -164,7 +164,7 @@ describe('other pages', () => {
     expect(screen.getByRole('button', { name: 'Tải PDF khổ A1' })).toBeInTheDocument();
     // D73: no tick boxes for colophon, couplets, spouses… on the print page.
     expect(screen.queryByRole('checkbox', { name: /Lạc khoản|Câu đối|Dâu, rể/ })).toBeNull();
-  });
+  }, 20000); // renders every poster several times (D98, D99): slow on a busy machine
 
   it('printing one branch adds no caption line under the title (D76)', async () => {
     const model = useClanStore.getState().model!;

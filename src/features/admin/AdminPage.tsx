@@ -1,6 +1,7 @@
 import { editSettings, settingsContent } from '@/lib/admin/changes';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { downloadBackup } from '@/lib/backup';
 import { env } from '@/lib/env';
 import { useAdminStore } from '@/store/adminStore';
 import { useAdminUi } from '@/store/adminUiStore';
@@ -97,10 +98,11 @@ function AdminHome() {
           </Link>
         </li>
         <li>
-          <div className={styles.linkCard} aria-disabled="true">
-            <span className={styles.linkTitle}>Nhập, xuất dữ liệu</span>
-            <span className={styles.linkText}>Excel và bản sao lưu JSON, có ở giai đoạn 7</span>
-          </div>
+          {/* D102: the whole clan as one JSON file, for safe keeping. */}
+          <button type="button" className={styles.linkCard} onClick={() => model && downloadBackup(model, env.clanId)} disabled={!model}>
+            <span className={styles.linkTitle}>Tải bản sao lưu JSON</span>
+            <span className={styles.linkText}>Toàn bộ dữ liệu dòng họ (cài đặt, mọi người, mọi gia đình) trong một file, để cất giữ</span>
+          </button>
         </li>
       </ul>
       <h2 className={styles.h2}>Cách sửa thông tin một người</h2>
