@@ -460,6 +460,112 @@ def run(d, out):
     json.dump(report, open(os.path.join(out, 'report.json'), 'w'), ensure_ascii=False, indent=1)
     return report
 
+# ---------------------------------------------------------------- bố cục trục giữa
+CHANNEL = 3 * PX   # khe dọc giữa dải trên cho đường thân chính đi qua
+
+def run_axis(d, out):
+    """Đời đầu (chuỗi một con) nằm đúng trục giữa; các gia đình phía dưới chia thành 2 dải,
+    giữ thứ tự sinh (dải trên: trái→phải, rồi dải dưới), mỗi dải dàn đều hết bề ngang Z4;
+    dải dưới chạm đáy Z4. Đường thân chính đi dọc trục giữa qua khe giữa dải trên."""
+    P, spouses, kids, root = build_tree(d)
+    limit = Z4['x1'] - Z4['x0']; axis = (Z4['x0'] + Z4['x1']) / 2
+    nodes = make_nodes(P, spouses, kids, root, False)
+    all_ids = subtree_ids(nodes, root)
+    chain = [root]
+    while len(nodes[chain[-1]].kids) == 1: chain.append(nodes[chain[-1]].kids[0])
+    heads = list(nodes[chain[-1]].kids)
+    _, hmax = row_geometry({k: nodes[k] for k in all_ids})
+    # bề rộng và đường viền từng gia đình
+    fam = {}
+    for h in heads:
+        tops = {}; y = 0
+        for r in range(nodes[h].row, max(hmax) + 1): tops[r] = y; y += hmax[r] + GAP_ROW
+        cont, pos = layout(nodes, h, tops, hmax)
+        l = min(a for a, _ in cont.values()); r = max(b for _, b in cont.values())
+        depth = max(nodes[i].row for i in subtree_ids(nodes, h))
+        fam[h] = dict(l=l, r=r, w=r - l, pos=pos, depth=depth)
+    def spread(items, x0, x1):
+        """Dàn đều kiểu space-evenly; trả tâm-gốc (x của ô đầu gia đình) cho từng gia đình."""
+        tot = sum(fam[h]['w'] for h in items); g = (x1 - x0 - tot) / (len(items) + 1)
+        out, x = {}, x0 + g
+        for h in items: out[h] = x - fam[h]['l']; x += fam[h]['w'] + g
+        return out, g
+    best = None
+    half = (limit - CHANNEL) / 2
+    for k in range(1, len(heads)):
+        b1, b2 = heads[:k], heads[k:]
+        for m in range(1, k):
+            L, R = b1[:m], b1[m:]
+            wl, wr = sum(fam[h]['w'] for h in L), sum(fam[h]['w'] for h in R)
+            w2 = sum(fam[h]['w'] for h in b2)
+            if wl > half or wr > half or w2 > limit: continue
+            # ưu tiên: hai dải đầy đều nhau, hai nửa dải trên cân nhau
+            score = abs(max(wl, wr) / half - w2 / limit) + abs(wl - wr) / half
+            if best is None or score < best[0]: best = (score, L, R, b2)
+    if best is None: raise SystemExit('Không chia được 2 dải vừa khổ — cần tách chi hoặc nén thêm.')
+    _, L, R, b2 = best
+    band_h = lambda items: sum(hmax[r] for r in range(nodes[items[0]].row, max(fam[h]['depth'] for h in items) + 1)) + \
+        GAP_ROW * (max(fam[h]['depth'] for h in items) - nodes[items[0]].row)
+    top_h = sum(hmax[nodes[c].row] for c in chain) + GAP_ROW * (len(chain) - 1)
+    h1, h2 = band_h(L + R), band_h(b2)
+    free = (Z4['y1'] - Z4['y0']) - top_h - h1 - h2
+    gap = free / 2     # chia đều phần cao còn lại cho 2 khoảng: thân→dải trên, dải trên→dải dưới
+    if gap < GAP_ROW: raise SystemExit('Không đủ chiều cao cho 2 dải.')
+    boxes, segs = [], []
+    def seg(x1, y1, x2, y2): segs.append(dict(x1=round(x1), y1=round(y1), x2=round(x2), y2=round(y2), w=LINE_W))
+    # chuỗi đời đầu trên trục giữa
+    y = Z4['y0']
+    last = nodes[chain[-1]]; saved = last.kids; last.kids = []
+    tops = {}
+    for c in chain: tops[nodes[c].row] = y; y += hmax[nodes[c].row] + GAP_ROW
+    cont, pos = layout(nodes, root, tops, hmax)
+    b0, s0 = emit(nodes, root, dict(tops=tops, hmax=hmax, pos=pos, cx=axis), P, {})
+    boxes += b0; segs += s0; last.kids = saved
+    trunk_top = tops[last.row] + hmax[last.row]
+    # các dải
+    def band(items_xy, y_top):
+        r0 = nodes[next(iter(items_xy))].row
+        tp = {}; yy = y_top
+        for r in range(r0, max(hmax) + 1): tp[r] = yy; yy += hmax[r] + GAP_ROW
+        bar = y_top - GAP_ROW / 2
+        for h, cx in items_xy.items():
+            b, sg = emit(nodes, h, dict(tops=tp, hmax=hmax, pos=fam[h]['pos'], cx=cx), P, {})
+            boxes.extend(b); segs.extend(sg)
+            seg(cx, bar, cx, y_top)
+        xs = list(items_xy.values()) + [axis]
+        seg(min(xs), bar, max(xs), bar)
+        return bar
+    y1 = trunk_top + gap
+    xl, gl = spread(L, Z4['x0'], axis - CHANNEL / 2)
+    xr, gr = spread(R, axis + CHANNEL / 2, Z4['x1'])
+    band({**xl, **xr}, y1)
+    y2 = Z4['y1'] - h2
+    x2, g2 = spread(b2, Z4['x0'], Z4['x1'])
+    bar2 = band(x2, y2)
+    seg(axis, trunk_top, axis, bar2)
+    errs = check(boxes, segs)
+    seen = collections.Counter(b['id'] for b in boxes)
+    per_gen = collections.Counter(P[i]['gen'] for i in all_ids)
+    report = dict(nguon=d.get('settings', {}).get('title'), bo_cuc='trục giữa, 2 dải', cau_hinh=dict(CFG),
+                  so_doi=max(per_gen), so_nguoi_trong_du_lieu=len(P), so_o=len(all_ids), o_theo_doi=dict(sorted(per_gen.items())),
+                  vo_chong_ghi_trong_o=sum(len(spouses[i]) for i in all_ids),
+                  truc_giua=[P[c]['name'].strip() for c in chain],
+                  dai_tren_trai=[P[h]['name'].strip() for h in L], dai_tren_phai=[P[h]['name'].strip() for h in R],
+                  dai_duoi=[P[h]['name'].strip() for h in b2],
+                  khoang_cach_deu_px=dict(tren_trai=round(gl), tren_phai=round(gr), duoi=round(g2)),
+                  lech_truc_doi_xung_px=round((max(b['x'] + b['w'] for b in boxes) + min(b['x'] for b in boxes)) / 2 - axis),
+                  rong_pct=round((max(b['x'] + b['w'] for b in boxes) - min(b['x'] for b in boxes)) / PW * 100, 1),
+                  cao_tu_den_pct=[round(min(b['y'] for b in boxes) / PH * 100, 1), round(max(b['y'] + b['h'] for b in boxes) / PH * 100, 1)],
+                  kiem_dem=dict(so_o_can_ve=len(all_ids), da_ve=len(seen), thieu=[P[i]['name'] for i in all_ids if i not in seen],
+                                lap=[i for i, c in seen.items() if c > 1]),
+                  chieu_cao_o_px={f"Đ.{r + 1}": round(h) for r, h in sorted(hmax.items())},
+                  so_loi=len(errs), loi=errs[:10])
+    json.dump(dict(page=dict(w=PW, h=PH), z4=Z4, cau_hinh=CFG, sheets=[dict(ten='Tấm chính', goc=root, boxes=boxes, segments=segs, titles=[])]),
+              open(os.path.join(out, 'layout.json'), 'w'), ensure_ascii=False, indent=1)
+    json.dump(report, open(os.path.join(out, 'report.json'), 'w'), ensure_ascii=False, indent=1)
+    preview(boxes, segs, os.path.join(out, 'preview_0.png'), 'Truc giua')
+    return report
+
 if __name__ == '__main__':
     import argparse
     ap = argparse.ArgumentParser()
@@ -468,8 +574,9 @@ if __name__ == '__main__':
     ap.add_argument('--o-doc-tu', type=int, default=7)
     ap.add_argument('--danh-sach-la', type=int, default=None)
     ap.add_argument('--con-gai', choices=['co', 'khong'], default=None, help='vẽ con cháu của con gái')
+    ap.add_argument('--truc-giua', action='store_true', help='đời đầu ở trục giữa, con cháu dàn đều 2 dải')
     a = ap.parse_args()
     CFG.update(d3_rong=a.d3_rong, o_doc_tu=a.o_doc_tu, danh_sach_la=a.danh_sach_la,
                con_gai=None if a.con_gai is None else a.con_gai == 'co')
     os.makedirs(a.out, exist_ok=True)
-    print(json.dumps(run(load(a.data), a.out), ensure_ascii=False, indent=1))
+    print(json.dumps((run_axis if a.truc_giua else run)(load(a.data), a.out), ensure_ascii=False, indent=1))
