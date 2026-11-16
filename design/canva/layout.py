@@ -43,10 +43,13 @@ def wrap(text, font, width):
     return lines
 
 CFG = dict(d3_rong=7.0, o_doc_tu=7, danh_sach_la=None, con_gai=None, doc_rong=2.2,
-           sao=True, ten_khac=True, nam_pn=False, nhan=True, pn_dam=False)
+           sao=True, ten_khac=True, nam_pn=False, nhan=True, pn_dam=False,
+           xung_ho=False, xuat_gia=True)
 # sao: dấu ★ con trưởng. ten_khac: dòng tên thường gọi/tên khác. nam_pn: năm sinh (– năm mất) của vợ/chồng.
 # nhan: chừa dải nhãn Đ.n ở góc trên ô. pn_dam: tên vợ/chồng cùng cỡ, cùng độ đậm với tên chính (kind 'sname').
 GAP_PN = 8   # khoảng cách trước khối vợ/chồng
+# xung_ho: đời 1 ghi 'Cụ ông/Cụ bà', đời 2 ghi 'Ông/Bà' trước tên. xuat_gia: dòng '(Xuất giá họ …)' của con gái.
+XUNG_HO = {1: ('Cụ ông', 'Cụ bà'), 2: ('Ông', 'Bà')}
 # d3_rong: bề rộng ô đời 2–3 (% trang). o_doc_tu: đời bắt đầu dùng ô dọc hẹp.
 # danh_sach_la: None = đúng brief (nhà >6 con mới xếp danh sách); N = gom các con chưa có con cháu
 #   thành danh sách dọc khi nhà có từ N con như vậy. con_gai: None = theo cài đặt của dữ liệu.
@@ -142,6 +145,19 @@ def box_lines(p, P, spouses, kids, parent_kids):
     star = '★ ' if CFG['sao'] and p['male'] and sons and sons[0] == p['id'] and len(parent_kids) > 1 else ''
     sp = spouses.get(p['id'], [])
     lines = []
+    if CFG['xung_ho'] and g in XUNG_HO:
+        ong, ba = XUNG_HO[g] if p['male'] else XUNG_HO[g][::-1]
+        lines.append(('name', f"{ong}: {p['name']}"))
+        if CFG['ten_khac'] and p.get('other'): lines.append(('sub', p['other']))
+        lines.append(('sub', p.get('years') or '…'))
+        for i, s in enumerate(sp, 1):
+            lab = ba + (f" {i}" if len(sp) > 1 else '')
+            if CFG['pn_dam']:
+                lines.append(('sname', f"{lab}: {s['name'].strip()}"))
+                lines.append(('sub', s.get('years') or '…'))
+            else:
+                lines.append(('sub', f"{lab}: {s['name'].strip()} ({s.get('years') or '…'})"))
+        return lines
     if g == 1:
         lines.append(('name', f"Thủy tổ: {p['name']}"))
         if CFG['ten_khac'] and p.get('other'): lines.append(('sub', p['other']))
@@ -156,7 +172,7 @@ def box_lines(p, P, spouses, kids, parent_kids):
     yrs = p.get('years') or '…'
     if p.get('deceased') and p.get('gio'): yrs += f" · Giỗ {p['gio']}"
     lines.append(('sub', yrs))
-    if not p['male']:
+    if not p['male'] and CFG['xuat_gia']:
         ho = sp[0]['name'].split()[0] if sp else '…'
         lines.append(('sub', f"(Xuất giá họ {ho})"))
     for i, s in enumerate(sp, 1):
