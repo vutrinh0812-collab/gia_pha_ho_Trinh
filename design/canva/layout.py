@@ -43,9 +43,10 @@ def wrap(text, font, width):
     return lines
 
 CFG = dict(d3_rong=7.0, o_doc_tu=7, danh_sach_la=None, con_gai=None, doc_rong=2.2,
-           sao=True, ten_khac=True, nam_pn=False, nhan=True)
+           sao=True, ten_khac=True, nam_pn=False, nhan=True, pn_dam=False)
 # sao: dấu ★ con trưởng. ten_khac: dòng tên thường gọi/tên khác. nam_pn: năm sinh (– năm mất) của vợ/chồng.
-# nhan: chừa dải nhãn Đ.n ở góc trên ô.
+# nhan: chừa dải nhãn Đ.n ở góc trên ô. pn_dam: tên vợ/chồng cùng cỡ, cùng độ đậm với tên chính (kind 'sname').
+GAP_PN = 8   # khoảng cách trước khối vợ/chồng
 # d3_rong: bề rộng ô đời 2–3 (% trang). o_doc_tu: đời bắt đầu dùng ô dọc hẹp.
 # danh_sach_la: None = đúng brief (nhà >6 con mới xếp danh sách); N = gom các con chưa có con cháu
 #   thành danh sách dọc khi nhà có từ N con như vậy. con_gai: None = theo cài đặt của dữ liệu.
@@ -161,7 +162,11 @@ def box_lines(p, P, spouses, kids, parent_kids):
     for i, s in enumerate(sp, 1):
         lab = ('Chồng' if not p['male'] else 'Vợ') + (f" {i}" if len(sp) > 1 else '')
         y = f" ({s['years']})" if CFG['nam_pn'] and s.get('years') else ''
-        lines.append(('sub', f"{lab}: {s['name'].strip()}{y}"))
+        if CFG['pn_dam']:
+            lines.append(('sname', f"{lab}: {s['name'].strip()}"))
+            if y: lines.append(('sub', y.strip()))
+        else:
+            lines.append(('sub', f"{lab}: {s['name'].strip()}{y}"))
     return lines
 
 def measure(lines, style):
@@ -169,8 +174,11 @@ def measure(lines, style):
     inner = style['w'] - 2 * PAD
     rows, h = [], PAD + (SUB_PX * LH if CFG['nhan'] else 0)   # dải nhãn Đ.n ở góc trên trái
     if style['kind'] == 'thuy_to': h += 1.6 * PX   # chừa mái đình
+    prev = None
     for kind, text in lines:
-        f, size = (FB, NAME_PX) if kind == 'name' else (FR, SUB_PX)
+        f, size = (FB, NAME_PX) if kind in ('name', 'sname') else (FR, SUB_PX)
+        if kind == 'sname' and prev != 'sname': h += GAP_PN
+        prev = kind
         parts = [c for wd in text.split() for c in hyphenate(wd, f, inner)] if style['kind'] == 'doc_hep' else wrap(text, f, inner)
         for t in parts:
             if tw(t, f) > inner:
@@ -277,6 +285,34 @@ def place(nodes, root, P, y0=None):
     return dict(tops=tops, hmax=hmax, pos=pos, cx=cx, width=width)
 
 # ---------------------------------------------------------------- xuất
+def dan_rong_hang(nodes, geo, row, x0, x1, gap_in, gap_nhom, cho_trong=1):
+    """Dãn một hàng (thường là đời cuối): giữ thứ tự, mỗi nhà một cụm, các con cách nhau gap_in,
+    chừa thêm `cho_trong` ô trống bên phải mỗi cụm để sau này điền thêm cháu; cụm cố đứng dưới cha."""
+    cx, pos = geo['cx'], geo['pos']
+    groups = []
+    for pid, n in nodes.items():
+        kids = [c for c in n.kids if c in pos and nodes[c].row == row]
+        if kids and pid in pos: groups.append((cx + pos[pid], kids))
+    groups.sort(key=lambda g: g[0])
+    out = []
+    for px, kids in groups:
+        w = nodes[kids[0]].w; s = w + gap_in
+        span = (len(kids) - 1) * s + w; R = span + cho_trong * s
+        out.append([px - span / 2, span, R, s, w, kids])
+    for i, g in enumerate(out):          # quét trái → phải: không chồng nhau
+        if i: g[0] = max(g[0], out[i - 1][0] + out[i - 1][2] + gap_nhom)
+        g[0] = max(g[0], x0)
+    for i in range(len(out) - 1, -1, -1):  # quét phải → trái: không vượt lề phải
+        lim = x1 if i == len(out) - 1 else out[i + 1][0] - gap_nhom
+        g = out[i]; g[0] = min(g[0], lim - g[2])
+    if out:   # dời cả hàng để các cụm lệch trái/phải đều quanh cha
+        lech = sum(g[0] + g[1] / 2 - px for g, (px, _) in zip(out, groups)) / len(out)
+        d = max(x0 - out[0][0], min(x1 - (out[-1][0] + out[-1][2]), -lech))
+        for g in out: g[0] += d
+    for L, span, R, s, w, kids in out:
+        for k, c in enumerate(kids): pos[c] = L + k * s + w / 2 - cx
+    return out
+
 def emit(nodes, root, geo, P, chi_of):
     tops, hmax, pos, cx = geo['tops'], geo['hmax'], geo['pos'], geo['cx']
     boxes, segs = [], []
