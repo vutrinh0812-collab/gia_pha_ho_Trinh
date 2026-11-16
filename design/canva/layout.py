@@ -42,7 +42,10 @@ def wrap(text, font, width):
     if cur: lines.append(cur)
     return lines
 
-CFG = dict(d3_rong=7.0, o_doc_tu=7, danh_sach_la=None, con_gai=None, doc_rong=2.2)
+CFG = dict(d3_rong=7.0, o_doc_tu=7, danh_sach_la=None, con_gai=None, doc_rong=2.2,
+           sao=True, ten_khac=True, nam_pn=False, nhan=True)
+# sao: dấu ★ con trưởng. ten_khac: dòng tên thường gọi/tên khác. nam_pn: năm sinh (– năm mất) của vợ/chồng.
+# nhan: chừa dải nhãn Đ.n ở góc trên ô.
 # d3_rong: bề rộng ô đời 2–3 (% trang). o_doc_tu: đời bắt đầu dùng ô dọc hẹp.
 # danh_sach_la: None = đúng brief (nhà >6 con mới xếp danh sách); N = gom các con chưa có con cháu
 #   thành danh sách dọc khi nhà có từ N con như vậy. con_gai: None = theo cài đặt của dữ liệu.
@@ -135,12 +138,12 @@ def build_tree(d):
 def box_lines(p, P, spouses, kids, parent_kids):
     g = p['gen']
     sons = [c for c in parent_kids if P[c]['male']]
-    star = '★ ' if p['male'] and sons and sons[0] == p['id'] and len(parent_kids) > 1 else ''
+    star = '★ ' if CFG['sao'] and p['male'] and sons and sons[0] == p['id'] and len(parent_kids) > 1 else ''
     sp = spouses.get(p['id'], [])
     lines = []
     if g == 1:
         lines.append(('name', f"Thủy tổ: {p['name']}"))
-        if p.get('other'): lines.append(('sub', p['other']))
+        if CFG['ten_khac'] and p.get('other'): lines.append(('sub', p['other']))
         lines.append(('sub', p.get('years') or '…'))
         for i, s in enumerate(sp, 1):
             other = f" – {s['other']}" if s.get('other') else ''
@@ -148,7 +151,7 @@ def box_lines(p, P, spouses, kids, parent_kids):
             lines.append(('sub', f"{lab}: {s['name']}{other} ({s.get('years') or '…'})"))
         return lines
     lines.append(('name', star + p['name']))
-    if p.get('other'): lines.append(('sub', p['other']))
+    if CFG['ten_khac'] and p.get('other'): lines.append(('sub', p['other']))
     yrs = p.get('years') or '…'
     if p.get('deceased') and p.get('gio'): yrs += f" · Giỗ {p['gio']}"
     lines.append(('sub', yrs))
@@ -157,13 +160,14 @@ def box_lines(p, P, spouses, kids, parent_kids):
         lines.append(('sub', f"(Xuất giá họ {ho})"))
     for i, s in enumerate(sp, 1):
         lab = ('Chồng' if not p['male'] else 'Vợ') + (f" {i}" if len(sp) > 1 else '')
-        lines.append(('sub', f"{lab}: {s['name']}"))
+        y = f" ({s['years']})" if CFG['nam_pn'] and s.get('years') else ''
+        lines.append(('sub', f"{lab}: {s['name'].strip()}{y}"))
     return lines
 
 def measure(lines, style):
     """Trả (text_rows, height). Ô dọc hẹp: mỗi chữ (từ) một dòng."""
     inner = style['w'] - 2 * PAD
-    rows, h = [], PAD + SUB_PX * LH   # dải nhãn Đ.n ở góc trên trái
+    rows, h = [], PAD + (SUB_PX * LH if CFG['nhan'] else 0)   # dải nhãn Đ.n ở góc trên trái
     if style['kind'] == 'thuy_to': h += 1.6 * PX   # chừa mái đình
     for kind, text in lines:
         f, size = (FB, NAME_PX) if kind == 'name' else (FR, SUB_PX)
