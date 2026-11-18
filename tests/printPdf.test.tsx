@@ -145,6 +145,52 @@ describe('"Gấm lam mai sen": navy brocade, plum and lotus, title on the paper 
   });
 });
 
+describe('"Rồng phượng lôi văn": page 1 of the clan Canva sheet as a print theme (D103)', () => {
+  const theme = getTheme('rong-phuong-loi-van')!;
+
+  it('is a print theme: frame picture with painted couplets, separate cuốn thư, A1 landscape', () => {
+    expect(PRINT_THEMES.map((t) => t.id)).toContain('rong-phuong-loi-van');
+    expect(theme.backgroundImage?.href).toBeTruthy();
+    expect(theme.titleBoard).toMatchObject({ topMm: 65.5, widthMm: 288.5, arcRadius: 0.7 });
+    // The calligraphy couplets are in the picture: the app writes none on top.
+    expect(theme.ornaments.showCouplets).toBe(false);
+    expect(theme.preferredOrientation).toBe('landscape');
+  });
+
+  it('writes title and subtitle in light gold on the red face, arched upwards', () => {
+    const { container } = render(
+      <PosterSvg theme={theme} model={model} layout={layout} title="Gia Phả Họ Trịnh" subtitle="Chi ông Trịnh Văn Chín" />,
+    );
+    const b = theme.titleBoard!;
+    const h = b.widthMm * b.aspect;
+    const x0 = (841 - b.widthMm) / 2;
+    const face = {
+      left: x0 + b.textBox.left * b.widthMm,
+      right: x0 + b.textBox.right * b.widthMm,
+      top: b.topMm + b.textBox.top * h,
+      bottom: b.topMm + b.textBox.bottom * h,
+    };
+    for (const text of ['Gia Phả Họ Trịnh', 'Chi ông Trịnh Văn Chín']) {
+      const line = container.querySelector(`g[aria-label="${text}"]`)!;
+      expect(line, text).not.toBeNull();
+      const letters = Array.from(line.querySelectorAll('text'));
+      expect(letters[0]!.getAttribute('font-family')).toBe('Dancing Script');
+      expect(letters[0]!.getAttribute('fill')).toBe('#fbe2a0');
+      const xs = letters.map((l) => Number(l.getAttribute('x')));
+      const ys = letters.map((l) => Number(l.getAttribute('y')));
+      for (let i = 0; i < letters.length; i++) {
+        expect(xs[i]).toBeGreaterThan(face.left);
+        expect(xs[i]).toBeLessThan(face.right);
+        expect(ys[i]).toBeGreaterThan(face.top);
+        expect(ys[i]).toBeLessThan(face.bottom);
+      }
+      const mid = ys[Math.floor(ys.length / 2)]!;
+      expect(ys[0]!).toBeGreaterThan(mid);
+      expect(ys[ys.length - 1]!).toBeGreaterThan(mid);
+    }
+  });
+});
+
 describe('"Đỏ son sen vàng": relief Buddha above a gold silk ribbon (D78)', () => {
   const theme = getTheme('do-son-sen-vang')!;
 

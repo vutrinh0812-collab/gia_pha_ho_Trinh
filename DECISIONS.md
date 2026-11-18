@@ -890,3 +890,12 @@ Làm theo mẫu tranh bác gửi (viền lam, mộc lan, mai đỏ, lôi văn v�
 - Định dạng: `{ format: "gia-pha-backup", version: 1, exportedAt, clanId, settings, persons[], unions[] }`, sắp theo id, thụt lề cho dễ đọc. Chưa có chức năng nhập lại từ file; Excel vẫn để giai đoạn 7.
 - Lý do: quy tắc Firestore cho mọi người ghi (xem `firestore.rules`), nên cần sao lưu định kỳ; bác yêu cầu xuất dữ liệu hiện tại.
 - Test trang In ấn trong `app.test.tsx` được cho 20 giây (vẽ lại các tờ nhiều lần từ D98, D99, hay quá 5 giây khi máy bận).
+
+## D103 — Giao diện in "Rồng phượng lôi văn" (trang 1 bản Canva của dòng họ)
+
+- Lấy giao diện trang 1 thiết kế Canva `DAHa-fxoOQs` của bác làm giao diện in A1 ngang. **Không sửa bản gốc**: dựng lại trên bản A1 riêng `DAHbQeASSAA` (5600 × 3955 px, trang 1), các ô người và đường nối không đưa vào ảnh.
+- **Ảnh khung** `khung-a1.jpg` (JPEG 90, ~169 dpi): nền kem `#ffeb99` có trống đồng mờ, viền lôi văn đỏ `#b3100c` với ke góc và ba huy hiệu tròn, rồng góc trên trái, phượng góc trên phải, sóng vàng chân khung. **Câu đối thư pháp vàng nằm luôn trong ảnh** ("Tổ Công Tông Đức Thiên Niên Thịnh / Tử Hiếu Tôn Hiền Vạn Đại Vinh", ảnh Canva AI đã soát dấu), nên luôn in đúng câu này; ứng dụng không viết câu đối (`showCouplets: false`).
+- **Cuốn thư** mạ vàng tách lớp `bang-tieu-de.png` (xuất có/không có bảng rồi `cat-bang-tieu-de.py`): `topMm` 65,5, `widthMm` 288,5, vùng chữ là lòng đỏ giữa hai cuộn (0,27–0,58 × 0,29–0,71), lòng cong vồng lên, `arcRadius` 0,7. Tiêu đề và dòng phụ do bác gõ ở trang In ấn.
+- **Chữ**: tiêu đề Dancing Script 700 (80 pt), dòng phụ Dancing Script 600 (48 pt), màu vàng nhạt `#fbe2a0` trên lòng đỏ, giống trang Canva. Tên và năm Noto Serif (700/400). Không có dòng "Con cháu kính lập / Ngày … tháng … năm …".
+- **Ô người**: nền kem `#fbefc4`, viền và đường nối đỏ `#b3100c`, tên đỏ thẫm `#8a0e0a`, dâu rể nâu `#5c3a1c`. Không có `textRelief`.
+- Vùng cây `contentInsetMm` 65,5 / 112 / 46 / 112: giữa hai cuộn câu đối, trên chỉ viền dưới. Không cần phông PDF mới (Dancing Script, Noto Serif đã có).

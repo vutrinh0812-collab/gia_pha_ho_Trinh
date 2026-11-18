@@ -127,8 +127,8 @@ describe('other pages', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'In ấn' }, { timeout: 5000 })).toBeInTheDocument();
     const picker = screen.getByRole('heading', { name: 'Giao diện khung' }).parentElement!;
     const options = within(picker).getAllByRole('button', { name: /^Giao diện / });
-    // D91: only the frame presets, plus "Gấm lam mai sen" (D97).
-    expect(options.map((b) => b.getAttribute('aria-label'))).toEqual(['Giao diện Đỏ son sen vàng', 'Giao diện Gấm lam mai sen', 'Giao diện Hoa điểu trên lụa', 'Giao diện Sơn mài rồng vàng']);
+    // D91: only the frame presets, plus "Gấm lam mai sen" (D97) and "Rồng phượng lôi văn" (D103).
+    expect(options.map((b) => b.getAttribute('aria-label'))).toEqual(['Giao diện Đỏ son sen vàng', 'Giao diện Gấm lam mai sen', 'Giao diện Hoa điểu trên lụa', 'Giao diện Rồng phượng lôi văn', 'Giao diện Sơn mài rồng vàng']);
     // No stored default in the sample clan: "Hoa điểu trên lụa" is chosen.
     expect(options.filter((b) => b.getAttribute('aria-pressed') === 'true').map((b) => b.getAttribute('aria-label'))).toEqual(['Giao diện Hoa điểu trên lụa']);
     // Tree size slider (D98): 100% = the theme's default; back to it on another theme.
